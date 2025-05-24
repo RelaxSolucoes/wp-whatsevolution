@@ -292,59 +292,71 @@ class Api_Connection {
     }
 
     /**
-     * Envia uma mensagem de texto
-     * @param string $number Número do WhatsApp
-     * @param string $message Mensagem (pode conter variáveis)
-     * @return array Resultado do envio
+     * Envia uma mensagem via WhatsApp
+     * @param string $number Número do telefone
+     * @param string $message Mensagem a ser enviada
+     * @return array ['success' => bool, 'message' => string]
      */
     public function send_message($number, $message) {
         if (!$this->is_configured()) {
             return [
                 'success' => false,
-                'message' => __('Configuração da API incompleta.', 'wp-whatsapp-evolution')
+                'message' => __('API não configurada.', 'wp-whatsapp-evolution')
             ];
         }
 
-        // Substitui as variáveis da loja na mensagem
+        // Formata e valida o número
+        $phone_validation = $this->format_phone_number($number);
+        if (!$phone_validation['success']) {
+            return $phone_validation;
+        }
+        $number = $phone_validation['number'];
+
+        // Substitui variáveis da loja na mensagem
         $message = $this->replace_store_variables($message);
 
-        // Formata o número antes de enviar
-        $formatted = $this->format_phone_number($number);
-        if (!$formatted['success']) {
-            return $formatted;
-        }
-        $number = $formatted['number'];
-
-        // Constrói a URL para envio da mensagem
+        // Constrói a URL do endpoint
         $url = rtrim($this->api_url, '/') . '/message/sendText/' . $this->instance_name;
 
         // Log para debug
-        wpwevo_log_error('Sending message:');
+        wpwevo_log_error('Enviando mensagem:');
         wpwevo_log_error('URL: ' . $url);
-        wpwevo_log_error('Number: ' . $number);
-        wpwevo_log_error('Message: ' . $message);
+        wpwevo_log_error('Número: ' . $number);
+        wpwevo_log_error('Mensagem: ' . $message);
 
+        // Prepara o corpo da requisição no formato correto
         $body = [
             'number' => $number,
             'text' => $message,
-            'linkPreview' => true
+            'linkPreview' => true,
+            'mentionsEveryOne' => false,
+            'delay' => 0
         ];
 
-        $response = wp_remote_post($url, [
+        $args = [
+            'method' => 'POST',
             'headers' => [
                 'apikey' => $this->api_key,
                 'Content-Type' => 'application/json'
             ],
             'body' => json_encode($body),
             'timeout' => 15,
-            'sslverify' => false
-        ]);
+            'sslverify' => false // Temporário para debug
+        ];
+
+        // Log dos argumentos da requisição
+        wpwevo_log_error('Request args: ' . print_r($args, true));
+
+        $response = wp_remote_post($url, $args);
 
         if (is_wp_error($response)) {
-            wpwevo_log_error('Message sending error: ' . $response->get_error_message());
+            wpwevo_log_error('Send message error: ' . $response->get_error_message());
             return [
                 'success' => false,
-                'message' => __('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.', 'wp-whatsapp-evolution')
+                'message' => sprintf(
+                    __('Erro ao enviar mensagem: %s', 'wp-whatsapp-evolution'),
+                    $response->get_error_message()
+                )
             ];
         }
 
@@ -356,38 +368,33 @@ class Api_Connection {
         wpwevo_log_error('Status: ' . $status_code);
         wpwevo_log_error('Body: ' . $body);
 
-        // Trata os diferentes códigos de status
-        if ($status_code !== 201) {
-            $error_messages = [
-                400 => __('Não foi possível enviar a mensagem. Verifique o número e tente novamente.', 'wp-whatsapp-evolution'),
-                401 => __('Erro de autenticação. Verifique sua chave API.', 'wp-whatsapp-evolution'),
-                404 => __('Instância do WhatsApp não encontrada.', 'wp-whatsapp-evolution'),
-                429 => __('Muitas requisições. Aguarde um momento e tente novamente.', 'wp-whatsapp-evolution'),
-                500 => __('Erro interno do servidor. Tente novamente mais tarde.', 'wp-whatsapp-evolution')
-            ];
+        $data = json_decode($body, true);
 
+        // Verifica se o status é 201 (Created) que é o esperado para esta API
+        if ($status_code !== 201) {
+            $error_message = isset($data['error']) ? $data['error'] : __('Erro desconhecido da API', 'wp-whatsapp-evolution');
             return [
                 'success' => false,
-                'message' => $error_messages[$status_code] ?? __('Erro desconhecido ao enviar mensagem.', 'wp-whatsapp-evolution')
+                'message' => sprintf(
+                    __('Erro na API (código %d): %s', 'wp-whatsapp-evolution'),
+                    $status_code,
+                    $error_message
+                )
             ];
         }
 
-        $data = json_decode($body, true);
-
-        if (!is_array($data) || !isset($data['key']['id'])) {
+        // Verifica se a resposta contém a chave de mensagem esperada
+        if (!isset($data['key']) || !isset($data['status'])) {
             return [
                 'success' => false,
-                'message' => __('Resposta inválida do servidor.', 'wp-whatsapp-evolution')
+                'message' => __('Resposta da API em formato inválido.', 'wp-whatsapp-evolution')
             ];
         }
 
         return [
             'success' => true,
             'message' => __('Mensagem enviada com sucesso!', 'wp-whatsapp-evolution'),
-            'data' => [
-                'message_id' => $data['key']['id'],
-                'status' => $data['status']
-            ]
+            'data' => $data
         ];
     }
 

@@ -5,6 +5,33 @@ jQuery(document).ready(function($) {
     var $spinner = $form.find('.spinner');
     var $result = $('#wpwevo-save-result');
 
+    // Função para serializar o formulário
+    function serializeFormToObject($form) {
+        var formData = {
+            action: 'wpwevo_save_status_messages',
+            nonce: wpwevoSendByStatus.nonce,
+            status: {}
+        };
+        
+        // Processa todos os status, independente do checkbox
+        $form.find('.wpwevo-status-message').each(function() {
+            var $statusBlock = $(this);
+            var $checkbox = $statusBlock.find('input[type="checkbox"]');
+            var $textarea = $statusBlock.find('textarea');
+            var matches = $checkbox.attr('name').match(/status\[(.*?)\]/);
+            if (!matches) return;
+            
+            var status = matches[1];
+            // Sempre inclui o status, com enabled false quando desmarcado
+            formData.status[status] = {
+                enabled: $checkbox.is(':checked'),
+                message: $textarea.val() || ''
+            };
+        });
+
+        return formData;
+    }
+
     // Salvar configurações
     $form.on('submit', function(e) {
         e.preventDefault();
@@ -13,23 +40,24 @@ jQuery(document).ready(function($) {
         $spinner.addClass('is-active');
         $result.hide();
 
+        var formData = serializeFormToObject($form);
+        console.log('Enviando dados:', formData); // Log para debug
+
         $.ajax({
             url: wpwevoSendByStatus.ajaxurl,
             type: 'POST',
-            data: {
-                action: 'wpwevo_save_status_messages',
-                nonce: wpwevoSendByStatus.nonce,
-                status: $(this).serializeArray()
-            },
+            data: formData,
             success: function(response) {
+                console.log('Resposta:', response); // Log para debug
                 if (response.success) {
-                    showResult('success', response.data);
+                    showResult('success', response.data.message);
                 } else {
-                    showResult('error', wpwevoSendByStatus.i18n.error + response.data);
+                    showResult('error', response.data.message || wpwevoSendByStatus.i18n.error);
                 }
             },
-            error: function() {
-                showResult('error', wpwevoSendByStatus.i18n.error + wpwevoSendByStatus.i18n.networkError);
+            error: function(xhr, status, error) {
+                console.error('Erro:', error); // Log para debug
+                showResult('error', wpwevoSendByStatus.i18n.error + ' ' + error);
             },
             complete: function() {
                 $button.prop('disabled', false);
@@ -38,52 +66,26 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Preview de mensagem
-    $('.wpwevo-preview-message').on('click', function() {
+    // Restaurar mensagem padrão
+    $('.wpwevo-reset-message').on('click', function() {
         var $button = $(this);
-        var status = $button.data('status');
-        var $preview = $('#preview-' + status);
-        var message = $('textarea[name="status[' + status + '][message]"]').val();
-
-        if (!message) {
-            $preview.html('<div class="notice notice-warning"><p>' + 
-                wpwevoSendByStatus.i18n.emptyMessage + '</p></div>').show();
-            return;
+        var defaultMessage = $button.data('default');
+        var $textarea = $button.closest('.wpwevo-status-message').find('textarea');
+        
+        if (confirm(wpwevoSendByStatus.i18n.confirmReset)) {
+            $textarea.val(defaultMessage);
         }
-
-        $button.prop('disabled', true);
-        $preview.html('<div class="notice notice-info"><p>' + 
-            wpwevoSendByStatus.i18n.preview + '</p></div>').show();
-
-        $.ajax({
-            url: wpwevoSendByStatus.ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'wpwevo_preview_message',
-                nonce: wpwevoSendByStatus.previewNonce,
-                status: status,
-                message: message
-            },
-            success: function(response) {
-                if (response.success) {
-                    $preview.html('<div class="notice notice-info"><p>' + response.data + '</p></div>');
-                } else {
-                    $preview.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
-                }
-            },
-            error: function() {
-                $preview.html('<div class="notice notice-error"><p>' + 
-                    wpwevoSendByStatus.i18n.networkError + '</p></div>');
-            },
-            complete: function() {
-                $button.prop('disabled', false);
-            }
-        });
     });
 
     // Função para mostrar resultado
     function showResult(type, message) {
         var className = type === 'success' ? 'notice-success' : 'notice-error';
         $result.html('<div class="notice ' + className + '"><p>' + message + '</p></div>').fadeIn();
+        
+        if (type === 'success') {
+            setTimeout(function() {
+                window.location.reload();
+            }, 1000);
+        }
     }
 }); 

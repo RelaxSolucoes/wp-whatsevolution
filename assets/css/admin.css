@@ -280,45 +280,93 @@
 }
 
 /* Envio por Status */
+.wpwevo-send-by-status-form {
+    margin: 20px 0;
+}
+
 .wpwevo-status-message {
     background: #fff;
-    border: 1px solid #e5e5e5;
+    border: 1px solid #ccd0d4;
     border-radius: 4px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     padding: 15px;
 }
 
 .wpwevo-status-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .wpwevo-status-toggle {
     display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
+    margin-right: 10px;
 }
 
 .wpwevo-status-name {
+    margin-left: 8px;
     font-weight: 600;
-    color: #1d2327;
 }
 
 .wpwevo-status-content {
     position: relative;
 }
 
-.wpwevo-message-preview {
-    margin-top: 10px;
-    display: none;
+.wpwevo-status-content textarea {
+    width: 100%;
+    margin-bottom: 10px;
+    resize: vertical;
 }
 
-.wpwevo-message-preview .notice {
-    margin: 0;
-    padding: 8px 12px;
+.wpwevo-message-preview {
+    margin-top: 10px;
+}
+
+.wpwevo-form-actions {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.wpwevo-form-actions .spinner {
+    float: none;
+    margin-left: 10px;
+}
+
+.wpwevo-save-result {
+    margin-top: 15px;
+}
+
+.wpwevo-variables-help {
+    margin-top: 30px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.wpwevo-variables-help code {
+    background: #f0f0f1;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.wpwevo-preview-message,
+.wpwevo-reset-message {
+    margin-left: 10px !important;
+}
+
+.wpwevo-reset-message {
+    color: #a00 !important;
+}
+
+.wpwevo-reset-message:hover {
+    color: #dc3232 !important;
 }
 
 /* Responsividade */
@@ -326,16 +374,16 @@
     .wpwevo-status-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
     }
 
     .wpwevo-status-toggle {
-        width: 100%;
+        margin-bottom: 10px;
     }
 
-    .wpwevo-preview-message {
-        width: 100%;
-        text-align: center;
+    .wpwevo-preview-message,
+    .wpwevo-reset-message {
+        margin-left: 0 !important;
+        margin-top: 5px;
     }
 }
 
