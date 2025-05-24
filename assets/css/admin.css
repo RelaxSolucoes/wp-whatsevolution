@@ -1,12 +1,12 @@
 /* Estilos do painel WP WhatsApp Evolution */
 
 .wpwevo-panel {
+    max-width: 1200px;
+    margin: 20px 0;
+    padding: 20px;
     background: #fff;
-    border: 1px solid #e5e5e5;
-    padding: 24px;
-    margin-top: 20px;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .wpwevo-panel h1 {
@@ -77,37 +77,26 @@
 }
 
 .wpwevo-variables-help {
-    background: #f9f9f9;
-    border: 1px solid #e5e5e5;
+    background: #f8f9fa;
+    padding: 15px;
     border-radius: 4px;
-    padding: 15px 20px;
-    margin-top: 30px;
+    margin-bottom: 20px;
 }
 
 .wpwevo-variables-help h3 {
-    color: #25d366;
-    margin: 0 0 15px;
-    font-size: 16px;
-    font-weight: 600;
+    margin-top: 0;
+    color: #1d2327;
 }
 
 .wpwevo-variables-help ul {
     margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.wpwevo-variables-help li {
-    margin-bottom: 10px;
-    line-height: 1.4;
+    padding-left: 20px;
 }
 
 .wpwevo-variables-help code {
-    background: #fff;
-    padding: 2px 5px;
+    background: #e9ecef;
+    padding: 2px 6px;
     border-radius: 3px;
-    font-size: 13px;
-    color: #007cba;
 }
 
 /* Conexão */
@@ -263,20 +252,50 @@
 }
 
 /* Progress Bar */
-.wpwevo-progress-bar {
-    height: 20px;
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 10px;
+.wpwevo-progress-wrapper {
+    margin: 20px 0;
+    background: #f0f0f1;
+    border-radius: 4px;
     overflow: hidden;
-    margin: 10px 0;
+    position: relative;
 }
 
-.wpwevo-progress-fill {
-    height: 100%;
-    background: #25d366;
+.wpwevo-progress-bar {
+    height: 24px;
+    background: #2271b1;
     width: 0;
     transition: width 0.3s ease;
+}
+
+.wpwevo-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    font-weight: 500;
+    z-index: 1;
+}
+
+.wpwevo-progress-warning {
+    margin: 10px 0;
+    padding: 10px;
+    background: #fcf9e8;
+    border-left: 4px solid #dba617;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.wpwevo-error-list {
+    margin: 10px 0;
+    padding-left: 20px;
+    color: #d63638;
+}
+
+/* Disable form during sending */
+.wpwevo-bulk-form.sending {
+    opacity: 0.7;
+    pointer-events: none;
 }
 
 /* Envio por Status */
@@ -340,20 +359,6 @@
 
 .wpwevo-save-result {
     margin-top: 15px;
-}
-
-.wpwevo-variables-help {
-    margin-top: 30px;
-    padding: 20px;
-    background: #fff;
-    border: 1px solid #ccd0d4;
-    border-radius: 4px;
-}
-
-.wpwevo-variables-help code {
-    background: #f0f0f1;
-    padding: 2px 6px;
-    border-radius: 3px;
 }
 
 .wpwevo-preview-message,
@@ -504,4 +509,270 @@
     font-size: 1.5em;
     display: inline-block;
     vertical-align: middle;
+}
+
+/* Tabs */
+.wpwevo-tabs {
+    margin: 20px 0;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    gap: 2px;
+    padding: 0;
+}
+
+.wpwevo-tab-button {
+    padding: 10px 20px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: #444;
+    font-weight: 500;
+    margin-bottom: -1px;
+    transition: all 0.2s ease;
+}
+
+.wpwevo-tab-button:hover {
+    background: #fff;
+    color: #135e96;
+}
+
+.wpwevo-tab-button.active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    color: #135e96;
+}
+
+.wpwevo-tab-content {
+    display: none;
+    padding: 20px 0;
+    border-top: none;
+}
+
+.wpwevo-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Formulário */
+.wpwevo-bulk-form {
+    margin-top: 20px;
+}
+
+.wpwevo-bulk-form .form-table {
+    margin-top: 0;
+}
+
+.wpwevo-bulk-form textarea {
+    width: 100%;
+    min-height: 100px;
+}
+
+.wpwevo-bulk-form select[multiple] {
+    min-height: 120px;
+}
+
+/* Preview de clientes */
+#wpwevo-customers-preview {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+#wpwevo-customers-preview table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#wpwevo-customers-preview th,
+#wpwevo-customers-preview td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+#wpwevo-customers-preview th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Status e Progresso */
+.wpwevo-bulk-status {
+    margin-top: 20px;
+}
+
+.wpwevo-bulk-status .notice {
+    margin: 5px 0 15px;
+}
+
+.wpwevo-bulk-submit {
+    margin-top: 20px !important;
+}
+
+/* Agendamento */
+.wpwevo-schedule-options {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* Responsivo */
+@media screen and (max-width: 782px) {
+    .wpwevo-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .wpwevo-tab-button {
+        flex: 1;
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .wpwevo-bulk-form .form-table td {
+        padding: 15px 0;
+    }
+    
+    .wpwevo-bulk-form input[type="text"],
+    .wpwevo-bulk-form input[type="number"],
+    .wpwevo-bulk-form select,
+    .wpwevo-bulk-form textarea {
+        width: 100%;
+    }
+}
+
+/* Spinner */
+.wpwevo-bulk-form .spinner {
+    float: none;
+    margin: 0 10px;
+    display: inline-block;
+    visibility: visible;
+}
+
+/* Select Múltiplo de Status */
+.wpwevo-panel select[multiple] {
+    min-height: 150px;
+    width: 100%;
+    max-width: 400px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.wpwevo-panel select[multiple] option {
+    padding: 6px 8px;
+    margin: 2px 0;
+    border-radius: 3px;
+}
+
+.wpwevo-panel select[multiple] option:hover {
+    background-color: #f0f0f1;
+}
+
+.wpwevo-panel select[multiple] option:checked {
+    background-color: #2271b1;
+    color: #fff;
+}
+
+/* Checkboxes de Status */
+.wpwevo-status-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 600px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.wpwevo-status-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wpwevo-status-checkbox:hover {
+    background: #f0f0f1;
+}
+
+.wpwevo-status-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.wpwevo-status-checkbox span {
+    font-size: 13px;
+    color: #50575e;
+}
+
+.wpwevo-status-checkbox input[type="checkbox"]:checked + span {
+    color: #2271b1;
+    font-weight: 500;
+}
+
+/* Histórico */
+.wpwevo-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.wpwevo-history-header h3 {
+    margin: 0;
+    color: #1d2327;
+}
+
+#wpwevo-clear-history {
+    display: inline-flex;
+    align-items: center;
+    color: #b32d2e;
+    padding: 4px 8px;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+#wpwevo-clear-history:hover {
+    color: #fff;
+    background: #b32d2e;
+}
+
+#wpwevo-clear-history .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.wpwevo-bulk-history mark {
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+.wpwevo-bulk-history mark.success {
+    background: #edfaef;
+    color: #1a9247;
+}
+
+.wpwevo-bulk-history mark.error {
+    background: #fef1f1;
+    color: #cc1818;
 } 
