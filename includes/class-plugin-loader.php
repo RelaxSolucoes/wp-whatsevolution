@@ -57,6 +57,7 @@ class Plugin_Loader {
 		Send_By_Status::init();
 		Abandoned_Cart::init();
 		Bulk_Sender::init();
+		Checkout_Validator::init();
 	}
 
 	public function activate() {

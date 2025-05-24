@@ -68,20 +68,6 @@ function wpwevo_activate() {
 	// Cria tabelas e opções necessárias
 	wpwevo_create_tables();
 	wpwevo_create_options();
-
-	// Registra o cron para envio em massa
-	add_filter('cron_schedules', function($schedules) {
-		$schedules['minute'] = [
-			'interval' => 60,
-			'display' => __('A cada minuto', 'wp-whatsapp-evolution')
-		];
-		return $schedules;
-	});
-
-	// Ativa o cron ao ativar o plugin
-	if (!wp_next_scheduled('wpwevo_bulk_send_cron')) {
-		wp_schedule_event(time(), 'minute', 'wpwevo_bulk_send_cron');
-	}
 }
 
 // Desativação
@@ -89,9 +75,6 @@ register_deactivation_hook(__FILE__, 'wpwevo_deactivate');
 function wpwevo_deactivate() {
 	// Limpa dados temporários
 	wpwevo_cleanup();
-
-	// Remove o cron ao desativar o plugin
-	wp_clear_scheduled_hook('wpwevo_bulk_send_cron');
 }
 
 /**

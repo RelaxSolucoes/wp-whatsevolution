@@ -254,6 +254,9 @@ class Api_Connection {
                     'message' => __('Formato de número inválido. Use: (DDD) + Número', 'wp-whatsapp-evolution')
                 ];
             }
+
+            // Formata o número para o padrão internacional (com @c.us)
+            $number = $number . '@c.us';
         }
 
         return [
@@ -478,15 +481,23 @@ class Api_Connection {
         // Verifica se o número existe no WhatsApp
         if (!$data[0]['exists']) {
             return [
-                'success' => false,
+                'success' => true,
+                'data' => [
+                    'is_whatsapp' => false,
+                    'exists' => false
+                ],
                 'message' => __('O número informado não é um WhatsApp válido.', 'wp-whatsapp-evolution')
             ];
         }
 
         return [
             'success' => true,
-            'message' => __('Número válido!', 'wp-whatsapp-evolution'),
-            'data' => $data[0] // Retorna os dados completos do número para uso posterior se necessário
+            'data' => [
+                'is_whatsapp' => true,
+                'exists' => true,
+                'name' => isset($data[0]['name']) ? $data[0]['name'] : null
+            ],
+            'message' => __('Número válido!', 'wp-whatsapp-evolution')
         ];
     }
 } 

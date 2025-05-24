@@ -23,15 +23,9 @@ class Bulk_Sender {
 		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
 		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
 		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history']);
-		add_action('wpwevo_bulk_send_cron', [$this, 'process_bulk_queue']);
 
 		// Inicializa a API
 		$this->api = Api_Connection::get_instance();
-
-		// Registra o cron se não existir
-		if (!wp_next_scheduled('wpwevo_bulk_send_cron')) {
-			wp_schedule_event(time(), 'minute', 'wpwevo_bulk_send_cron');
-		}
 	}
 
 	public function setup() {
@@ -948,96 +942,6 @@ Maria Santos,5511988888888</pre>
 
 		} catch (\Exception $e) {
 			wp_send_json_error($e->getMessage());
-		}
-	}
-
-	public function process_bulk_queue() {
-		$queue = get_option('wpwevo_bulk_queue');
-		
-		if (empty($queue) || $queue['status'] === 'completed') {
-			return;
-		}
-
-		// Se agendado, verifica se já está na hora
-		if (isset($queue['schedule_date']) && $queue['schedule_date'] > time()) {
-			return;
-		}
-
-		// Atualiza status para processando
-		if ($queue['status'] === 'pending') {
-			$queue['status'] = 'processing';
-			update_option('wpwevo_bulk_queue', $queue);
-		}
-
-		// Processa os próximos números
-		$batch_size = 5; // Processa 5 números por vez
-		$processed = 0;
-
-		foreach ($queue['numbers'] as $index => $number) {
-			if ($processed >= $batch_size) {
-				break;
-			}
-
-			try {
-				// Prepara a mensagem com as variáveis substituídas
-				$message = $this->replace_variables($queue['message'], $number);
-				
-				// Envia a mensagem usando a mesma implementação do envio único
-				$result = $this->api->send_message($number, $message);
-
-				if (!$result['success']) {
-					$queue['errors'][] = sprintf(
-						__('Erro ao enviar para %s: %s', 'wp-whatsapp-evolution'),
-						$number,
-						$result['message']
-					);
-				} else {
-					$queue['sent']++;
-				}
-
-				unset($queue['numbers'][$index]);
-				$processed++;
-
-				// Aguarda o intervalo configurado
-				if ($queue['interval'] > 0) {
-					sleep($queue['interval']);
-				}
-
-			} catch (\Exception $e) {
-				$queue['errors'][] = sprintf(
-					__('Erro ao enviar para %s: %s', 'wp-whatsapp-evolution'),
-					$number,
-					$e->getMessage()
-				);
-				$queue['sent']++;
-				unset($queue['numbers'][$index]);
-				$processed++;
-			}
-		}
-
-		// Reordena o array de números
-		$queue['numbers'] = array_values($queue['numbers']);
-
-		// Atualiza a fila
-		update_option('wpwevo_bulk_queue', $queue);
-
-		// Verifica se terminou
-		if (empty($queue['numbers'])) {
-			$queue['status'] = 'completed';
-			
-			// Notifica o admin
-			$admin_email = get_option('admin_email');
-			$subject = __('Relatório de Envio em Massa - WhatsApp Evolution', 'wp-whatsapp-evolution');
-			$message = sprintf(
-				__("Envio em massa concluído!\n\nTotal enviado: %d\nErros: %d\n\nDetalhes dos erros:\n%s", 'wp-whatsapp-evolution'),
-				$queue['sent'],
-				count($queue['errors']),
-				implode("\n", $queue['errors'])
-			);
-			wp_mail($admin_email, $subject, $message);
-			
-			// Atualiza a fila uma última vez
-			update_option('wpwevo_bulk_queue', $queue);
 		}
 	}
 

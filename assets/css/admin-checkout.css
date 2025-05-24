@@ -1,0 +1,104 @@
+.wpwevo-checkout-page {
+    max-width: 800px;
+    margin: 20px 0;
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.wpwevo-checkout-page h1 {
+    color: #23282d;
+    font-size: 23px;
+    font-weight: 400;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.wpwevo-checkout-page .form-table th {
+    padding: 20px 10px 20px 0;
+    width: 200px;
+}
+
+.wpwevo-checkout-page .form-table td {
+    padding: 20px 10px;
+}
+
+.wpwevo-checkout-page .description {
+    color: #666;
+    font-style: italic;
+    margin: 5px 0 0;
+}
+
+/* Estilo dos checkboxes */
+.wpwevo-checkout-page input[type="checkbox"] {
+    border: 1px solid #7e8993;
+    border-radius: 4px;
+    background: #fff;
+    color: #555;
+    clear: none;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 0;
+    height: 16px;
+    margin: -4px 4px 0 0;
+    outline: 0;
+    padding: 0 !important;
+    text-align: center;
+    vertical-align: middle;
+    width: 16px;
+    min-width: 16px;
+    -webkit-appearance: none;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+    transition: .05s border-color ease-in-out;
+}
+
+.wpwevo-checkout-page input[type="checkbox"]:checked::before {
+    content: "\f147";
+    margin: -3px 0 0 -4px;
+    color: #1e8cbe;
+    float: left;
+    display: inline-block;
+    vertical-align: middle;
+    width: 16px;
+    font: normal 21px/1 dashicons;
+    speak: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Estilo do botão submit */
+.wpwevo-checkout-page .submit {
+    padding: 15px 0;
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.wpwevo-checkout-page .button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: none;
+}
+
+.wpwevo-checkout-page .button-primary:hover,
+.wpwevo-checkout-page .button-primary:focus {
+    background: #135e96;
+    border-color: #135e96;
+    color: #fff;
+}
+
+/* Campos do modal */
+.wpwevo-modal-fields {
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+    overflow: hidden;
+}
+
+.wpwevo-modal-fields.hidden {
+    opacity: 0.5;
+    max-height: 0;
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+} 
