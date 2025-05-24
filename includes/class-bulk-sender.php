@@ -313,9 +313,80 @@ class Bulk_Sender {
 								<th scope="row"><?php echo esc_html($this->i18n['form']['csv_file']); ?></th>
 								<td>
 									<input type="file" name="wpwevo_csv_file" accept=".csv">
-									<p class="description">
-										<?php echo esc_html($this->i18n['form']['csv_help']); ?>
-									</p>
+									<div class="wpwevo-csv-help">
+										<p class="description">
+											<strong>Instruções:</strong>
+										</p>
+										<ol>
+											<li>O arquivo deve estar no formato CSV (valores separados por vírgula)</li>
+											<li>Deve conter um cabeçalho com as colunas: <code>nome,telefone</code></li>
+											<li>O telefone deve estar no formato internacional: 55 + DDD + número</li>
+											<li>Exemplo de número: 5511999999999 (sem espaços ou caracteres especiais)</li>
+										</ol>
+										<p class="description">
+											<strong>Exemplo de conteúdo do arquivo:</strong>
+										</p>
+										<pre>nome,telefone
+João Silva,5511999999999
+Maria Santos,5511988888888</pre>
+										<p>
+											<a href="#" class="button" id="wpwevo-download-csv-example">
+												<?php _e('Baixar Arquivo de Exemplo', 'wp-whatsapp-evolution'); ?>
+											</a>
+										</p>
+									</div>
+									<style>
+										.wpwevo-csv-help {
+											margin-top: 10px;
+											padding: 15px;
+											background: #f8f9fa;
+											border-left: 4px solid #646970;
+										}
+										.wpwevo-csv-help ol {
+											margin: 10px 0 10px 20px;
+										}
+										.wpwevo-csv-help li {
+											margin-bottom: 5px;
+										}
+										.wpwevo-csv-help code {
+											background: #fff;
+											padding: 2px 6px;
+											border-radius: 3px;
+											color: #007cba;
+										}
+										.wpwevo-csv-help pre {
+											background: #fff;
+											padding: 10px;
+											border-radius: 3px;
+											margin: 10px 0;
+											overflow: auto;
+										}
+									</style>
+									<script>
+										jQuery(document).ready(function($) {
+											$('#wpwevo-download-csv-example').on('click', function(e) {
+												e.preventDefault();
+												
+												// Cria o conteúdo do CSV
+												var csvContent = 'nome,telefone\nJoão Silva,5511999999999\nMaria Santos,5511988888888';
+												
+												// Cria um blob com o conteúdo
+												var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+												
+												// Cria um link para download
+												var link = document.createElement("a");
+												if (link.download !== undefined) {
+													var url = URL.createObjectURL(blob);
+													link.setAttribute("href", url);
+													link.setAttribute("download", "exemplo_contatos.csv");
+													link.style.visibility = 'hidden';
+													document.body.appendChild(link);
+													link.click();
+													document.body.removeChild(link);
+												}
+											});
+										});
+									</script>
 								</td>
 							</tr>
 						</table>
@@ -1058,43 +1129,131 @@ class Bulk_Sender {
 	}
 
 	private function process_csv_file($file) {
+		// Verifica se houve erro no upload
 		if ($file['error'] !== UPLOAD_ERR_OK) {
-			throw new \Exception(__('Erro ao enviar arquivo.', 'wp-whatsapp-evolution'));
+			$error_messages = [
+				UPLOAD_ERR_INI_SIZE => __('O arquivo excede o tamanho máximo permitido pelo servidor.', 'wp-whatsapp-evolution'),
+				UPLOAD_ERR_FORM_SIZE => __('O arquivo excede o tamanho máximo permitido pelo formulário.', 'wp-whatsapp-evolution'),
+				UPLOAD_ERR_PARTIAL => __('O arquivo foi apenas parcialmente carregado.', 'wp-whatsapp-evolution'),
+				UPLOAD_ERR_NO_FILE => __('Nenhum arquivo foi enviado.', 'wp-whatsapp-evolution'),
+				UPLOAD_ERR_NO_TMP_DIR => __('Pasta temporária ausente.', 'wp-whatsapp-evolution'),
+				UPLOAD_ERR_CANT_WRITE => __('Falha ao gravar arquivo em disco.', 'wp-whatsapp-evolution'),
+				UPLOAD_ERR_EXTENSION => __('Uma extensão PHP interrompeu o upload do arquivo.', 'wp-whatsapp-evolution'),
+			];
+			throw new \Exception($error_messages[$file['error']] ?? __('Erro ao enviar arquivo.', 'wp-whatsapp-evolution'));
 		}
 
+		// Verifica o tipo do arquivo
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$mime_type = finfo_file($finfo, $file['tmp_name']);
+		finfo_close($finfo);
+
+		$allowed_types = ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'];
+		if (!in_array($mime_type, $allowed_types)) {
+			throw new \Exception(__('O arquivo deve estar no formato CSV.', 'wp-whatsapp-evolution'));
+		}
+
+		// Tenta abrir o arquivo
 		$handle = fopen($file['tmp_name'], 'r');
 		if ($handle === false) {
 			throw new \Exception(__('Erro ao ler arquivo.', 'wp-whatsapp-evolution'));
 		}
 
-		$numbers = [];
-		$header = fgetcsv($handle);
-		
-		if ($header === false) {
-			fclose($handle);
-			throw new \Exception(__('Arquivo CSV vazio.', 'wp-whatsapp-evolution'));
-		}
+		try {
+			$numbers = [];
+			$errors = [];
+			$line_number = 0;
+			$processed = [];
 
-		// Identifica as colunas
-		$name_col = array_search('nome', array_map('strtolower', $header));
-		$phone_col = array_search('telefone', array_map('strtolower', $header));
+			// Lê o cabeçalho
+			$header = fgetcsv($handle);
+			if ($header === false) {
+				throw new \Exception(__('Arquivo CSV vazio.', 'wp-whatsapp-evolution'));
+			}
+			$line_number++;
 
-		if ($phone_col === false) {
-			fclose($handle);
-			throw new \Exception(__('Coluna "telefone" não encontrada no CSV.', 'wp-whatsapp-evolution'));
-		}
+			// Identifica as colunas
+			$header = array_map('strtolower', array_map('trim', $header));
+			$name_col = array_search('nome', $header);
+			$phone_col = array_search('telefone', $header);
 
-		while (($data = fgetcsv($handle)) !== false) {
-			if (isset($data[$phone_col])) {
-				$phone = preg_replace('/[^0-9]/', '', $data[$phone_col]);
-				if (strlen($phone) > 8) {
-					$numbers[] = $phone;
+			if ($phone_col === false) {
+				throw new \Exception(__('Coluna "telefone" não encontrada no CSV.', 'wp-whatsapp-evolution'));
+			}
+
+			// Processa as linhas
+			while (($data = fgetcsv($handle)) !== false) {
+				$line_number++;
+
+				// Pula linhas vazias
+				if (empty(array_filter($data))) {
+					continue;
+				}
+
+				// Verifica se tem todas as colunas
+				if (count($data) < count($header)) {
+					$errors[] = sprintf(
+						__('Linha %d: número incorreto de colunas.', 'wp-whatsapp-evolution'),
+						$line_number
+					);
+					continue;
+				}
+
+				// Processa o número
+				if (isset($data[$phone_col])) {
+					$phone = preg_replace('/[^0-9]/', '', $data[$phone_col]);
+					
+					// Validações do número
+					if (empty($phone)) {
+						$errors[] = sprintf(
+							__('Linha %d: número de telefone vazio.', 'wp-whatsapp-evolution'),
+							$line_number
+						);
+					} elseif (strlen($phone) < 12 || strlen($phone) > 13) {
+						$errors[] = sprintf(
+							__('Linha %d: formato de número inválido (%s). Use: 55 + DDD + número.', 'wp-whatsapp-evolution'),
+							$line_number,
+							$data[$phone_col]
+						);
+					} elseif (!preg_match('/^55[1-9][1-9]/', $phone)) {
+						$errors[] = sprintf(
+							__('Linha %d: o número deve começar com 55 seguido de DDD válido (%s).', 'wp-whatsapp-evolution'),
+							$line_number,
+							$data[$phone_col]
+						);
+					} else {
+						// Evita duplicatas
+						if (!isset($processed[$phone])) {
+							$numbers[] = $phone;
+							$processed[$phone] = true;
+						}
+					}
 				}
 			}
-		}
 
-		fclose($handle);
-		return array_unique($numbers);
+			// Verifica se encontrou algum número válido
+			if (empty($numbers)) {
+				if (!empty($errors)) {
+					throw new \Exception(
+						__('Nenhum número válido encontrado. Erros:', 'wp-whatsapp-evolution') . "\n" .
+						implode("\n", $errors)
+					);
+				} else {
+					throw new \Exception(__('Nenhum número encontrado no arquivo.', 'wp-whatsapp-evolution'));
+				}
+			}
+
+			// Se houver erros mas também números válidos, mostra os erros como aviso
+			if (!empty($errors)) {
+				// Armazena os erros em uma opção temporária para exibir depois
+				update_option('wpwevo_csv_import_errors', $errors, false);
+			}
+
+			return $numbers;
+
+		} finally {
+			fclose($handle);
+		}
 	}
 
 	public function clear_history() {
