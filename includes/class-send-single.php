@@ -69,6 +69,24 @@ class Send_Single {
 			'validateNonce' => wp_create_nonce('wpwevo_validate_number'),
 			'i18n' => $this->i18n
 		]);
+
+		// Adiciona CSS inline para melhorar a visibilidade das variáveis
+		wp_add_inline_style('wpwevo-admin', '
+			.wpwevo-variables-help code {
+				padding: 4px 8px;
+				background: #f0f0f1;
+				border-radius: 3px;
+				display: inline-block;
+				margin: 2px 0;
+				border: 1px solid #ddd;
+				font-family: monospace;
+				user-select: all;
+				cursor: text;
+			}
+			.wpwevo-variables-help li {
+				margin-bottom: 8px;
+			}
+		');
 	}
 
 	public function render_page() {
@@ -134,13 +152,11 @@ class Send_Single {
 
 			<div class="wpwevo-variables-help">
 				<h3><?php _e('Variáveis Disponíveis', 'wp-whatsapp-evolution'); ?></h3>
-				<p><?php _e('Você pode usar as seguintes variáveis em suas mensagens:', 'wp-whatsapp-evolution'); ?></p>
+				<p><?php _e('Use as variáveis abaixo para personalizar sua mensagem:', 'wp-whatsapp-evolution'); ?></p>
 				<ul>
-					<li><code>{customer_name}</code> - <?php _e('Nome do cliente', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{order_id}</code> - <?php _e('Número do pedido', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{order_total}</code> - <?php _e('Valor total do pedido', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{order_status}</code> - <?php _e('Status do pedido', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{payment_method}</code> - <?php _e('Método de pagamento', 'wp-whatsapp-evolution'); ?></li>
+					<li><code>{store_name}</code> - <?php _e('Nome da loja', 'wp-whatsapp-evolution'); ?></li>
+					<li><code>{store_url}</code> - <?php _e('URL da loja', 'wp-whatsapp-evolution'); ?></li>
+					<li><code>{store_email}</code> - <?php _e('E-mail da loja', 'wp-whatsapp-evolution'); ?></li>
 				</ul>
 			</div>
 		</div>

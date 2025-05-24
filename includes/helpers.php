@@ -78,40 +78,10 @@ function wpwevo_send_message($number, $message) {
  */
 function wpwevo_replace_vars($message, $order = null) {
 	$replacements = [
-		'{customer_name}' => '',
-		'{order_id}' => '',
-		'{order_total}' => '',
-		'{order_status}' => '',
-		'{payment_method}' => '',
-		'{cart_total}' => '',
-		'{cart_items}' => '',
-		'{cart_url}' => '',
+		'{store_name}' => get_bloginfo('name'),
+		'{store_url}' => get_bloginfo('url'),
+		'{store_email}' => get_bloginfo('admin_email')
 	];
-
-	if ($order instanceof \WC_Order) {
-		$replacements['{customer_name}'] = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
-		$replacements['{order_id}'] = $order->get_id();
-		$replacements['{order_total}'] = wc_price($order->get_total());
-		$replacements['{order_status}'] = wc_get_order_status_name($order->get_status());
-		$replacements['{payment_method}'] = $order->get_payment_method_title();
-	}
-
-	if (function_exists('WC') && WC()->cart) {
-		$replacements['{cart_total}'] = wc_price(WC()->cart->get_total());
-		$replacements['{cart_url}'] = wc_get_cart_url();
-		
-		$items = [];
-		foreach (WC()->cart->get_cart() as $cart_item) {
-			$product = $cart_item['data'];
-			$items[] = sprintf(
-				'%s (x%d) - %s',
-				$product->get_name(),
-				$cart_item['quantity'],
-				wc_price($cart_item['line_total'])
-			);
-		}
-		$replacements['{cart_items}'] = implode("\n", $items);
-	}
 
 	return str_replace(
 		array_keys($replacements),

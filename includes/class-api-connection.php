@@ -171,55 +171,223 @@ class Api_Connection {
     }
 
     /**
+     * Obtém o código do país com base nas configurações do WooCommerce
+     * @return string Código do país (default: 55 para Brasil)
+     */
+    private function get_country_code() {
+        // Verifica se o WooCommerce está ativo
+        if (function_exists('WC')) {
+            // Tenta obter o país base da loja
+            $base_country = WC()->countries->get_base_country();
+            $country_codes = [
+                'BR' => '55', // Brasil
+                'PT' => '351', // Portugal
+                'AO' => '244', // Angola
+                'MZ' => '258', // Moçambique
+                // Adicione outros países conforme necessário
+            ];
+            
+            return isset($country_codes[$base_country]) ? $country_codes[$base_country] : '55';
+        }
+        
+        // Se o WooCommerce não estiver ativo, usa o locale do WordPress
+        $locale = get_locale();
+        if (strpos($locale, 'pt_BR') !== false) {
+            return '55';
+        } elseif (strpos($locale, 'pt_PT') !== false) {
+            return '351';
+        }
+        
+        // Padrão para Brasil
+        return '55';
+    }
+
+    /**
+     * Formata e valida o número de telefone
+     * @param string $number Número de telefone
+     * @return array ['success' => bool, 'number' => string, 'message' => string]
+     */
+    private function format_phone_number($number) {
+        // Remove todos os caracteres não numéricos
+        $number = preg_replace('/[^0-9]/', '', $number);
+        
+        // Verifica se o número está vazio
+        if (empty($number)) {
+            return [
+                'success' => false,
+                'message' => __('O número de telefone é obrigatório.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        $country_code = $this->get_country_code();
+        
+        // Se não começar com o código do país, adiciona
+        if (!preg_match('/^' . $country_code . '/', $number)) {
+            $number = $country_code . $number;
+        }
+
+        // Para números brasileiros
+        if ($country_code === '55') {
+            // Valida o comprimento total (13 ou 14 dígitos com o 55)
+            if (strlen($number) !== 13 && strlen($number) !== 14) {
+                return [
+                    'success' => false,
+                    'message' => __('Número inválido. Digite apenas o DDD e o número.', 'wp-whatsapp-evolution')
+                ];
+            }
+
+            // Extrai o DDD para validação
+            $ddd = substr($number, 2, 2);
+            
+            // Valida o DDD (códigos de área válidos do Brasil)
+            if (!preg_match('/^[1-9][1-9]$/', $ddd)) {
+                return [
+                    'success' => false,
+                    'message' => __('DDD inválido. Use um DDD válido do Brasil.', 'wp-whatsapp-evolution')
+                ];
+            }
+
+            // Valida o formato final completo para números brasileiros
+            if (!preg_match('/^55[1-9][1-9][0-9]{8,9}$/', $number)) {
+                return [
+                    'success' => false,
+                    'message' => __('Formato de número inválido. Use: (DDD) + Número', 'wp-whatsapp-evolution')
+                ];
+            }
+        }
+
+        return [
+            'success' => true,
+            'number' => $number
+        ];
+    }
+
+    /**
+     * Substitui as variáveis da loja na mensagem
+     * @param string $message Mensagem original
+     * @return string Mensagem com variáveis substituídas
+     */
+    private function replace_store_variables($message) {
+        $variables = [
+            '{store_name}' => get_bloginfo('name'),
+            '{store_url}' => home_url(),
+            '{store_email}' => get_option('admin_email')
+        ];
+
+        // Log para debug
+        wpwevo_log_error('Replacing variables in message:');
+        wpwevo_log_error('Original message: ' . $message);
+        wpwevo_log_error('Variables: ' . print_r($variables, true));
+
+        $replaced_message = str_replace(
+            array_keys($variables),
+            array_values($variables),
+            $message
+        );
+
+        // Log da mensagem final
+        wpwevo_log_error('Final message: ' . $replaced_message);
+
+        return $replaced_message;
+    }
+
+    /**
      * Envia uma mensagem de texto
+     * @param string $number Número do WhatsApp
+     * @param string $message Mensagem (pode conter variáveis)
+     * @return array Resultado do envio
      */
     public function send_message($number, $message) {
         if (!$this->is_configured()) {
             return [
                 'success' => false,
-                'message' => 'API configuration incomplete.' // Mensagem não traduzida
+                'message' => __('Configuração da API incompleta.', 'wp-whatsapp-evolution')
             ];
         }
 
-        // Remove caracteres não numéricos do número
-        $number = preg_replace('/[^0-9]/', '', $number);
+        // Substitui as variáveis da loja na mensagem
+        $message = $this->replace_store_variables($message);
 
-        $url = trailingslashit($this->api_url) . 'message/text/' . $this->instance_name;
+        // Formata o número antes de enviar
+        $formatted = $this->format_phone_number($number);
+        if (!$formatted['success']) {
+            return $formatted;
+        }
+        $number = $formatted['number'];
+
+        // Constrói a URL para envio da mensagem
+        $url = rtrim($this->api_url, '/') . '/message/sendText/' . $this->instance_name;
+
+        // Log para debug
+        wpwevo_log_error('Sending message:');
+        wpwevo_log_error('URL: ' . $url);
+        wpwevo_log_error('Number: ' . $number);
+        wpwevo_log_error('Message: ' . $message);
+
+        $body = [
+            'number' => $number,
+            'text' => $message,
+            'linkPreview' => true
+        ];
+
         $response = wp_remote_post($url, [
             'headers' => [
                 'apikey' => $this->api_key,
                 'Content-Type' => 'application/json'
             ],
-            'body' => json_encode([
-                'number' => $number,
-                'message' => $message
-            ]),
-            'timeout' => 15
+            'body' => json_encode($body),
+            'timeout' => 15,
+            'sslverify' => false
         ]);
 
         if (is_wp_error($response)) {
             wpwevo_log_error('Message sending error: ' . $response->get_error_message());
             return [
                 'success' => false,
-                'message' => $response->get_error_message()
+                'message' => __('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.', 'wp-whatsapp-evolution')
             ];
         }
 
+        $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body);
 
-        if (!isset($data->key)) {
-            wpwevo_log_error('Invalid API response when sending message: ' . $body);
+        // Log da resposta
+        wpwevo_log_error('API Response:');
+        wpwevo_log_error('Status: ' . $status_code);
+        wpwevo_log_error('Body: ' . $body);
+
+        // Trata os diferentes códigos de status
+        if ($status_code !== 201) {
+            $error_messages = [
+                400 => __('Não foi possível enviar a mensagem. Verifique o número e tente novamente.', 'wp-whatsapp-evolution'),
+                401 => __('Erro de autenticação. Verifique sua chave API.', 'wp-whatsapp-evolution'),
+                404 => __('Instância do WhatsApp não encontrada.', 'wp-whatsapp-evolution'),
+                429 => __('Muitas requisições. Aguarde um momento e tente novamente.', 'wp-whatsapp-evolution'),
+                500 => __('Erro interno do servidor. Tente novamente mais tarde.', 'wp-whatsapp-evolution')
+            ];
+
             return [
                 'success' => false,
-                'message' => isset($data->error) ? $data->error : 'Error sending message.' // Mensagem não traduzida
+                'message' => $error_messages[$status_code] ?? __('Erro desconhecido ao enviar mensagem.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        $data = json_decode($body, true);
+
+        if (!is_array($data) || !isset($data['key']['id'])) {
+            return [
+                'success' => false,
+                'message' => __('Resposta inválida do servidor.', 'wp-whatsapp-evolution')
             ];
         }
 
         return [
             'success' => true,
-            'message' => 'Message sent successfully!', // Mensagem não traduzida
-            'message_id' => $data->key
+            'message' => __('Mensagem enviada com sucesso!', 'wp-whatsapp-evolution'),
+            'data' => [
+                'message_id' => $data['key']['id'],
+                'status' => $data['status']
+            ]
         ];
     }
 
@@ -230,14 +398,25 @@ class Api_Connection {
         if (!$this->is_configured()) {
             return [
                 'success' => false,
-                'message' => 'API configuration incomplete.' // Mensagem não traduzida
+                'message' => __('Configuração da API incompleta.', 'wp-whatsapp-evolution')
             ];
         }
 
-        // Remove caracteres não numéricos
-        $number = preg_replace('/[^0-9]/', '', $number);
+        // Formata o número antes de validar
+        $formatted = $this->format_phone_number($number);
+        if (!$formatted['success']) {
+            return $formatted;
+        }
+        $number = $formatted['number'];
 
-        $url = trailingslashit($this->api_url) . 'chat/whatsappNumbers/' . $this->instance_name;
+        // Constrói a URL para validação do número
+        $url = rtrim($this->api_url, '/') . '/chat/whatsappNumbers/' . $this->instance_name;
+
+        // Log para debug
+        wpwevo_log_error('Validating number:');
+        wpwevo_log_error('URL: ' . $url);
+        wpwevo_log_error('Number: ' . $number);
+
         $response = wp_remote_post($url, [
             'headers' => [
                 'apikey' => $this->api_key,
@@ -246,30 +425,61 @@ class Api_Connection {
             'body' => json_encode([
                 'numbers' => [$number]
             ]),
-            'timeout' => 15
+            'timeout' => 15,
+            'sslverify' => false
         ]);
 
         if (is_wp_error($response)) {
             wpwevo_log_error('Number validation error: ' . $response->get_error_message());
             return [
                 'success' => false,
-                'message' => $response->get_error_message()
+                'message' => sprintf(
+                    __('Erro ao validar número: %s', 'wp-whatsapp-evolution'),
+                    $response->get_error_message()
+                )
             ];
         }
 
+        $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body);
 
-        if (!isset($data->valid) || !is_array($data->valid) || empty($data->valid)) {
+        // Log da resposta
+        wpwevo_log_error('API Response:');
+        wpwevo_log_error('Status: ' . $status_code);
+        wpwevo_log_error('Body: ' . $body);
+
+        if ($status_code !== 200) {
             return [
                 'success' => false,
-                'message' => 'The provided number is not a valid WhatsApp number.' // Mensagem não traduzida
+                'message' => sprintf(
+                    __('Erro na API (código %d)', 'wp-whatsapp-evolution'),
+                    $status_code
+                )
+            ];
+        }
+
+        $data = json_decode($body, true);
+
+        // Verifica se recebemos um array com pelo menos um resultado
+        if (!is_array($data) || empty($data) || !isset($data[0]['exists'])) {
+            return [
+                'success' => false,
+                'message' => __('Resposta inválida da API ao validar número.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        // Verifica se o número existe no WhatsApp
+        if (!$data[0]['exists']) {
+            return [
+                'success' => false,
+                'message' => __('O número informado não é um WhatsApp válido.', 'wp-whatsapp-evolution')
             ];
         }
 
         return [
             'success' => true,
-            'message' => 'Valid number!' // Mensagem não traduzida
+            'message' => __('Número válido!', 'wp-whatsapp-evolution'),
+            'data' => $data[0] // Retorna os dados completos do número para uso posterior se necessário
         ];
     }
 } 
