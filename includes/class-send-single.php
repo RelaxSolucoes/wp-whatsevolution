@@ -90,7 +90,6 @@ class Send_Single {
 	}
 
 	public function render_page() {
-		$templates = get_option('wpwevo_message_templates', []);
 		?>
 		<div class="wrap wpwevo-panel">
 			<h1><?php echo esc_html($this->page_title); ?></h1>
@@ -117,21 +116,6 @@ class Send_Single {
 							</th>
 							<td>
 								<textarea id="wpwevo-message" name="message" class="large-text" rows="5" required></textarea>
-								<?php if (!empty($templates)) : ?>
-									<p>
-										<label for="wpwevo-template">
-											<?php _e('Ou selecione um template:', 'wp-whatsapp-evolution'); ?>
-										</label>
-										<select id="wpwevo-template">
-											<option value=""><?php _e('Selecione...', 'wp-whatsapp-evolution'); ?></option>
-											<?php foreach ($templates as $key => $template) : ?>
-												<option value="<?php echo esc_attr($template['message']); ?>">
-													<?php echo esc_html($template['name']); ?>
-												</option>
-											<?php endforeach; ?>
-										</select>
-									</p>
-								<?php endif; ?>
 								<p class="description">
 									<?php _e('Digite a mensagem que deseja enviar', 'wp-whatsapp-evolution'); ?>
 								</p>

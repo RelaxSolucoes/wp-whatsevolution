@@ -203,9 +203,6 @@ function wpwevo_create_options() {
 
 	// Opções de mensagens por status
 	add_option('wpwevo_status_messages', []);
-
-	// Opções de templates
-	add_option('wpwevo_message_templates', []);
 }
 
 // Limpa dados
