@@ -175,6 +175,23 @@ class Settings_Page {
 		?>
 		<div class="wrap wpwevo-panel">
 			<h1><?php echo esc_html__('WhatsApp Evolution - Configurações', 'wp-whatsapp-evolution'); ?></h1>
+
+			<div class="wpwevo-cta-box">
+				<div class="wpwevo-cta-content">
+					<h3 class="wpwevo-cta-title">
+						<span class="wpwevo-cta-emoji">❌</span> Não tem uma API Evolution?
+					</h3>
+					<p class="wpwevo-cta-description">
+						<span class="wpwevo-cta-emoji">🎯</span> Envie mensagens automatizadas para seus clientes em minutos!<br>
+						<span class="wpwevo-cta-emoji">✨</span> Ative sua instância agora e aproveite todos os recursos premium do WhatsApp Evolution.
+					</p>
+				</div>
+				<a href="https://relaxsolucoes.online/produto/evolution-api-integracao-instantanea-com-whatsapp-plano-mensal/" 
+				   target="_blank" 
+				   class="wpwevo-cta-button">
+					<span class="wpwevo-cta-emoji">🚀</span> Ativar Instância Pronta Agora!
+				</a>
+			</div>
 			
 			<h2 class="nav-tab-wrapper">
 				<?php foreach ($tabs as $tab => $label) : ?>
@@ -286,7 +303,7 @@ class Settings_Page {
 			<h3><?php _e('Links Úteis', 'wp-whatsapp-evolution'); ?></h3>
 			<ul>
 				<li><a href="https://doc.evolution-api.com" target="_blank"><?php _e('Documentação da Evolution API', 'wp-whatsapp-evolution'); ?></a></li>
-				<li><a href="https://github.com/evolution-api/evolution-api" target="_blank"><?php _e('Repositório no GitHub', 'wp-whatsapp-evolution'); ?></a></li>
+				<li><a href="https://github.com/EvolutionAPI/evolution-api" target="_blank"><?php _e('Repositório no GitHub', 'wp-whatsapp-evolution'); ?></a></li>
 			</ul>
 		</div>
 		<?php

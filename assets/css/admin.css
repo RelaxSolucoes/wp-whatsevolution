@@ -440,4 +440,68 @@
     background-color: #f2dede;
     border: 1px solid #ebccd1;
     color: #a94442;
+}
+
+.wpwevo-cta-box {
+    background: #f6fff8;
+    border: 2px solid #00a32a;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin: 20px 0 30px;
+    padding: 25px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px;
+    gap: 20px;
+}
+
+.wpwevo-cta-content {
+    flex: 1;
+}
+
+.wpwevo-cta-title {
+    font-size: 1.4em;
+    margin: 0 0 15px;
+    color: #1d2327;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wpwevo-cta-description {
+    margin: 0;
+    color: #50575e;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.wpwevo-cta-button {
+    display: inline-block;
+    background: linear-gradient(45deg, #00a32a, #008a20);
+    color: #fff;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 250px;
+    box-shadow: 0 4px 15px rgba(0,163,42,0.2);
+    border: none;
+}
+
+.wpwevo-cta-button:hover {
+    background: linear-gradient(45deg, #008a20, #006d1b);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,163,42,0.3);
+}
+
+.wpwevo-cta-emoji {
+    font-size: 1.5em;
+    display: inline-block;
+    vertical-align: middle;
 } 
