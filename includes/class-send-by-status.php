@@ -354,7 +354,7 @@ class Send_By_Status {
 				'R$ 150,00',
 				'Cartão de Crédito',
 				'PAC',
-				'https://seusite.com/pedido/12345',
+				'https://relaxsolucoes.online/pedido/12345',
 				'João Silva',
 				'Rua das Flores, 123',
 				'Apto 45',

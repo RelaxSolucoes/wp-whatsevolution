@@ -308,7 +308,7 @@ class Bulk_Sender {
 								<td>
 									<input type="file" name="wpwevo_csv_file" accept=".csv">
 									<div class="wpwevo-csv-help">
-										<p class="description">
+									<p class="description">
 											<strong>Instruções:</strong>
 										</p>
 										<ol>
@@ -431,7 +431,7 @@ Maria Santos,5511988888888</pre>
 				<?php echo $this->get_history_html(); ?>
 			</div>
 		</div>
-		<?php
+				<?php
 	}
 
 	/**
@@ -469,8 +469,8 @@ Maria Santos,5511988888888</pre>
 				$status = array_values($_POST['status']); // Força reindexação do array
 			} elseif (isset($_POST['status'])) {
 				$status = [$_POST['status']];
-			}
-
+					}
+					
 			// Remove valores vazios e sanitiza
 			$status = array_filter($status, function($s) {
 				return !empty(trim($s));
@@ -564,7 +564,7 @@ Maria Santos,5511988888888</pre>
 				$normalized_phone = $this->normalize_phone_for_comparison($phone);
 				if (!$normalized_phone) {
 					continue;
-				}
+					}
 
 				// Usa o número normalizado como chave para evitar duplicatas
 				if (!isset($processed_phones[$normalized_phone])) {
@@ -578,24 +578,24 @@ Maria Santos,5511988888888</pre>
 						'order_id' => $order->get_id(),
 						'order_total' => $order->get_total()
 					];
-					
+
 					$customers[] = $customer_data;
 					$processed_phones[$normalized_phone] = true;
 				}
 			}
 
-			if (empty($customers)) {
+		if (empty($customers)) {
 				throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsapp-evolution'));
-			}
+		}
 
 			// Ordena os clientes pelo nome
 			usort($customers, function($a, $b) {
 				return strcmp($a['name'], $b['name']);
 			});
 
-			ob_start();
-			?>
-			<div class="wpwevo-preview-table">
+		ob_start();
+		?>
+		<div class="wpwevo-preview-table">
 				<div class="wpwevo-preview-summary">
 					<h4>
 						<?php 
@@ -642,23 +642,23 @@ Maria Santos,5511988888888</pre>
 				</div>
 
 				<table class="widefat striped">
-					<thead>
-						<tr>
-							<th><?php _e('Nome', 'wp-whatsapp-evolution'); ?></th>
-							<th><?php _e('Telefone', 'wp-whatsapp-evolution'); ?></th>
+				<thead>
+					<tr>
+						<th><?php _e('Nome', 'wp-whatsapp-evolution'); ?></th>
+						<th><?php _e('Telefone', 'wp-whatsapp-evolution'); ?></th>
 							<th>
 								<?php _e('Total de Pedidos', 'wp-whatsapp-evolution'); ?>
 								<span class="dashicons dashicons-info-outline" title="<?php esc_attr_e('Total de pedidos do cliente em todos os status', 'wp-whatsapp-evolution'); ?>"></span>
 							</th>
-							<th><?php _e('Último Pedido', 'wp-whatsapp-evolution'); ?></th>
+						<th><?php _e('Último Pedido', 'wp-whatsapp-evolution'); ?></th>
 							<th><?php _e('Status Atual', 'wp-whatsapp-evolution'); ?></th>
 							<th><?php _e('Valor', 'wp-whatsapp-evolution'); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ($customers as $customer) : ?>
-							<tr>
-								<td><?php echo esc_html($customer['name']); ?></td>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ($customers as $customer) : ?>
+						<tr>
+							<td><?php echo esc_html($customer['name']); ?></td>
 								<td>
 									<?php 
 									$formatted_phone = preg_replace('/^(\d{2})(\d{2})(\d{4,5})(\d{4})$/', '+$1 ($2) $3-$4', $customer['phone']);
@@ -682,7 +682,7 @@ Maria Santos,5511988888888</pre>
 									);
 									?>
 								</td>
-								<td><?php echo esc_html($customer['last_order']); ?></td>
+							<td><?php echo esc_html($customer['last_order']); ?></td>
 								<td>
 									<?php
 									$status_class = sanitize_html_class('order-status-' . $customer['status']);
@@ -698,10 +698,10 @@ Maria Santos,5511988888888</pre>
 									echo 'R$ ' . number_format($customer['order_total'], 2, ',', '.');
 									?>
 								</td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
 
 				<div class="wpwevo-preview-notes">
 					<p class="description">
@@ -712,7 +712,7 @@ Maria Santos,5511988888888</pre>
 							<li><?php _e('* O total de pedidos inclui todos os pedidos do cliente, independente do status.', 'wp-whatsapp-evolution'); ?></li>
 						</ul>
 					</p>
-				</div>
+		</div>
 			</div>
 
 			<style>
@@ -777,8 +777,8 @@ Maria Santos,5511988888888</pre>
 				cursor: help;
 			}
 			</style>
-			<?php
-			wp_send_json_success(ob_get_clean());
+		<?php
+		wp_send_json_success(ob_get_clean());
 
 		} catch (\Exception $e) {
 			wp_send_json_error($e->getMessage());
@@ -787,11 +787,11 @@ Maria Santos,5511988888888</pre>
 
 	public function handle_bulk_send() {
 		try {
-			check_ajax_referer('wpwevo_bulk_send', 'nonce');
+		check_ajax_referer('wpwevo_bulk_send', 'nonce');
 
-			if (!current_user_can('manage_options')) {
+		if (!current_user_can('manage_options')) {
 				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
-			}
+		}
 
 			// Verifica conexão com a API
 			if (!$this->api->is_configured()) {
@@ -802,14 +802,14 @@ Maria Santos,5511988888888</pre>
 			$message = isset($_POST['wpwevo_bulk_message']) ? sanitize_textarea_field($_POST['wpwevo_bulk_message']) : '';
 			$interval = isset($_POST['wpwevo_interval']) ? absint($_POST['wpwevo_interval']) : 5;
 
-			if (empty($message)) {
+		if (empty($message)) {
 				throw new \Exception(__('A mensagem é obrigatória.', 'wp-whatsapp-evolution'));
-			}
+		}
 
 			// Obtém a lista de números com base na aba ativa
-			$numbers = [];
+		$numbers = [];
 			switch ($active_tab) {
-				case 'customers':
+			case 'customers':
 					// Processa os status
 					$statuses = isset($_POST['status']) ? (array)$_POST['status'] : [];
 					$statuses = array_unique(array_filter($statuses, 'strlen')); // Remove duplicatas e valores vazios
@@ -822,31 +822,31 @@ Maria Santos,5511988888888</pre>
 					$date_to = isset($_POST['wpwevo_date_to']) ? sanitize_text_field($_POST['wpwevo_date_to']) : '';
 					$min_total = isset($_POST['wpwevo_min_total']) ? floatval($_POST['wpwevo_min_total']) : 0;
 					
-					$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total);
-					break;
+				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total);
+				break;
 
-				case 'csv':
+			case 'csv':
 					if (!isset($_FILES['wpwevo_csv_file'])) {
 						throw new \Exception(__('Arquivo CSV não enviado.', 'wp-whatsapp-evolution'));
-					}
+				}
 					$numbers = $this->process_csv_file($_FILES['wpwevo_csv_file']);
-					break;
+				break;
 
-				case 'manual':
+			case 'manual':
 					$manual_numbers = isset($_POST['wpwevo_manual_numbers']) ? sanitize_textarea_field($_POST['wpwevo_manual_numbers']) : '';
-					if (empty($manual_numbers)) {
+				if (empty($manual_numbers)) {
 						throw new \Exception(__('Lista de números vazia.', 'wp-whatsapp-evolution'));
-					}
+				}
 					$numbers = array_filter(array_map('trim', explode("\n", $manual_numbers)));
-					break;
+				break;
 
-				default:
+			default:
 					throw new \Exception(__('Origem dos números inválida.', 'wp-whatsapp-evolution'));
-			}
+		}
 
-			if (empty($numbers)) {
+		if (empty($numbers)) {
 				throw new \Exception(__('Nenhum número encontrado para envio.', 'wp-whatsapp-evolution'));
-			}
+		}
 
 			$total = count($numbers);
 			$sent = 0;
@@ -997,7 +997,7 @@ Maria Santos,5511988888888</pre>
 				];
 			}
 		}
-		
+
 		$orders_query = new \WC_Order_Query($query_args);
 		$orders = $orders_query->get_orders();
 
@@ -1019,8 +1019,8 @@ Maria Santos,5511988888888</pre>
 			// Normaliza o número para comparação
 			$normalized_phone = $this->normalize_phone_for_comparison($phone);
 			if (!$normalized_phone) {
-				continue;
-			}
+					continue;
+				}
 
 			// Evita duplicatas usando o número normalizado
 			if (!isset($processed[$normalized_phone])) {
@@ -1064,7 +1064,7 @@ Maria Santos,5511988888888</pre>
 		}
 
 		try {
-			$numbers = [];
+		$numbers = [];
 			$errors = [];
 			$line_number = 0;
 			$processed = [];
@@ -1086,7 +1086,7 @@ Maria Santos,5511988888888</pre>
 			}
 
 			// Processa as linhas
-			while (($data = fgetcsv($handle)) !== false) {
+		while (($data = fgetcsv($handle)) !== false) {
 				$line_number++;
 
 				// Pula linhas vazias
@@ -1130,7 +1130,7 @@ Maria Santos,5511988888888</pre>
 						if (!isset($processed[$phone])) {
 							$numbers[] = $phone;
 							$processed[$phone] = true;
-						}
+		}
 					}
 				}
 			}
@@ -1144,7 +1144,7 @@ Maria Santos,5511988888888</pre>
 					);
 				} else {
 					throw new \Exception(__('Nenhum número encontrado no arquivo.', 'wp-whatsapp-evolution'));
-				}
+		}
 			}
 
 			// Se houver erros mas também números válidos, mostra os erros como aviso

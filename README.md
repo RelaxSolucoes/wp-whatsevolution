@@ -1,76 +1,147 @@
-# WP WhatsApp Sender Evolution
+# WP WhatsApp Evolution
 
-Plugin WordPress para integração com a Evolution API, permitindo envio de mensagens WhatsApp através do WooCommerce.
+Integração avançada do WhatsApp com WooCommerce usando Evolution API.
+
+## Descrição
+
+O WP WhatsApp Evolution é um plugin WordPress que oferece uma integração completa entre o WooCommerce e o WhatsApp através da Evolution API. Permite envio automático de mensagens, notificações por status de pedido, envio em massa e muito mais.
 
 ## Requisitos
 
-- WordPress 5.8 ou superior
 - PHP 7.4 ou superior
+- WordPress 5.8 ou superior
 - WooCommerce 5.0 ou superior
-- Evolution API instalada e configurada
+- Evolution API configurada e em execução
 
 ## Instalação
 
-1. Faça o upload da pasta `wp-whatsapp-evolution` para o diretório `/wp-content/plugins/`
+1. Faça upload dos arquivos do plugin para a pasta `/wp-content/plugins/wp-whatsapp-evolution`
 2. Ative o plugin através do menu 'Plugins' no WordPress
-3. Acesse as configurações em 'WhatsApp Evolution' no menu do WordPress
+3. Acesse as configurações do plugin e configure a URL da API, chave e instância
 
 ## Configuração
 
-1. Instale a Evolution API em seu servidor seguindo a [documentação oficial](https://doc.evolution-api.com/v2/pt/get-started/introduction)
-2. Obtenha a URL da API, API KEY e crie uma instância do WhatsApp
-3. Configure estas informações no painel do plugin
-4. Teste a conexão antes de começar a usar
+### Evolution API
+
+1. Configure sua instância da Evolution API
+2. Obtenha a URL da API e a chave de acesso
+3. No WordPress, acesse WP WhatsApp Evolution > Configurações
+4. Preencha os dados de conexão e teste a conexão
+
+### Notificações por Status
+
+1. Acesse WP WhatsApp Evolution > Status
+2. Configure as mensagens para cada status de pedido
+3. Use as variáveis disponíveis para personalizar as mensagens
 
 ## Funcionalidades
 
-### 1. Painel de Conexão
-- Configure URL da API, API KEY e nome da instância
-- Teste a conexão com feedback visual
-- Link para documentação da Evolution API
+### Validação de WhatsApp no Checkout
 
-### 2. Envio Único
-- Interface simples para envio de mensagens
-- Validação de número em tempo real
-- Suporte a templates salvos
-- Feedback de envio via AJAX
+- Validação em tempo real do número de WhatsApp durante o checkout
+- Garante que apenas números válidos sejam aceitos
+- Reduz erros de digitação e números inválidos
+- Melhora a qualidade da base de contatos
+- Personalização da mensagem de erro
+- Compatível com máscaras de input
 
-### 3. Envio por Status de Pedido
-- Configure mensagens para cada status WooCommerce
-- Ative/desative notificações por status
-- Preview de mensagem com dados reais
-- Suporte a variáveis como {customer_name}, {order_id}, etc.
+### Envio em Massa
 
-### 4. Carrinho Abandonado
-- Detecção automática de carrinhos abandonados
-- Configuração de tempo de espera
-- Mensagens personalizadas com variáveis
-- Estatísticas de recuperação
-- Salvamento do telefone via cookie/sessão
-
-### 5. Envio em Massa
-- Três modos: Clientes WooCommerce, CSV e Lista Manual
-- Filtros por status, período e valor mínimo
-- Preview de clientes selecionados
-- Agendamento de envios
-- Controle de intervalo entre mensagens
+- Envio para clientes WooCommerce filtrados por:
+  - Status de pedido
+  - Período de compra
+  - Valor mínimo
+- Importação via CSV
+- Lista manual de números
 - Histórico de envios
-- Barra de progresso
+- Intervalo configurável entre envios
 
-## Variáveis Disponíveis
+### Notificações Automáticas
 
-- `{customer_name}` - Nome do cliente
-- `{order_id}` - Número do pedido
-- `{order_total}` - Valor total do pedido
-- `{order_status}` - Status do pedido
-- `{payment_method}` - Método de pagamento
-- `{cart_total}` - Valor total do carrinho
-- `{cart_items}` - Lista de produtos no carrinho
-- `{cart_url}` - Link para recuperar o carrinho
+- Mensagens automáticas por status de pedido
+- Variáveis dinâmicas nas mensagens
+- Personalização por status
+
+### Carrinho Abandonado
+
+- Recuperação automática de carrinhos abandonados
+- Mensagens personalizáveis
+- Intervalo configurável
+
+## Hooks e Filtros
+
+### Filtros
+
+```php
+// Modifica a mensagem antes do envio
+add_filter('wpwevo_before_send_message', function($message, $context) {
+    return $message;
+}, 10, 2);
+
+// Modifica os dados do pedido nas variáveis
+add_filter('wpwevo_order_data', function($data, $order) {
+    return $data;
+}, 10, 2);
+
+// Modifica o intervalo entre envios em massa
+add_filter('wpwevo_bulk_send_interval', function($interval) {
+    return $interval;
+});
+
+// Personaliza a validação do WhatsApp no checkout
+add_filter('wpwevo_validate_whatsapp', function($is_valid, $number) {
+    return $is_valid;
+}, 10, 2);
+```
+
+### Actions
+
+```php
+// Executado antes do envio em massa
+add_action('wpwevo_before_bulk_send', function($numbers, $message) {
+    // Seu código aqui
+}, 10, 2);
+
+// Executado após envio bem sucedido
+add_action('wpwevo_after_message_sent', function($number, $message, $response) {
+    // Seu código aqui
+}, 10, 3);
+
+// Executado quando ocorre erro no envio
+add_action('wpwevo_message_send_error', function($number, $message, $error) {
+    // Seu código aqui
+}, 10, 3);
+
+// Executado após validação do WhatsApp no checkout
+add_action('wpwevo_after_whatsapp_validation', function($number, $is_valid) {
+    // Seu código aqui
+}, 10, 2);
+```
+
+## Segurança
+
+- Todas as requisições são validadas com nonce
+- Sanitização de inputs
+- Validação de números de telefone
+- Rate limiting para envios em massa
+- Logs de erros e atividades
 
 ## Suporte
 
-Para suporte, por favor abra uma issue no repositório do plugin ou entre em contato através do fórum do WordPress.
+Para suporte, acesse:
+- [Documentação](https://relaxsolucoes.online/)
+- [Fórum de Suporte](https://relaxsolucoes.online/)
+- [GitHub](https://github.com/RelaxSolucoes/wp-whatsapp-evolution)
+
+## Changelog
+
+### 1.0.0 - 2024-03-20
+- Lançamento inicial
+- Integração com Evolution API
+- Envio em massa
+- Notificações por status
+- Recuperação de carrinho abandonado
+- Validação de WhatsApp no checkout
 
 ## Licença
 
@@ -78,4 +149,5 @@ Este plugin é licenciado sob a GPL v2 ou posterior.
 
 ## Créditos
 
-Desenvolvido por [Seu Nome] 
+Desenvolvido por Relax Soluções
+Site: [relaxsolucoes.online](https://relaxsolucoes.online/) 

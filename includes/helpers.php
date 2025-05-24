@@ -109,4 +109,127 @@ function wpwevo_log_error($message, $data = []) {
 function wpwevo_admin_enqueue_styles() {
 	wp_enqueue_style('wpwevo-admin-style', WPWEVO_URL . 'assets/css/admin.css', [], WPWEVO_VERSION);
 }
-add_action('admin_enqueue_scripts', 'wpwevo_admin_enqueue_styles'); 
+add_action('admin_enqueue_scripts', 'wpwevo_admin_enqueue_styles');
+
+/**
+ * Registra um log no banco de dados
+ */
+function wpwevo_log($level, $message, $context = []) {
+	global $wpdb;
+	
+	$levels = ['debug', 'info', 'warning', 'error'];
+	if (!in_array($level, $levels)) {
+		$level = 'info';
+	}
+	
+	$data = [
+		'level' => $level,
+		'message' => $message,
+		'context' => is_array($context) || is_object($context) ? json_encode($context) : $context
+	];
+	
+	$wpdb->insert(
+		$wpdb->prefix . 'wpwevo_logs',
+		$data,
+		['%s', '%s', '%s']
+	);
+}
+
+/**
+ * Valida e formata um número de telefone
+ */
+function wpwevo_validate_phone($phone) {
+	// Remove tudo que não for número
+	$phone = preg_replace('/[^0-9]/', '', $phone);
+	
+	// Valida o formato básico
+	if (strlen($phone) < 12 || strlen($phone) > 13) {
+		return false;
+	}
+	
+	// Valida código do país (55) e DDD
+	if (!preg_match('/^55[1-9][1-9]/', $phone)) {
+		return false;
+	}
+	
+	return $phone;
+}
+
+/**
+ * Limpa logs antigos (mais de 30 dias)
+ */
+function wpwevo_cleanup_logs() {
+	global $wpdb;
+	
+	$table = $wpdb->prefix . 'wpwevo_logs';
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$table} WHERE timestamp < DATE_SUB(NOW(), INTERVAL %d DAY)",
+			30
+		)
+	);
+}
+
+/**
+ * Registra um erro de API
+ */
+function wpwevo_log_api_error($endpoint, $response, $context = []) {
+	$error_data = [
+		'endpoint' => $endpoint,
+		'response' => $response,
+		'context' => $context
+	];
+	
+	wpwevo_log('error', 'API Error: ' . $endpoint, $error_data);
+}
+
+/**
+ * Verifica se uma string é JSON válido
+ */
+function wpwevo_is_json($string) {
+	if (!is_string($string)) {
+		return false;
+	}
+	json_decode($string);
+	return (json_last_error() === JSON_ERROR_NONE);
+}
+
+/**
+ * Sanitiza e valida dados de entrada
+ */
+function wpwevo_sanitize_input($data, $type = 'text') {
+	switch ($type) {
+		case 'phone':
+			return wpwevo_validate_phone($data);
+		
+		case 'url':
+			return esc_url_raw($data);
+			
+		case 'textarea':
+			return sanitize_textarea_field($data);
+			
+		case 'key':
+			return sanitize_key($data);
+			
+		case 'int':
+			return intval($data);
+			
+		case 'float':
+			return floatval(str_replace(',', '.', $data));
+			
+		case 'bool':
+			return (bool) $data;
+			
+		case 'array':
+			return is_array($data) ? array_map('sanitize_text_field', $data) : [];
+			
+		default:
+			return sanitize_text_field($data);
+	}
+}
+
+// Agenda limpeza de logs
+if (!wp_next_scheduled('wpwevo_cleanup_logs')) {
+	wp_schedule_event(time(), 'daily', 'wpwevo_cleanup_logs');
+}
+add_action('wpwevo_cleanup_logs', 'wpwevo_cleanup_logs'); 

@@ -1,15 +1,15 @@
-# Copyright (C) 2024 Seu Nome
-# This file is distributed under the same license as the WP WhatsApp Sender Evolution plugin.
+# Copyright (C) 2024 Relax Soluções
+# This file is distributed under the same license as the WP WhatsApp Evolution plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP WhatsApp Sender Evolution 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-whatsapp-evolution\n"
+"Project-Id-Version: WP WhatsApp Evolution 1.0.0\n"
+"Report-Msgid-Bugs-To: https://relaxsolucoes.online/contato\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-01T00:00:00+00:00\n"
+"POT-Creation-Date: 2024-03-20T12:00:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: wp-whatsapp-evolution\n"
@@ -411,4 +411,172 @@ msgid "Use as variáveis abaixo para personalizar sua mensagem:"
 msgstr ""
 
 msgid "Copie e cole as variáveis acima em sua mensagem"
+msgstr ""
+
+#: includes/class-api-connection.php:123
+msgid "API não configurada"
+msgstr ""
+
+#: includes/class-api-connection.php:145
+msgid "Erro ao conectar com a API"
+msgstr ""
+
+#: includes/class-bulk-sender.php:156
+msgid "Envio em Massa"
+msgstr ""
+
+#: includes/class-bulk-sender.php:234
+msgid "Clientes WooCommerce"
+msgstr ""
+
+#: includes/class-bulk-sender.php:235
+msgid "Importar CSV"
+msgstr ""
+
+#: includes/class-bulk-sender.php:236
+msgid "Lista Manual"
+msgstr ""
+
+#: includes/class-bulk-sender.php:240
+msgid "Filtrar por Status"
+msgstr ""
+
+#: includes/class-bulk-sender.php:241
+msgid "Selecione os status dos pedidos para filtrar os clientes."
+msgstr ""
+
+#: includes/class-bulk-sender.php:242
+msgid "Período"
+msgstr ""
+
+#: includes/class-bulk-sender.php:243
+msgid "até"
+msgstr ""
+
+#: includes/class-bulk-sender.php:244
+msgid "Valor Mínimo"
+msgstr ""
+
+#: includes/class-bulk-sender.php:245
+msgid "Visualizar Clientes"
+msgstr ""
+
+#: includes/class-bulk-sender.php:246
+msgid "Arquivo CSV"
+msgstr ""
+
+#: includes/class-bulk-sender.php:247
+msgid "O arquivo deve ter as colunas: nome, telefone (com DDD e país)"
+msgstr ""
+
+#: includes/class-bulk-sender.php:248
+msgid "Lista de Números"
+msgstr ""
+
+#: includes/class-bulk-sender.php:249
+msgid "Um número por linha, com DDD e país"
+msgstr ""
+
+#: includes/class-bulk-sender.php:250
+msgid "Mensagem"
+msgstr ""
+
+#: includes/class-bulk-sender.php:251
+msgid "Digite sua mensagem aqui..."
+msgstr ""
+
+#: includes/class-bulk-sender.php:252
+msgid "Agendamento"
+msgstr ""
+
+#: includes/class-bulk-sender.php:253
+msgid "Agendar envio"
+msgstr ""
+
+#: includes/class-bulk-sender.php:254
+msgid "Data e hora para iniciar o envio das mensagens."
+msgstr ""
+
+#: includes/class-bulk-sender.php:255
+msgid "Intervalo"
+msgstr ""
+
+#: includes/class-bulk-sender.php:256
+msgid "segundos entre cada envio"
+msgstr ""
+
+#: includes/class-bulk-sender.php:257
+msgid "Iniciar Envio"
+msgstr ""
+
+#: includes/class-bulk-sender.php:261
+msgid "Histórico de Envios"
+msgstr ""
+
+#: includes/class-bulk-sender.php:262
+msgid "Limpar Histórico"
+msgstr ""
+
+#: includes/class-bulk-sender.php:263
+msgid "Tem certeza que deseja limpar todo o histórico de envios?"
+msgstr ""
+
+#: includes/class-bulk-sender.php:264
+msgid "Nenhum envio em massa realizado ainda."
+msgstr ""
+
+#: includes/class-bulk-sender.php:265
+msgid "Data"
+msgstr ""
+
+#: includes/class-bulk-sender.php:266
+msgid "Origem"
+msgstr ""
+
+#: includes/class-bulk-sender.php:267
+msgid "Total"
+msgstr ""
+
+#: includes/class-bulk-sender.php:268
+msgid "Enviados"
+msgstr ""
+
+#: includes/class-bulk-sender.php:269
+msgid "Status"
+msgstr ""
+
+#: includes/class-settings-page.php:56
+msgid "Configurações"
+msgstr ""
+
+#: includes/class-settings-page.php:57
+msgid "URL da API"
+msgstr ""
+
+#: includes/class-settings-page.php:58
+msgid "Chave da API"
+msgstr ""
+
+#: includes/class-settings-page.php:59
+msgid "Nome da Instância"
+msgstr ""
+
+#: includes/class-settings-page.php:60
+msgid "Salvar Alterações"
+msgstr ""
+
+#: includes/class-settings-page.php:61
+msgid "Testar Conexão"
+msgstr ""
+
+#: wp-whatsapp-evolution.php:89
+msgid "WP WhatsApp Evolution requer PHP %s ou superior."
+msgstr ""
+
+#: wp-whatsapp-evolution.php:96
+msgid "WP WhatsApp Evolution requer WordPress %s ou superior."
+msgstr ""
+
+#: wp-whatsapp-evolution.php:103
+msgid "WP WhatsApp Evolution requer WooCommerce %s ou superior."
 msgstr "" 
