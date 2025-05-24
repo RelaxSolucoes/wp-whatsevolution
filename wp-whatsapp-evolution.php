@@ -25,6 +25,15 @@ define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));
 
+// Configuração temporária da API (remover após teste)
+add_action('init', function() {
+    if (!get_option('wpwevo_api_url')) {
+        update_option('wpwevo_api_url', 'http://localhost:8080');
+        update_option('wpwevo_api_key', '123456789');
+        update_option('wpwevo_instance', 'store1');
+    }
+});
+
 // Declara compatibilidade com HPOS
 add_action('before_woocommerce_init', function() {
 	if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {

@@ -7,6 +7,7 @@ class Bulk_Sender {
 	private $menu_title;
 	private $page_title;
 	private $i18n;
+	private $api;
 
 	public static function init() {
 		if (self::$instance === null) {
@@ -22,6 +23,9 @@ class Bulk_Sender {
 		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
 		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
 		add_action('wpwevo_bulk_send_cron', [$this, 'process_bulk_queue']);
+
+		// Inicializa a API
+		$this->api = Api_Connection::get_instance();
 
 		// Registra o cron se não existir
 		if (!wp_next_scheduled('wpwevo_bulk_send_cron')) {
@@ -107,13 +111,6 @@ class Bulk_Sender {
 	}
 
 	public function render_page() {
-		if (!wpwevo_check_instance()) {
-			echo '<div class="notice notice-error"><p>' . 
-				esc_html($this->i18n['connection_error']) . 
-				'</p></div>';
-			return;
-		}
-
 		?>
 		<div class="wrap wpwevo-panel">
 			<h1><?php echo esc_html($this->page_title); ?></h1>

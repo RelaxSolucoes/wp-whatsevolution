@@ -7,6 +7,7 @@ class Templates_Manager {
 	private $menu_title;
 	private $page_title;
 	private $i18n;
+	private $api;
 
 	public static function init() {
 		if (self::$instance === null) {
@@ -21,6 +22,10 @@ class Templates_Manager {
 		add_action('wp_ajax_wpwevo_save_template', [$this, 'save_template']);
 		add_action('wp_ajax_wpwevo_delete_template', [$this, 'delete_template']);
 		add_action('wp_ajax_wpwevo_preview_template', [$this, 'preview_template']);
+		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+
+		// Inicializa a API
+		$this->api = Api_Connection::get_instance();
 	}
 
 	public function setup() {
@@ -57,15 +62,35 @@ class Templates_Manager {
 		);
 	}
 
-	public function render_page() {
-		if ( ! wpwevo_check_instance() ) {
-			echo '<div class="notice notice-error"><p>' . 
-				esc_html($this->i18n['connection_error']) . 
-				'</p></div>';
+	public function enqueue_scripts($hook) {
+		if ('whatsapp-evolution_page_wpwevo-templates' !== $hook) {
 			return;
 		}
 
-		$templates = get_option( 'wpwevo_templates', [] );
+		wp_enqueue_script(
+			'wpwevo-templates',
+			WPWEVO_URL . 'assets/js/templates.js',
+			['jquery'],
+			WPWEVO_VERSION,
+			true
+		);
+
+		wp_localize_script('wpwevo-templates', 'wpwevoTemplates', [
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('wpwevo_template'),
+			'i18n' => [
+				'confirm_delete' => __('Tem certeza que deseja excluir este template?', 'wp-whatsapp-evolution'),
+				'required_fields' => __('Nome e mensagem são obrigatórios', 'wp-whatsapp-evolution'),
+				'preview_required' => __('Digite uma mensagem para visualizar', 'wp-whatsapp-evolution'),
+				'error_preview' => __('Erro ao gerar preview', 'wp-whatsapp-evolution'),
+				'error_save' => __('Erro ao salvar template', 'wp-whatsapp-evolution'),
+				'error_delete' => __('Erro ao excluir template', 'wp-whatsapp-evolution')
+			]
+		]);
+	}
+
+	public function render_page() {
+		$templates = get_option('wpwevo_templates', []);
 		?>
 		<div class="wrap wpwevo-panel">
 			<h1><?php echo esc_html($this->page_title); ?></h1>
@@ -284,83 +309,103 @@ class Templates_Manager {
 		<?php
 	}
 
+	public function preview_template() {
+		check_ajax_referer('wpwevo_template', 'nonce');
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+		}
+
+		$message = isset($_POST['message']) ? sanitize_textarea_field($_POST['message']) : '';
+		if (empty($message)) {
+			wp_send_json_error(__('Mensagem é obrigatória.', 'wp-whatsapp-evolution'));
+		}
+
+		// Simula variáveis para preview
+		$preview = str_replace(
+			[
+				'{customer_name}',
+				'{order_id}',
+				'{order_total}',
+				'{order_status}',
+				'{payment_method}',
+				'{cart_total}',
+				'{cart_items}',
+				'{cart_url}'
+			],
+			[
+				'João Silva',
+				'#1234',
+				'R$ 150,00',
+				'Processando',
+				'Pix',
+				'R$ 150,00',
+				'1x Produto Exemplo (R$ 150,00)',
+				home_url('/carrinho/')
+			],
+			$message
+		);
+
+		wp_send_json_success([
+			'preview' => $preview
+		]);
+	}
+
 	public function save_template() {
-		check_ajax_referer( 'wpwevo_template', 'nonce' );
+		check_ajax_referer('wpwevo_template', 'nonce');
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Permissão negada.', 'wp-whatsapp-evolution' ) );
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
 		}
 
-		$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
-		$name = isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '';
-		$message = isset( $_POST['message'] ) ? sanitize_textarea_field( $_POST['message'] ) : '';
+		$name = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
+		$message = isset($_POST['message']) ? sanitize_textarea_field($_POST['message']) : '';
+		$id = isset($_POST['id']) ? sanitize_text_field($_POST['id']) : '';
 
-		if ( empty( $name ) || empty( $message ) ) {
-			wp_send_json_error( __( 'Nome e mensagem são obrigatórios.', 'wp-whatsapp-evolution' ) );
+		if (empty($name) || empty($message)) {
+			wp_send_json_error(__('Nome e mensagem são obrigatórios.', 'wp-whatsapp-evolution'));
 		}
 
-		$templates = get_option( 'wpwevo_templates', [] );
-		
-		if ( empty( $id ) ) {
-			$id = uniqid( 'template_' );
+		$templates = get_option('wpwevo_templates', []);
+
+		if (empty($id)) {
+			$id = uniqid('template_');
 		}
 
-		$templates[ $id ] = [
+		$templates[$id] = [
 			'name' => $name,
-			'message' => $message,
+			'message' => $message
 		];
 
-		update_option( 'wpwevo_templates', $templates );
-		wp_send_json_success( __( 'Template salvo com sucesso!', 'wp-whatsapp-evolution' ) );
+		update_option('wpwevo_templates', $templates);
+
+		wp_send_json_success([
+			'message' => __('Template salvo com sucesso!', 'wp-whatsapp-evolution')
+		]);
 	}
 
 	public function delete_template() {
-		check_ajax_referer( 'wpwevo_template', 'nonce' );
+		check_ajax_referer('wpwevo_template', 'nonce');
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Permissão negada.', 'wp-whatsapp-evolution' ) );
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
 		}
 
-		$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
-		if ( empty( $id ) ) {
-			wp_send_json_error( __( 'ID do template é obrigatório.', 'wp-whatsapp-evolution' ) );
+		$id = isset($_POST['id']) ? sanitize_text_field($_POST['id']) : '';
+		if (empty($id)) {
+			wp_send_json_error(__('ID do template é obrigatório.', 'wp-whatsapp-evolution'));
 		}
 
-		$templates = get_option( 'wpwevo_templates', [] );
-		if ( ! isset( $templates[ $id ] ) ) {
-			wp_send_json_error( __( 'Template não encontrado.', 'wp-whatsapp-evolution' ) );
+		$templates = get_option('wpwevo_templates', []);
+		if (!isset($templates[$id])) {
+			wp_send_json_error(__('Template não encontrado.', 'wp-whatsapp-evolution'));
 		}
 
-		unset( $templates[ $id ] );
-		update_option( 'wpwevo_templates', $templates );
+		unset($templates[$id]);
+		update_option('wpwevo_templates', $templates);
 
-		wp_send_json_success( __( 'Template excluído com sucesso!', 'wp-whatsapp-evolution' ) );
-	}
-
-	public function preview_template() {
-		check_ajax_referer( 'wpwevo_template', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Permissão negada.', 'wp-whatsapp-evolution' ) );
-		}
-
-		$message = isset( $_POST['message'] ) ? sanitize_textarea_field( $_POST['message'] ) : '';
-		if ( empty( $message ) ) {
-			wp_send_json_error( __( 'Mensagem é obrigatória.', 'wp-whatsapp-evolution' ) );
-		}
-
-		// Simula dados para preview
-		$preview = wpwevo_replace_vars( $message, [
-			'customer_name' => 'João Silva',
-			'order_id' => '123',
-			'order_total' => 'R$ 150,00',
-			'order_status' => 'Processando',
-			'payment_method' => 'Cartão de Crédito',
-			'cart_total' => 'R$ 200,00',
-			'cart_items' => '2x Camiseta Preta, 1x Calça Jeans',
-			'cart_url' => 'https://loja.exemplo.com/carrinho/123'
-		] );
-
-		wp_send_json_success( nl2br( esc_html( $preview ) ) );
+		wp_send_json_success([
+			'message' => __('Template excluído com sucesso!', 'wp-whatsapp-evolution')
+		]);
 	}
 } 

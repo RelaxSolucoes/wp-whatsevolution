@@ -7,6 +7,7 @@ class Abandoned_Cart {
 	private $menu_title;
 	private $page_title;
 	private $i18n;
+	private $api;
 
 	public static function init() {
 		if (self::$instance === null) {
@@ -20,6 +21,9 @@ class Abandoned_Cart {
 		if (!class_exists('WooCommerce')) {
 			return;
 		}
+
+		// Inicializa a API
+		$this->api = Api_Connection::get_instance();
 
 		// Declara compatibilidade com HPOS
 		add_action('before_woocommerce_init', function() {
@@ -84,28 +88,22 @@ class Abandoned_Cart {
 	}
 
 	public function render_page() {
-		if ( ! wpwevo_check_instance() ) {
-			echo '<div class="notice notice-error"><p>' . 
-				esc_html( $this->i18n['connection_error'] ) . 
-				'</p></div>';
-			return;
+		$minutes = get_option('wpwevo_abandoned_cart_minutes', 30);
+		$message = get_option('wpwevo_abandoned_cart_message', '');
+		$enabled = get_option('wpwevo_abandoned_cart_enabled', '0');
+
+		if (isset($_POST['wpwevo_abandoned_cart_nonce']) && wp_verify_nonce($_POST['wpwevo_abandoned_cart_nonce'], 'wpwevo_abandoned_cart')) {
+			$minutes = absint($_POST['wpwevo_abandoned_cart_minutes']);
+			$message = sanitize_textarea_field($_POST['wpwevo_abandoned_cart_message']);
+			$enabled = isset($_POST['wpwevo_abandoned_cart_enabled']) ? '1' : '0';
+			
+			update_option('wpwevo_abandoned_cart_minutes', $minutes);
+			update_option('wpwevo_abandoned_cart_message', $message);
+			update_option('wpwevo_abandoned_cart_enabled', $enabled);
+			
+			echo '<div class="notice notice-success"><p>' . esc_html($this->i18n['settings_saved']) . '</p></div>';
 		}
 
-		if ( isset( $_POST['wpwevo_abandoned_cart_nonce'] ) && wp_verify_nonce( $_POST['wpwevo_abandoned_cart_nonce'], 'wpwevo_abandoned_cart' ) ) {
-			$minutes = absint( $_POST['wpwevo_abandoned_cart_minutes'] );
-			$message = sanitize_textarea_field( $_POST['wpwevo_abandoned_cart_message'] );
-			$enabled = isset( $_POST['wpwevo_abandoned_cart_enabled'] ) ? '1' : '0';
-			
-			update_option( 'wpwevo_abandoned_cart_minutes', $minutes );
-			update_option( 'wpwevo_abandoned_cart_message', $message );
-			update_option( 'wpwevo_abandoned_cart_enabled', $enabled );
-			
-			echo '<div class="notice notice-success"><p>' . esc_html( $this->i18n['settings_saved'] ) . '</p></div>';
-		}
-
-		$minutes = get_option( 'wpwevo_abandoned_cart_minutes', 30 );
-		$message = get_option( 'wpwevo_abandoned_cart_message', '' );
-		$enabled = get_option( 'wpwevo_abandoned_cart_enabled', '0' );
 		?>
 		<div class="wrap wpwevo-panel">
 			<h1><?php echo esc_html( $this->page_title ); ?></h1>
@@ -223,11 +221,19 @@ class Abandoned_Cart {
 			}
 
 			if ($phone) {
+				// Formata o número do telefone usando a API
+				$phone_result = $this->api->validate_number($phone);
+				if (!$phone_result['success']) {
+					error_log('WP WhatsApp Evolution - Número de telefone inválido: ' . $phone);
+					return;
+				}
+
 				$cart_data = [
 					'time' => time(),
 					'cart' => WC()->cart->get_cart(),
 					'total' => WC()->cart->get_total(),
 					'items' => [],
+					'customer_name' => WC()->session->get('billing_first_name', '') . ' ' . WC()->session->get('billing_last_name', '')
 				];
 
 				foreach (WC()->cart->get_cart() as $cart_item) {
@@ -242,11 +248,17 @@ class Abandoned_Cart {
 				}
 
 				$carts = get_option('wpwevo_abandoned_carts', []);
-				$carts[$phone] = $cart_data;
+				$carts[$phone_result['number']] = $cart_data;
 				update_option('wpwevo_abandoned_carts', $carts);
+
+				error_log(sprintf(
+					'WP WhatsApp Evolution - Carrinho rastreado: %s - %s produtos - Total: %s',
+					$phone_result['number'],
+					count($cart_data['items']),
+					wc_price($cart_data['total'])
+				));
 			}
 		} catch (\Exception $e) {
-			// Log o erro mas não interrompe o fluxo
 			error_log('WP WhatsApp Evolution - Erro ao rastrear carrinho: ' . $e->getMessage());
 		}
 	}
@@ -266,8 +278,15 @@ class Abandoned_Cart {
 			$message_template = get_option('wpwevo_abandoned_cart_message', '');
 			$carts = get_option('wpwevo_abandoned_carts', []);
 
+			if (empty($message_template)) {
+				error_log('WP WhatsApp Evolution - Mensagem de carrinho abandonado não configurada');
+				return;
+			}
+
 			foreach ($carts as $phone => $data) {
+				// Verifica se já passou o tempo de espera
 				if (time() - $data['time'] > $minutes * 60) {
+					// Formata a mensagem com os dados do carrinho
 					$message = str_replace(
 						[
 							'{cart_total}',
@@ -282,13 +301,25 @@ class Abandoned_Cart {
 						$message_template
 					);
 
-					$api = Api_Connection::get_instance();
-					$result = $api->send_message($phone, $message);
+					// Envia a mensagem
+					$result = $this->api->send_message($phone, $message);
 
 					if ($result['success']) {
+						// Remove o carrinho da lista e incrementa as estatísticas
 						unset($carts[$phone]);
 						update_option('wpwevo_abandoned_carts', $carts);
 						update_option('wpwevo_recovered_carts', get_option('wpwevo_recovered_carts', 0) + 1);
+						
+						error_log(sprintf(
+							'WP WhatsApp Evolution - Mensagem enviada para carrinho abandonado: %s',
+							$phone
+						));
+					} else {
+						error_log(sprintf(
+							'WP WhatsApp Evolution - Erro ao enviar mensagem para carrinho abandonado: %s - %s',
+							$phone,
+							$result['message'] ?? 'Erro desconhecido'
+						));
 					}
 				}
 			}
@@ -297,17 +328,17 @@ class Abandoned_Cart {
 		}
 	}
 
-	private function format_cart_items( $items ) {
+	private function format_cart_items($items) {
 		$formatted = [];
-		foreach ( $items as $item ) {
+		foreach ($items as $item) {
 			$formatted[] = sprintf(
 				'%dx %s - %s',
 				$item['quantity'],
 				$item['name'],
-				wc_price( $item['price'] )
+				wc_price($item['price'])
 			);
 		}
-		return implode( "\n", $formatted );
+		return implode("\n", $formatted);
 	}
 
 	public function add_phone_field( $checkout ) {
