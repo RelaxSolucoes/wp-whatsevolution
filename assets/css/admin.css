@@ -1,0 +1,339 @@
+/* Estilos do painel WP WhatsApp Evolution */
+
+.wpwevo-panel {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    padding: 24px;
+    margin-top: 20px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.wpwevo-panel h1 {
+    color: #25d366;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.wpwevo-panel .form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+}
+
+/* Formulário de Envio Único */
+.wpwevo-send-single-form {
+    max-width: 800px;
+    margin-bottom: 30px;
+}
+
+.wpwevo-send-single-form textarea {
+    min-height: 120px;
+}
+
+.wpwevo-validation-result {
+    margin-top: 10px;
+    display: none;
+}
+
+.wpwevo-validation-result span {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.wpwevo-validation-result .validating {
+    background: #f0f0f1;
+    color: #50575e;
+}
+
+.wpwevo-validation-result .valid {
+    background: #edfaef;
+    color: #1a9247;
+}
+
+.wpwevo-validation-result .invalid {
+    background: #fef1f1;
+    color: #cc1818;
+}
+
+.wpwevo-validation-result .error {
+    background: #fef1f1;
+    color: #cc1818;
+}
+
+.wpwevo-form-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.wpwevo-send-result {
+    margin-top: 20px;
+}
+
+.wpwevo-variables-help {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 15px 20px;
+    margin-top: 30px;
+}
+
+.wpwevo-variables-help h3 {
+    color: #25d366;
+    margin: 0 0 15px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.wpwevo-variables-help ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.wpwevo-variables-help li {
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.wpwevo-variables-help code {
+    background: #fff;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 13px;
+    color: #007cba;
+}
+
+/* Conexão */
+.wpwevo-connection-form {
+    max-width: 800px;
+}
+
+.wpwevo-connection-form .description {
+    color: #666;
+    font-style: italic;
+    margin: 5px 0;
+}
+
+.wpwevo-connection-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Ajuda */
+.wpwevo-help-content {
+    max-width: 800px;
+}
+
+.wpwevo-help-content h3 {
+    color: #25d366;
+    margin: 30px 0 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.wpwevo-help-content ol,
+.wpwevo-help-content ul {
+    margin-left: 20px;
+    color: #444;
+}
+
+.wpwevo-help-content li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* Botões e ações */
+.wpwevo-panel .button-primary {
+    background: #25d366;
+    border-color: #1a9247;
+    color: #fff;
+    text-shadow: none;
+    box-shadow: 0 1px 0 #1a9247;
+}
+
+.wpwevo-panel .button-primary:hover,
+.wpwevo-panel .button-primary:focus {
+    background: #1a9247;
+    border-color: #147a3a;
+    color: #fff;
+}
+
+.wpwevo-panel .button-secondary {
+    color: #2271b1;
+    border-color: #2271b1;
+    background: #f6f7f7;
+}
+
+.wpwevo-panel .button-secondary:hover,
+.wpwevo-panel .button-secondary:focus {
+    color: #135e96;
+    border-color: #135e96;
+    background: #f0f0f1;
+}
+
+/* Formulários */
+.wpwevo-panel input[type="text"],
+.wpwevo-panel input[type="url"],
+.wpwevo-panel input[type="number"],
+.wpwevo-panel textarea {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.wpwevo-panel textarea {
+    max-width: 600px;
+    min-height: 100px;
+}
+
+/* Notificações */
+.wpwevo-panel .notice {
+    margin: 20px 0;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.wpwevo-panel .notice p {
+    margin: 0;
+    padding: 0;
+}
+
+/* Spinners e Loading */
+.wpwevo-panel .spinner {
+    float: none;
+    margin: 0 10px;
+}
+
+/* Responsividade */
+@media screen and (max-width: 782px) {
+    .wpwevo-panel {
+        padding: 16px;
+    }
+
+    .wpwevo-connection-actions,
+    .wpwevo-form-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .wpwevo-panel .form-table th {
+        width: 100%;
+        display: block;
+        padding-bottom: 0;
+    }
+
+    .wpwevo-panel input[type="text"],
+    .wpwevo-panel input[type="url"],
+    .wpwevo-panel input[type="number"],
+    .wpwevo-panel textarea {
+        max-width: 100%;
+    }
+}
+
+/* Tabelas */
+.wpwevo-panel table.widefat {
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.wpwevo-panel table.widefat th {
+    background: #f9f9f9;
+    padding: 12px;
+    font-weight: 600;
+}
+
+.wpwevo-panel table.widefat td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Progress Bar */
+.wpwevo-progress-bar {
+    height: 20px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.wpwevo-progress-fill {
+    height: 100%;
+    background: #25d366;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+/* Envio por Status */
+.wpwevo-status-message {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    padding: 15px;
+}
+
+.wpwevo-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.wpwevo-status-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.wpwevo-status-name {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.wpwevo-status-content {
+    position: relative;
+}
+
+.wpwevo-message-preview {
+    margin-top: 10px;
+    display: none;
+}
+
+.wpwevo-message-preview .notice {
+    margin: 0;
+    padding: 8px 12px;
+}
+
+/* Responsividade */
+@media screen and (max-width: 782px) {
+    .wpwevo-status-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .wpwevo-status-toggle {
+        width: 100%;
+    }
+
+    .wpwevo-preview-message {
+        width: 100%;
+        text-align: center;
+    }
+} 

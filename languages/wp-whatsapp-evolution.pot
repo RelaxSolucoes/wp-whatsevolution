@@ -1,0 +1,179 @@
+# Copyright (C) 2024 Seu Nome
+# This file is distributed under the same license as the WP WhatsApp Sender Evolution plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP WhatsApp Sender Evolution 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-whatsapp-evolution\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-01-01T00:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.8.1\n"
+"X-Domain: wp-whatsapp-evolution\n"
+
+#: includes/class-settings-page.php:15
+msgid "WhatsApp Evolution"
+msgstr ""
+
+#: includes/class-settings-page.php:52
+msgid "Conexão estabelecida com sucesso!"
+msgstr ""
+
+#: includes/class-settings-page.php:53
+msgid "Não foi possível conectar. Verifique as configurações."
+msgstr ""
+
+#: includes/class-settings-page.php:59
+msgid "Conexão"
+msgstr ""
+
+#: includes/class-settings-page.php:60
+msgid "Ajuda"
+msgstr ""
+
+#: includes/class-settings-page.php:63
+msgid "WhatsApp Evolution - Configurações"
+msgstr ""
+
+#: includes/class-settings-page.php:89
+msgid "URL da API"
+msgstr ""
+
+#: includes/class-settings-page.php:95
+msgid "URL completa onde a Evolution API está instalada"
+msgstr ""
+
+#: includes/class-settings-page.php:99
+msgid "API KEY"
+msgstr ""
+
+#: includes/class-settings-page.php:105
+msgid "Chave de API gerada nas configurações da Evolution API"
+msgstr ""
+
+#: includes/class-settings-page.php:109
+msgid "Nome da Instância"
+msgstr ""
+
+#: includes/class-settings-page.php:116
+msgid "Nome da instância do WhatsApp criada na Evolution API"
+msgstr ""
+
+#: includes/class-settings-page.php:129
+msgid "Testar Conexão"
+msgstr ""
+
+#: includes/class-settings-page.php:134
+msgid "Não possui? Instale a Evolution API"
+msgstr ""
+
+#: includes/class-settings-page.php:144
+msgid "Como configurar"
+msgstr ""
+
+#: includes/class-settings-page.php:146
+msgid "1. Instale a Evolution API em seu servidor"
+msgstr ""
+
+#: includes/class-settings-page.php:147
+msgid "2. Configure uma instância do WhatsApp"
+msgstr ""
+
+#: includes/class-settings-page.php:148
+msgid "3. Copie a URL, API KEY e nome da instância"
+msgstr ""
+
+#: includes/class-settings-page.php:149
+msgid "4. Cole as informações no painel de conexão"
+msgstr ""
+
+#: includes/class-settings-page.php:150
+msgid "5. Teste a conexão antes de usar"
+msgstr ""
+
+#: includes/class-settings-page.php:153
+msgid "Links Úteis"
+msgstr ""
+
+#: includes/class-settings-page.php:155
+msgid "Documentação da Evolution API"
+msgstr ""
+
+#: includes/class-settings-page.php:158
+msgid "Repositório no GitHub"
+msgstr ""
+
+msgid "Não possui uma conta? Clique aqui."
+msgstr ""
+
+msgid "Envio Único"
+msgstr ""
+
+msgid "Número (com DDD e país)"
+msgstr ""
+
+msgid "Mensagem"
+msgstr ""
+
+msgid "Enviar Mensagem"
+msgstr ""
+
+msgid "Mensagem enviada com sucesso!"
+msgstr ""
+
+msgid "Erro ao enviar: "
+msgstr ""
+
+msgid "Por Status do Pedido"
+msgstr ""
+
+msgid "Mensagens por Status do Pedido"
+msgstr ""
+
+msgid "Salvar Mensagens"
+msgstr ""
+
+msgid "Carrinho Abandonado"
+msgstr ""
+
+msgid "Minutos para considerar abandonado"
+msgstr ""
+
+msgid "Salvar"
+msgstr ""
+
+msgid "Envio em Massa"
+msgstr ""
+
+msgid "%d mensagens enviadas."
+msgstr ""
+
+msgid "Templates de Mensagem"
+msgstr ""
+
+msgid "Variáveis disponíveis: {customer_name}, {order_id}, {order_total}, etc."
+msgstr ""
+
+msgid "Salvar Templates"
+msgstr ""
+
+msgid "O número informado não é WhatsApp válido."
+msgstr ""
+
+msgid "Sistema WhatsApp indisponível no momento. Tente novamente em alguns minutos."
+msgstr ""
+
+msgid "Não foi possível validar o número de WhatsApp. Tente novamente."
+msgstr ""
+
+msgid "O número informado não é um WhatsApp válido."
+msgstr ""
+
+msgid "Instância não está conectada."
+msgstr ""
+
+msgid "Configuração da API incompleta."
+msgstr "" 
