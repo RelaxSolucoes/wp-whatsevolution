@@ -22,6 +22,7 @@ class Settings_Page {
 		add_action('admin_init', [$this, 'register_settings']);
 		add_action('admin_post_wpwevo_test_connection', [$this, 'test_connection']);
 		add_action('wp_ajax_wpwevo_validate_settings', [$this, 'validate_settings']);
+		add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
 	}
 
 	public function setup() {
@@ -79,24 +80,84 @@ class Settings_Page {
 	}
 
 	public function validate_settings() {
-		check_ajax_referer('wpwevo_validate_settings', 'nonce');
+		try {
+			check_ajax_referer('wpwevo_validate_settings', 'nonce');
 
-		$api_url = isset($_POST['api_url']) ? esc_url_raw($_POST['api_url']) : '';
-		$api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
-		$instance = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : '';
+			if (!current_user_can('manage_options')) {
+				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
+			}
 
-		if (empty($api_url) || empty($api_key) || empty($instance)) {
-			wp_send_json_error(__('Todos os campos são obrigatórios.', 'wp-whatsapp-evolution'));
+			$api_url = isset($_POST['api_url']) ? esc_url_raw($_POST['api_url']) : '';
+			$api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
+			$instance = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : '';
+
+			if (empty($api_url) || empty($api_key) || empty($instance)) {
+				throw new \Exception(__('Todos os campos são obrigatórios.', 'wp-whatsapp-evolution'));
+			}
+
+			// Valida formato da URL
+			if (!filter_var($api_url, FILTER_VALIDATE_URL)) {
+				throw new \Exception(__('URL da API inválida.', 'wp-whatsapp-evolution'));
+			}
+
+			// Valida formato da API Key (deve ter 36 caracteres no formato UUID)
+			if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $api_key)) {
+				throw new \Exception(__('Formato da API Key inválido.', 'wp-whatsapp-evolution'));
+			}
+
+			// Atualiza as opções
+			update_option('wpwevo_api_url', $api_url);
+			update_option('wpwevo_api_key', $api_key);
+			update_option('wpwevo_instance', $instance);
+
+			// Testa a conexão
+			$api = Api_Connection::get_instance();
+			$result = $api->check_connection();
+
+			if ($result['success']) {
+				wp_send_json_success([
+					'message' => __('Configurações salvas com sucesso!', 'wp-whatsapp-evolution'),
+					'connection_status' => $result
+				]);
+			} else {
+				throw new \Exception(sprintf(
+					__('Configurações salvas, mas %s', 'wp-whatsapp-evolution'),
+					strtolower($result['message'])
+				));
+			}
+		} catch (\Exception $e) {
+			error_log('WP WhatsApp Evolution - Erro ao salvar configurações: ' . $e->getMessage());
+			wp_send_json_error([
+				'message' => $e->getMessage()
+			]);
+		}
+	}
+
+	public function enqueue_admin_assets($hook) {
+		if (strpos($hook, 'wpwevo-settings') === false) {
+			return;
 		}
 
-		update_option('wpwevo_api_url', $api_url);
-		update_option('wpwevo_api_key', $api_key);
-		update_option('wpwevo_instance', $instance);
+		wp_enqueue_style(
+			'wpwevo-admin',
+			WPWEVO_URL . 'assets/css/admin.css',
+			[],
+			WPWEVO_VERSION
+		);
 
-		$api = Api_Connection::get_instance();
-		$result = $api->check_connection();
+		wp_enqueue_script(
+			'wpwevo-admin',
+			WPWEVO_URL . 'assets/js/admin.js',
+			['jquery'],
+			WPWEVO_VERSION,
+			true
+		);
 
-		wp_send_json($result);
+		wp_localize_script('wpwevo-admin', 'wpwevo_admin', [
+			'ajax_url' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('wpwevo_validate_settings'),
+			'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsapp-evolution')
+		]);
 	}
 
 	public function render_page() {
@@ -139,15 +200,17 @@ class Settings_Page {
 	}
 
 	private function render_connection_tab() {
+		$api = Api_Connection::get_instance();
+		$connection_status = $api->is_configured() ? $api->check_connection() : null;
 		?>
 		<div class="wpwevo-connection-form">
-			<form method="post" action="options.php" id="wpwevo-settings-form">
+			<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="wpwevo-settings-form">
 				<?php settings_fields('wpwevo_settings'); ?>
 				<table class="form-table">
 					<tr>
 						<th scope="row"><?php _e('URL da API', 'wp-whatsapp-evolution'); ?></th>
 						<td>
-							<input type="url" name="wpwevo_api_url" 
+							<input type="url" name="api_url" 
 								   value="<?php echo esc_attr(get_option('wpwevo_api_url', '')); ?>" 
 								   class="regular-text wpwevo-api-field" required
 								   placeholder="https://sua-api.exemplo.com">
@@ -159,7 +222,7 @@ class Settings_Page {
 					<tr>
 						<th scope="row"><?php _e('API KEY', 'wp-whatsapp-evolution'); ?></th>
 						<td>
-							<input type="text" name="wpwevo_api_key" 
+							<input type="text" name="api_key" 
 								   value="<?php echo esc_attr(get_option('wpwevo_api_key', '')); ?>" 
 								   class="regular-text wpwevo-api-field" required>
 							<p class="description">
@@ -170,7 +233,7 @@ class Settings_Page {
 					<tr>
 						<th scope="row"><?php _e('Nome da Instância', 'wp-whatsapp-evolution'); ?></th>
 						<td>
-							<input type="text" name="wpwevo_instance" 
+							<input type="text" name="instance" 
 								   value="<?php echo esc_attr(get_option('wpwevo_instance', '')); ?>" 
 								   class="regular-text wpwevo-api-field" required>
 							<p class="description">
@@ -184,6 +247,21 @@ class Settings_Page {
 					<button type="submit" class="button button-primary">
 						<?php _e('Salvar Configurações', 'wp-whatsapp-evolution'); ?>
 					</button>
+					
+					<?php if ($api->is_configured()): ?>
+						<a href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=wpwevo_test_connection'), 'wpwevo_test_connection'); ?>" 
+						   class="button button-secondary">
+							<?php _e('Testar Conexão', 'wp-whatsapp-evolution'); ?>
+						</a>
+						
+						<?php if ($connection_status): ?>
+							<div class="wpwevo-connection-status <?php echo $connection_status['success'] ? 'success' : 'error'; ?>">
+								<span class="dashicons <?php echo $connection_status['success'] ? 'dashicons-yes' : 'dashicons-no'; ?>"></span>
+								<?php echo esc_html($connection_status['message']); ?>
+							</div>
+						<?php endif; ?>
+					<?php endif; ?>
+					
 					<span class="spinner"></span>
 				</div>
 

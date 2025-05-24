@@ -176,4 +176,127 @@ msgid "Instância não está conectada."
 msgstr ""
 
 msgid "Configuração da API incompleta."
+msgstr ""
+
+#: includes/class-api-connection.php:42
+msgid "Configuração da API incompleta."
+msgstr ""
+
+#: includes/class-api-connection.php:60
+msgid "Erro ao verificar conexão: %s"
+msgstr ""
+
+#: includes/class-api-connection.php:71
+msgid "A instância \"%s\" não existe."
+msgstr ""
+
+#: includes/class-api-connection.php:81
+msgid "Resposta inválida da API."
+msgstr ""
+
+#: includes/class-api-connection.php:89
+msgid "Conexão estabelecida com sucesso!"
+msgstr ""
+
+#: includes/class-api-connection.php:90
+msgid "Instância está se conectando..."
+msgstr ""
+
+#: includes/class-api-connection.php:91
+msgid "Instância está desconectada."
+msgstr ""
+
+#: includes/class-api-connection.php:92
+msgid "Instância está se desconectando..."
+msgstr ""
+
+#: includes/class-api-connection.php:93
+msgid "Estado desconhecido da instância."
+msgstr ""
+
+#: includes/class-settings-page.php:13
+msgid "WhatsApp Evolution"
+msgstr ""
+
+#: includes/class-settings-page.php:14
+msgid "WhatsApp Evolution - Configurações"
+msgstr ""
+
+#: includes/class-settings-page.php:82
+msgid "URL da API"
+msgstr ""
+
+#: includes/class-settings-page.php:89
+msgid "URL completa onde a Evolution API está instalada"
+msgstr ""
+
+#: includes/class-settings-page.php:94
+msgid "API KEY"
+msgstr ""
+
+#: includes/class-settings-page.php:101
+msgid "Chave de API gerada nas configurações da Evolution API"
+msgstr ""
+
+#: includes/class-settings-page.php:106
+msgid "Nome da Instância"
+msgstr ""
+
+#: includes/class-settings-page.php:113
+msgid "Nome da instância criada na Evolution API"
+msgstr ""
+
+#: includes/class-settings-page.php:120
+msgid "Salvar Configurações"
+msgstr ""
+
+#: includes/class-settings-page.php:125
+msgid "Testar Conexão"
+msgstr ""
+
+#: includes/class-settings-page.php:147
+msgid "Conexão"
+msgstr ""
+
+#: includes/class-settings-page.php:148
+msgid "Ajuda"
+msgstr ""
+
+#: includes/class-settings-page.php:89
+msgid "Erro ao salvar as configurações. Tente novamente."
+msgstr ""
+
+#: includes/class-settings-page.php:65
+msgid "Permissão negada."
+msgstr ""
+
+#: includes/class-settings-page.php:74
+msgid "URL da API inválida."
+msgstr ""
+
+#: includes/class-settings-page.php:79
+msgid "Formato da API Key inválido."
+msgstr ""
+
+#: includes/class-settings-page.php:91
+msgid "Configurações salvas com sucesso!"
+msgstr ""
+
+#: includes/class-settings-page.php:98
+msgid "Configurações salvas, mas %s"
+msgstr ""
+
+#: includes/class-api-connection.php:89
+msgid "Formato de resposta da API inesperado."
+msgstr ""
+
+#: includes/class-api-connection.php:123
+msgid "Erro na API (código %d)"
+msgstr ""
+
+#: includes/class-api-connection.php:132
+msgid "Resposta da API em formato inválido."
+msgstr ""
+
+msgid "Não foi possível conectar ao servidor %s. Verifique se a URL da API está correta."
 msgstr "" 
