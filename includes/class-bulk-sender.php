@@ -442,13 +442,25 @@ Maria Santos,5511988888888</pre>
 		// Remove tudo que não for número
 		$numbers_only = preg_replace('/[^0-9]/', '', $phone);
 		
-		// Se não começar com 55, adiciona
-		if (!preg_match('/^55/', $numbers_only)) {
+		// Valida formato básico (10-13 dígitos)
+		if (strlen($numbers_only) < 10 || strlen($numbers_only) > 13) {
+			return false;
+		}
+		
+		// Normaliza para formato brasileiro
+		if (strlen($numbers_only) == 10 && !preg_match('/^55/', $numbers_only)) {
+			// 10 dígitos: adiciona código do país (telefone fixo)
+			$numbers_only = '55' . $numbers_only;
+		} elseif (strlen($numbers_only) == 11 && !preg_match('/^55/', $numbers_only)) {
+			// 11 dígitos: adiciona código do país (celular)
+			$numbers_only = '55' . $numbers_only;
+		} elseif (!preg_match('/^55/', $numbers_only)) {
+			// Se não começar com 55 e não for 10 ou 11 dígitos, adiciona
 			$numbers_only = '55' . $numbers_only;
 		}
 		
-		// Garante que tem pelo menos 12 dígitos (55 + DDD + número)
-		if (strlen($numbers_only) < 12) {
+		// Valida formato final
+		if (!preg_match('/^55[1-9][1-9][0-9]{7,9}$/', $numbers_only)) {
 			return false;
 		}
 		
@@ -1113,24 +1125,33 @@ Maria Santos,5511988888888</pre>
 							__('Linha %d: número de telefone vazio.', 'wp-whatsapp-evolution'),
 							$line_number
 						);
-					} elseif (strlen($phone) < 12 || strlen($phone) > 13) {
+					} elseif (strlen($phone) < 10 || strlen($phone) > 13) {
 						$errors[] = sprintf(
-							__('Linha %d: formato de número inválido (%s). Use: 55 + DDD + número.', 'wp-whatsapp-evolution'),
-							$line_number,
-							$data[$phone_col]
-						);
-					} elseif (!preg_match('/^55[1-9][1-9]/', $phone)) {
-						$errors[] = sprintf(
-							__('Linha %d: o número deve começar com 55 seguido de DDD válido (%s).', 'wp-whatsapp-evolution'),
+							__('Linha %d: formato de número inválido (%s). Use: DDD + número ou 55 + DDD + número.', 'wp-whatsapp-evolution'),
 							$line_number,
 							$data[$phone_col]
 						);
 					} else {
-						// Evita duplicatas
-						if (!isset($processed[$phone])) {
-							$numbers[] = $phone;
-							$processed[$phone] = true;
-		}
+						// Normaliza o número antes da validação final
+						if (strlen($phone) == 10 && !preg_match('/^55/', $phone)) {
+							$phone = '55' . $phone; // Telefone fixo
+						} elseif (strlen($phone) == 11 && !preg_match('/^55/', $phone)) {
+							$phone = '55' . $phone; // Celular
+						}
+						
+						if (!preg_match('/^55[1-9][1-9]/', $phone)) {
+							$errors[] = sprintf(
+								__('Linha %d: o número deve começar com 55 seguido de DDD válido (%s).', 'wp-whatsapp-evolution'),
+								$line_number,
+								$data[$phone_col]
+							);
+						} else {
+							// Evita duplicatas
+							if (!isset($processed[$phone])) {
+								$numbers[] = $phone;
+								$processed[$phone] = true;
+							}
+						}
 					}
 				}
 			}

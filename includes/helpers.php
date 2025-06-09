@@ -142,12 +142,21 @@ function wpwevo_validate_phone($phone) {
 	// Remove tudo que não for número
 	$phone = preg_replace('/[^0-9]/', '', $phone);
 	
-	// Valida o formato básico
-	if (strlen($phone) < 12 || strlen($phone) > 13) {
+	// Valida o formato básico (10-13 dígitos)
+	if (strlen($phone) < 10 || strlen($phone) > 13) {
 		return false;
 	}
 	
-	// Valida código do país (55) e DDD
+	// Normaliza o número brasileiro
+	if (strlen($phone) == 10 && !preg_match('/^55/', $phone)) {
+		// 10 dígitos: adiciona código do país (telefone fixo)
+		$phone = '55' . $phone;
+	} elseif (strlen($phone) == 11 && !preg_match('/^55/', $phone)) {
+		// 11 dígitos: adiciona código do país (celular)
+		$phone = '55' . $phone;
+	}
+	
+	// Valida código do país (55) e DDD após normalização
 	if (!preg_match('/^55[1-9][1-9]/', $phone)) {
 		return false;
 	}
