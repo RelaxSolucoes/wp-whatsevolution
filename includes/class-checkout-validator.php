@@ -222,8 +222,8 @@ class Checkout_Validator {
 	 */
 	public function modify_phone_fields($fields) {
 		$whatsapp_field_config = [
-			'placeholder' => __('Ex: 5511999999999', 'wp-whatsapp-evolution'),
-			'description' => __('Digite seu número de WhatsApp com DDD e código do país', 'wp-whatsapp-evolution')
+			'placeholder' => __('Ex: 11999999999 ou 5511999999999', 'wp-whatsapp-evolution'),
+			'description' => __('Digite seu número de WhatsApp com DDD (código do país opcional)', 'wp-whatsapp-evolution')
 		];
 
 		// Modifica o campo padrão do WooCommerce
@@ -255,10 +255,30 @@ class Checkout_Validator {
 			return; // WooCommerce já valida se é obrigatório
 		}
 
-		// Basic format validation (numbers only, correct length)
-		if (!preg_match('/^\d{12,13}$/', $phone)) {
+		// Clean the phone number (remove all non-digits)
+		$phone = preg_replace('/\D/', '', $phone);
+		
+		// Basic format validation (numbers only, correct length for Brazil)
+		// Aceita:
+		// - 11 dígitos: DDD + 9 dígitos (11999999999)
+		// - 12 dígitos: Código do país + DDD + 8 dígitos (551199999999)
+		// - 13 dígitos: Código do país + DDD + 9 dígitos (5511999999999)
+		if (!preg_match('/^\d{11,13}$/', $phone)) {
 			wc_add_notice(
 				__('O número de WhatsApp deve conter apenas números, incluindo código do país e DDD (Ex: 5511999999999).', 'wp-whatsapp-evolution'),
+				'error'
+			);
+			return;
+		}
+
+		// Normaliza o número para o formato internacional brasileiro
+		if (strlen($phone) == 11) {
+			// Se tem 11 dígitos, assume que é DDD + número sem código do país
+			$phone = '55' . $phone;
+		} elseif (strlen($phone) == 12 && substr($phone, 0, 2) !== '55') {
+			// Se tem 12 dígitos e não começa com 55, pode ser um número incorreto
+			wc_add_notice(
+				__('Número de WhatsApp inválido. Certifique-se de incluir o código do país (55) e DDD.', 'wp-whatsapp-evolution'),
 				'error'
 			);
 			return;

@@ -221,18 +221,22 @@ class Api_Connection {
 
         $country_code = $this->get_country_code();
         
-        // Se não começar com o código do país, adiciona
-        if (!preg_match('/^' . $country_code . '/', $number)) {
-            $number = $country_code . $number;
-        }
-
-        // Para números brasileiros
+        // Para números brasileiros, verifica e padroniza o formato antes de adicionar código do país
         if ($country_code === '55') {
-            // Valida o comprimento total (13 ou 14 dígitos com o 55)
+            // Se tem 11 dígitos e não começa com 55, adiciona o código
+            if (strlen($number) === 11 && !preg_match('/^55/', $number)) {
+                $number = '55' . $number;
+            }
+            // Se não começar com o código do país mas não tem 11 dígitos, adiciona
+            elseif (!preg_match('/^' . $country_code . '/', $number)) {
+                $number = $country_code . $number;
+            }
+
+            // Valida o comprimento total após normalização (13 ou 14 dígitos com o 55)
             if (strlen($number) !== 13 && strlen($number) !== 14) {
                 return [
                     'success' => false,
-                    'message' => __('Número inválido. Digite apenas o DDD e o número.', 'wp-whatsapp-evolution')
+                    'message' => __('Número inválido. Digite o DDD e o número completo (8 ou 9 dígitos).', 'wp-whatsapp-evolution')
                 ];
             }
 
@@ -255,6 +259,13 @@ class Api_Connection {
                 ];
             }
 
+            // Formata o número para o padrão internacional (com @c.us)
+            $number = $number . '@c.us';
+        } else {
+            // Para outros países, apenas adiciona o código do país se necessário
+            if (!preg_match('/^' . $country_code . '/', $number)) {
+                $number = $country_code . $number;
+            }
             // Formata o número para o padrão internacional (com @c.us)
             $number = $number . '@c.us';
         }
