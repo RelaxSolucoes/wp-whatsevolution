@@ -3,7 +3,7 @@
  * Plugin Name: WP WhatsApp Evolution
  * Plugin URI: https://relaxsolucoes.online/
  * Description: Integração avançada do WhatsApp com WooCommerce usando Evolution API
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Relax Soluções
  * Author URI: https://relaxsolucoes.online/
  * Text Domain: wp-whatsapp-evolution
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('WPWEVO_VERSION', '1.0.1');
+define('WPWEVO_VERSION', '1.0.2');
 define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));
