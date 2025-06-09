@@ -223,17 +223,21 @@ class Api_Connection {
         
         // Para números brasileiros, verifica e padroniza o formato antes de adicionar código do país
         if ($country_code === '55') {
-            // Se tem 11 dígitos e não começa com 55, adiciona o código
-            if (strlen($number) === 11 && !preg_match('/^55/', $number)) {
+            // Se tem 10 dígitos e não começa com 55, adiciona o código (telefone fixo)
+            if (strlen($number) === 10 && !preg_match('/^55/', $number)) {
                 $number = '55' . $number;
             }
-            // Se não começar com o código do país mas não tem 11 dígitos, adiciona
+            // Se tem 11 dígitos e não começa com 55, adiciona o código (celular)
+            elseif (strlen($number) === 11 && !preg_match('/^55/', $number)) {
+                $number = '55' . $number;
+            }
+            // Se não começar com o código do país mas não tem 10 ou 11 dígitos, adiciona
             elseif (!preg_match('/^' . $country_code . '/', $number)) {
                 $number = $country_code . $number;
             }
 
-            // Valida o comprimento total após normalização (13 ou 14 dígitos com o 55)
-            if (strlen($number) !== 13 && strlen($number) !== 14) {
+            // Valida o comprimento total após normalização (12, 13 ou 14 dígitos com o 55)
+            if (strlen($number) !== 12 && strlen($number) !== 13 && strlen($number) !== 14) {
                 return [
                     'success' => false,
                     'message' => __('Número inválido. Digite o DDD e o número completo (8 ou 9 dígitos).', 'wp-whatsapp-evolution')
@@ -252,7 +256,7 @@ class Api_Connection {
             }
 
             // Valida o formato final completo para números brasileiros
-            if (!preg_match('/^55[1-9][1-9][0-9]{8,9}$/', $number)) {
+            if (!preg_match('/^55[1-9][1-9][0-9]{7,9}$/', $number)) {
                 return [
                     'success' => false,
                     'message' => __('Formato de número inválido. Use: (DDD) + Número', 'wp-whatsapp-evolution')

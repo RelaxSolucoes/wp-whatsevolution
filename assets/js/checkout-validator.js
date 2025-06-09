@@ -100,7 +100,7 @@ jQuery(document).ready(function($) {
             var number = $field.val().replace(/\D/g, '');
             
             // If number is too short, clear feedback
-            if (number.length < 10) {
+            if (number.length < 8) {
                 $feedback.empty();
                 return;
             }
@@ -169,7 +169,7 @@ jQuery(document).ready(function($) {
         $phoneFields.each(function() {
             var $field = $(this);
             var number = $field.val().replace(/\D/g, '');
-            if (number.length >= 10) {
+            if (number.length >= 8) {
                 if (wpwevoCheckout.debug) {
                     console.log('Initial validation for field:', $field.attr('id'));
                 }
