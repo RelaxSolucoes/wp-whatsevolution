@@ -186,10 +186,10 @@ class Settings_Page {
 						<span class="wpwevo-cta-emoji">✨</span> Ative sua instância agora e aproveite todos os recursos premium do WhatsApp Evolution.
 					</p>
 				</div>
-				<a href="https://relaxsolucoes.online/produto/evolution-api-integracao-instantanea-com-whatsapp-plano-mensal/" 
+				<a href="https://whats-evolution.vercel.app/" 
 				   target="_blank" 
 				   class="wpwevo-cta-button">
-					<span class="wpwevo-cta-emoji">🚀</span> Ativar Instância Pronta Agora!
+					<span class="wpwevo-cta-emoji">🚀</span> Teste Grátis Agora Mesmo!
 				</a>
 			</div>
 			
