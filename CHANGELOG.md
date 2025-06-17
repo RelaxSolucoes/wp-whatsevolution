@@ -1,6 +1,6 @@
 # Changelog - WP WhatsEvolution
 
-## [1.0.6] - 2024-12-19
+## [1.0.6] - 2025-06-17
 
 ### 🔒 SEGURANÇA & LIMPEZA
 - **🚨 CRÍTICO**: Removidas informações sensíveis da documentação pública
@@ -18,7 +18,7 @@
 - **Segurança aprimorada** - Nenhuma informação sensível em arquivos públicos
 - **Compatibilidade total** - Funciona em instalações novas e existentes
 
-## [1.0.5] - 2024-12-18
+## [1.0.5] - 2025-06-16
 
 ### 🔧 CORREÇÃO CRÍTICA - VALIDAÇÃO API KEY
 - **🚨 CORRIGIDO**: Validação muito restritiva da API Key que impedia uso de APIs válidas

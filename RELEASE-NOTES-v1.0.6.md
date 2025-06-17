@@ -1,6 +1,6 @@
 # 🔒 Release v1.0.6 - Segurança e Correção Crítica
 
-**Data:** 19 de Dezembro de 2024  
+**Data:** 17 de Junho de 2025  
 **Prioridade:** 🚨 CRÍTICA - Atualização obrigatória
 
 ---
