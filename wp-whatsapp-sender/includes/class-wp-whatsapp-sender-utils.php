@@ -20,9 +20,7 @@ class WP_WhatsApp_Sender_Utils {
         $api_url = $settings['api_url'];
         
         // Detecta se é Evolution API com base na URL
-        $is_evolution_api = (strpos($api_url, 'evolution') !== false || 
-                            strpos($api_url, 'relax') !== false || 
-                            strpos($api_url, 'relaxnarguiles.com') !== false);
+        $is_evolution_api = (strpos($api_url, 'evolution') !== false);
         
         // Verifica se o número já começa com o código do país
         if (substr($phone_number, 0, 2) !== '55') {

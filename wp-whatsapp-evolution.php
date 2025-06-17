@@ -3,7 +3,7 @@
  * Plugin Name: WP WhatsEvolution
  * Plugin URI: https://relaxsolucoes.online/
  * Description: Integração avançada com WooCommerce usando Evolution API para envio de mensagens
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Relax Soluções
  * Author URI: https://relaxsolucoes.online/
  * Text Domain: wp-whatsevolution
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('WPWEVO_VERSION', '1.0.5');
+define('WPWEVO_VERSION', '1.0.6');
 define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));
@@ -64,6 +64,9 @@ function wpwevo_activate() {
 	// Cria tabelas e opções necessárias
 	wpwevo_create_tables();
 	wpwevo_create_options();
+	
+	// Migra configurações antigas se necessário
+	wpwevo_migrate_old_options();
 }
 
 // Desativação
@@ -73,30 +76,7 @@ function wpwevo_deactivate() {
 	wpwevo_cleanup();
 }
 
-// Desinstalação
-register_uninstall_hook(__FILE__, 'wpwevo_uninstall');
-function wpwevo_uninstall() {
-	global $wpdb;
-
-	// Remove a tabela de logs
-	$wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}wpwevo_logs");
-
-	// Remove todas as opções
-	delete_option('wpwevo_version');
-	delete_option('wpwevo_api_url');
-	delete_option('wpwevo_api_key');
-	delete_option('wpwevo_instance_name');
-	delete_option('wpwevo_status_messages');
-
-	// Remove transients
-	delete_transient('wpwevo_connection_status');
-	delete_transient('wpwevo_instance_status');
-
-	// Remove opções de agendamento
-	wp_clear_scheduled_hook('wpwevo_cleanup_logs');
-	wp_clear_scheduled_hook('wpwevo_abandoned_cart_cron');
-	wp_clear_scheduled_hook('wpwevo_bulk_send_cron');
-}
+// A desinstalação é tratada pelo arquivo uninstall.php
 
 /**
  * Verifica os requisitos do sistema
@@ -203,7 +183,7 @@ function wpwevo_create_options() {
 	// Opções de conexão
 	add_option('wpwevo_api_url', '');
 	add_option('wpwevo_api_key', '');
-	add_option('wpwevo_instance_name', '');
+	add_option('wpwevo_instance', '');
 
 	// Opções de mensagens por status
 	add_option('wpwevo_status_messages', []);
@@ -214,6 +194,16 @@ function wpwevo_cleanup() {
 	// Remove dados temporários
 	delete_transient('wpwevo_connection_status');
 	delete_transient('wpwevo_instance_status');
+}
+
+// Migra opções antigas para o formato correto
+function wpwevo_migrate_old_options() {
+	// Se existir a opção antiga wpwevo_instance_name, migra para wpwevo_instance
+	$old_instance = get_option('wpwevo_instance_name');
+	if ($old_instance && !get_option('wpwevo_instance')) {
+		update_option('wpwevo_instance', $old_instance);
+		delete_option('wpwevo_instance_name');
+	}
 }
 
 // Adiciona verificação de atualizações

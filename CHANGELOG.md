@@ -1,11 +1,29 @@
 # Changelog - WP WhatsEvolution
 
+## [1.0.6] - 2024-12-19
+
+### 🔒 SEGURANÇA & LIMPEZA
+- **🚨 CRÍTICO**: Removidas informações sensíveis da documentação pública
+- **🛡️ LIMPEZA**: API Keys e URLs específicas removidas dos arquivos
+- **✅ DESINSTALAÇÃO**: Corrigido problema crítico de desinstalação incompleta
+
+### 🗑️ CORREÇÃO DESINSTALAÇÃO
+- **📁 ARQUIVO DEDICADO**: Criado `uninstall.php` para limpeza completa
+- **🔄 MIGRAÇÃO**: Corrigida inconsistência `wpwevo_instance_name` → `wpwevo_instance`
+- **📋 LIMPEZA COMPLETA**: Remove tabelas, opções, transients, cron jobs e metadados
+- **🛠️ MIGRAÇÃO AUTOMÁTICA**: Instalações existentes são corrigidas automaticamente
+
+### 🎯 IMPACTO
+- **Desinstalação 100% limpa** - Zero resíduos no banco de dados
+- **Segurança aprimorada** - Nenhuma informação sensível em arquivos públicos
+- **Compatibilidade total** - Funciona em instalações novas e existentes
+
 ## [1.0.5] - 2024-12-18
 
 ### 🔧 CORREÇÃO CRÍTICA - VALIDAÇÃO API KEY
 - **🚨 CORRIGIDO**: Validação muito restritiva da API Key que impedia uso de APIs válidas
 - **✅ FLEXIBILIZADO**: Regex de validação para aceitar formato real da Evolution API
-- **🎯 SUPORTE**: API Keys como `EC2FA26C82AF-414A-AA8D-2AACC909E312`
+- **🎯 SUPORTE**: API Keys em formato UUID flexível
 - **🛡️ MANTIDO**: Validação básica do formato `XXXX-XXXX-XXXX-XXXX-XXXX`
 
 ### 📋 DETALHES TÉCNICOS

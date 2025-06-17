@@ -188,9 +188,7 @@ class WP_WhatsApp_Sender_Admin {
         $api_key = get_option('wp_whatsapp_sender_api_key', '');
         
         // Verifica se está usando Evolution API
-        $is_evolution_api = (strpos($api_url, 'evolution') !== false || 
-                             strpos($api_url, 'relax') !== false || 
-                             strpos($api_url, 'relaxnarguiles.com') !== false);
+        $is_evolution_api = (strpos($api_url, 'evolution') !== false);
         
         // Processa a verificação de conexão se solicitado
         $connection_status = '';
@@ -311,9 +309,7 @@ class WP_WhatsApp_Sender_Admin {
         $instance_name = $settings['instance_name'];
         $api_key = $settings['api_key'];
         
-        $is_evolution_api = (strpos($api_url, 'evolution') !== false || 
-                             strpos($api_url, 'relax') !== false || 
-                             strpos($api_url, 'relaxnarguiles.com') !== false);
+        $is_evolution_api = (strpos($api_url, 'evolution') !== false);
         
         // Verifica status da conexão para Evolution API
         $connection_status = '';
