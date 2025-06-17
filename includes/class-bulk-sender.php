@@ -564,13 +564,13 @@ Maria Santos,5511988888888</pre>
 				$order = wc_get_order($order_id);
 				if (!$order) continue;
 
-				// Filtro por valor mínimo
-				if ($min_total > 0 && $order->get_total() < $min_total) {
-					continue;
-				}
+							// Filtro por valor mínimo
+			if ($min_total > 0 && $order->get_total() < $min_total) {
+				continue;
+			}
 
-				$phone = $order->get_billing_phone();
-				if (empty($phone)) continue;
+			$phone = wpwevo_get_order_phone($order);
+			if (empty($phone)) continue;
 
 				// Normaliza o número para comparação
 				$normalized_phone = $this->normalize_phone_for_comparison($phone);
@@ -1020,13 +1020,13 @@ Maria Santos,5511988888888</pre>
 			$order = wc_get_order($order_id);
 			if (!$order) continue;
 			
-			// Filtro por valor mínimo
-			if ($min_total > 0 && $order->get_total() < $min_total) {
-				continue;
-			}
+					// Filtro por valor mínimo
+		if ($min_total > 0 && $order->get_total() < $min_total) {
+			continue;
+		}
 
-			$phone = $order->get_billing_phone();
-			if (empty($phone)) continue;
+		$phone = wpwevo_get_order_phone($order);
+		if (empty($phone)) continue;
 
 			// Normaliza o número para comparação
 			$normalized_phone = $this->normalize_phone_for_comparison($phone);

@@ -1,0 +1,14 @@
+# Ignorar plugin externo
+woo-cart-abandonment-recovery/
+
+# Arquivos temporários  
+debug-*.php
+test-*.php
+enable-*.php
+check-*.php
+monitor-*.php
+verificar-*.php
+status-*.php
+
+# Logs
+*.log 

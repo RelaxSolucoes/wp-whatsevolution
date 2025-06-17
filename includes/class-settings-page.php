@@ -102,9 +102,9 @@ class Settings_Page {
 				throw new \Exception(__('URL da API inválida.', 'wp-whatsapp-evolution'));
 			}
 
-			// Valida formato da API Key (deve ter 36 caracteres no formato UUID)
-			if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $api_key)) {
-				throw new \Exception(__('Formato da API Key inválido.', 'wp-whatsapp-evolution'));
+			// Valida formato da API Key (formato flexível para Evolution API)
+			if (!preg_match('/^[A-F0-9]{8,}-[A-F0-9]{4,}-[A-F0-9]{4,}-[A-F0-9]{4,}-[A-F0-9]{12,}$/i', $api_key)) {
+				throw new \Exception(__('Formato da API Key inválido. Use o formato: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'wp-whatsapp-evolution'));
 			}
 
 			// Atualiza as opções

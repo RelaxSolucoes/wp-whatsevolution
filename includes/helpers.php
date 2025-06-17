@@ -199,12 +199,51 @@ function wpwevo_is_json($string) {
 	if (!is_string($string)) {
 		return false;
 	}
+	
 	json_decode($string);
-	return (json_last_error() === JSON_ERROR_NONE);
+	return (json_last_error() == JSON_ERROR_NONE);
 }
 
 /**
- * Sanitiza e valida dados de entrada
+ * Obtém o número de telefone de um pedido, considerando múltiplos campos
+ * Prioriza o campo de celular se estiver disponível
+ */
+function wpwevo_get_order_phone($order) {
+	if (!$order instanceof \WC_Order) {
+		return '';
+	}
+	
+	// Primeiro tenta o campo billing_cellphone (Brazilian Market plugin)
+	$cellphone = $order->get_meta('_billing_cellphone');
+	if (!empty($cellphone)) {
+		return $cellphone;
+	}
+	
+	// Se não encontrou, usa o campo padrão billing_phone
+	$phone = $order->get_billing_phone();
+	if (!empty($phone)) {
+		return $phone;
+	}
+	
+	// Como último recurso, tenta outros campos comuns de telefone
+	$alternative_fields = [
+		'_billing_phone',
+		'billing_phone_number',
+		'wcf_billing_phone'
+	];
+	
+	foreach ($alternative_fields as $field) {
+		$phone = $order->get_meta($field);
+		if (!empty($phone)) {
+			return $phone;
+		}
+	}
+	
+	return '';
+}
+
+/**
+ * Sanitiza dados de entrada baseado no tipo
  */
 function wpwevo_sanitize_input($data, $type = 'text') {
 	switch ($type) {

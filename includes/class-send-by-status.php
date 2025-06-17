@@ -401,7 +401,7 @@ class Send_By_Status {
 			return;
 		}
 
-		$billing_phone = $order->get_billing_phone();
+		$billing_phone = wpwevo_get_order_phone($order);
 		if (empty($billing_phone)) {
 			return;
 		}
@@ -441,7 +441,7 @@ class Send_By_Status {
 			return;
 		}
 
-		$billing_phone = $order->get_billing_phone();
+		$billing_phone = wpwevo_get_order_phone($order);
 		if (empty($billing_phone)) {
 			return;
 		}
