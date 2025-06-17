@@ -1,5 +1,26 @@
 # Changelog - WP WhatsEvolution
 
+## [1.0.5] - 2024-12-18
+
+### 🔧 CORREÇÃO CRÍTICA - VALIDAÇÃO API KEY
+- **🚨 CORRIGIDO**: Validação muito restritiva da API Key que impedia uso de APIs válidas
+- **✅ FLEXIBILIZADO**: Regex de validação para aceitar formato real da Evolution API
+- **🎯 SUPORTE**: API Keys como `EC2FA26C82AF-414A-AA8D-2AACC909E312`
+- **🛡️ MANTIDO**: Validação básica do formato `XXXX-XXXX-XXXX-XXXX-XXXX`
+
+### 📋 DETALHES TÉCNICOS
+- **Antes**: Exigia UUID v4 específico com padrão rígido
+- **Depois**: Aceita qualquer combinação A-F e 0-9 no formato padrão
+- **Compatível**: Evolution API v2.2.3+ testada
+- **Resolve**: Erro "Formato da API Key inválido" com APIs funcionais
+
+### 🎯 IMPACTO
+- **Zero quebras**: Mantém compatibilidade com APIs antigas
+- **Maior flexibilidade**: Suporte a diferentes provedores Evolution API
+- **UX melhorada**: Menos erros de validação desnecessários
+
+---
+
 ## [1.0.4] - 2024-12-17
 
 ### 🏷️ REBRANDING
