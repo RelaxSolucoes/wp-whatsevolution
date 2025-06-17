@@ -15,8 +15,25 @@ jQuery(document).ready(function($) {
     // Controle de timeout de digitação
     let typingTimer;
     const doneTypingInterval = 1000;
+    
+    // Controle para evitar múltiplas inicializações
+    let isInitialized = false;
+    let initializationTimer;
 
     function initializeValidation() {
+        // Evita múltiplas execuções simultâneas
+        if (isInitialized) {
+            return;
+        }
+        
+        // Debounce para evitar múltiplas chamadas
+        clearTimeout(initializationTimer);
+        initializationTimer = setTimeout(function() {
+            performInitialization();
+        }, 100);
+    }
+
+    function performInitialization() {
         // Cache fields - incluindo campos do WooCommerce Blocks
         var $phoneFields = $('.wc-block-checkout__billing-fields input[type="tel"], input[name="billing-phone"], input[name="billing_phone"], input[name="billing_cellphone"]');
         
@@ -38,9 +55,13 @@ jQuery(document).ready(function($) {
             if (wpwevoCheckout.debug) {
                 console.log('No fields found, will try again in 1 second');
             }
+            isInitialized = false; // Permite nova tentativa
             setTimeout(initializeValidation, 1000);
             return;
         }
+        
+        // Marca como inicializado
+        isInitialized = true;
 
         // Adiciona o modal se estiver habilitado
         if (wpwevoCheckout.show_modal === 'yes' && $('#wpwevo-confirmation-modal').length === 0) {
@@ -186,12 +207,33 @@ jQuery(document).ready(function($) {
     initializeValidation();
 
     // Observa mudanças no DOM para campos que podem ser adicionados dinamicamente
+    // Mas com controle para evitar spam de requests
+    let mutationTimer;
     var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.addedNodes.length) {
+        // Debounce para evitar múltiplas execuções
+        clearTimeout(mutationTimer);
+        mutationTimer = setTimeout(function() {
+            let hasNewPhoneFields = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length) {
+                    // Verifica se realmente há novos campos de telefone
+                    for (let node of mutation.addedNodes) {
+                        if (node.nodeType === 1) { // Element node
+                            let phoneFields = $(node).find('input[type="tel"], input[name*="phone"]');
+                            if (phoneFields.length > 0) {
+                                hasNewPhoneFields = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            if (hasNewPhoneFields) {
+                isInitialized = false; // Permite reinicialização
                 initializeValidation();
             }
-        });
+        }, 500); // Debounce de 500ms
     });
 
     // Observa apenas o formulário de checkout

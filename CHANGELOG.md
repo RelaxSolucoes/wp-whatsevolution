@@ -1,5 +1,19 @@
 # Changelog - WP WhatsEvolution
 
+## [1.0.8] - 2025-06-17
+
+### 🚨 CORREÇÃO CRÍTICA - SPAM DE REQUESTS AJAX
+- **🔥 BUG CORRIGIDO**: MutationObserver causando spam infinito de requests
+- **⚡ PERFORMANCE**: Adicionado debounce e controle de execução única
+- **🎯 OTIMIZADO**: Observer só reinicializa se houver novos campos de telefone
+- **✅ RESULTADO**: 1 request por validação (ao invés de centenas)
+
+### 🛠️ MELHORIAS TÉCNICAS
+- **Debounce de inicialização** (100ms)
+- **Controle de execução única** (`isInitialized`)
+- **MutationObserver inteligente** com verificação de campos
+- **Debounce do observer** (500ms)
+
 ## [1.0.7] - 2025-06-17
 
 ### 🔥 CORREÇÃO URGENTE - VALIDAÇÃO API KEY
