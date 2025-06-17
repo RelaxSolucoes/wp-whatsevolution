@@ -1,5 +1,6 @@
-# Ignorar plugin externo
+# Ignorar plugins externos
 woo-cart-abandonment-recovery/
+wp-whatsapp-sender/
 
 # Arquivos temporários  
 debug-*.php
