@@ -1,6 +1,6 @@
-# WP WhatsApp Evolution v1.0.4
+# WP WhatsEvolution v1.0.4
 
-🚀 **Integração completa do WhatsApp com WooCommerce usando Evolution API**
+🚀 **Integração completa com WooCommerce usando Evolution API**
 
 ## 🆕 **NOVO na v1.0.4: Carrinho Abandonado Revolucionário!**
 
@@ -20,7 +20,7 @@
 
 ## 📋 **Descrição**
 
-O **WP WhatsApp Evolution** é o plugin mais avançado para integração WhatsApp + WooCommerce, oferecendo:
+O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagens + WooCommerce, oferecendo:
 
 - 🛒 **Carrinho Abandonado** com interceptação interna revolucionária
 - 📊 **Envio por Status** de pedido automatizado  
@@ -36,7 +36,7 @@ O **WP WhatsApp Evolution** é o plugin mais avançado para integração WhatsAp
 ### 🔧 **Configuração Ultra-Simples**
 
 1. **Instale** o plugin "WooCommerce Cart Abandonment Recovery"
-2. **Ative** a integração em "WhatsApp Evolution > Carrinho Abandonado"  
+2. **Ative** a integração em "WhatsEvolution > Carrinho Abandonado"  
 3. **Personalize** a mensagem com shortcodes
 4. **Pronto!** O sistema funciona automaticamente
 
@@ -87,7 +87,7 @@ Finalize agora:
 ```bash
 1. Upload do plugin para /wp-content/plugins/
 2. Ativar no painel WordPress
-3. Acessar "WhatsApp Evolution" no menu admin
+3. Acessar "WhatsEvolution" no menu admin
 ```
 
 ### 2️⃣ **Configuração Evolution API**
@@ -103,7 +103,7 @@ Finalize agora:
 
 ```bash
 1. Instalar "WooCommerce Cart Abandonment Recovery"
-2. Ir em "WhatsApp Evolution > Carrinho Abandonado" 
+2. Ir em "WhatsEvolution > Carrinho Abandonado" 
 3. Ativar integração ✅
 4. Personalizar template (opcional)
 ```
@@ -165,7 +165,7 @@ add_filter('wpwevo_cart_abandonment_message', function($message, $data) {
 ```php
 add_action('wpwevo_cart_abandonment_sent', function($phone, $message, $trigger_details) {
     // Log personalizado, integração CRM, etc.
-    error_log("WhatsApp enviado para {$phone} - Valor: {$trigger_details['cart_total']}");
+    error_log("Mensagem enviada para {$phone} - Valor: {$trigger_details['cart_total']}");
 }, 10, 3);
 ```
 
@@ -189,6 +189,7 @@ add_filter('wpwevo_validate_whatsapp', function($is_valid, $number) {
 - **✨ MELHORIA:** Logs otimizados e mais limpos
 - **🔧 CORREÇÃO:** Formatação automática moeda brasileira (R$)
 - **🐛 CORREÇÃO:** Múltiplas correções de compatibilidade
+- **🏷️ REBRANDING:** Plugin renomeado para WP WhatsEvolution
 
 ### v1.0.3 - 2024-11-15
 - ✨ Envio por status de pedido
@@ -217,7 +218,7 @@ add_filter('wpwevo_validate_whatsapp', function($is_valid, $number) {
 
 - 📧 **Email:** suporte@relaxsolucoes.online
 - 🌐 **Site:** [relaxsolucoes.online](https://relaxsolucoes.online/)
-- 💬 **GitHub:** [RelaxSolucoes/wp-whatsapp-evolution](https://github.com/RelaxSolucoes/wp-whatsapp-evolution)
+- 💬 **GitHub:** [RelaxSolucoes/wp-whatsevolution](https://github.com/RelaxSolucoes/wp-whatsevolution)
 
 ---
 

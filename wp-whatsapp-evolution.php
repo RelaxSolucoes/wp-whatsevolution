@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: WP WhatsApp Evolution
+ * Plugin Name: WP WhatsEvolution
  * Plugin URI: https://relaxsolucoes.online/
- * Description: Integração avançada do WhatsApp com WooCommerce usando Evolution API
+ * Description: Integração avançada com WooCommerce usando Evolution API para envio de mensagens
  * Version: 1.0.4
  * Author: Relax Soluções
  * Author URI: https://relaxsolucoes.online/
- * Text Domain: wp-whatsapp-evolution
+ * Text Domain: wp-whatsevolution
  * Domain Path: /languages
  * Requires PHP: 7.4
  * WC requires at least: 5.0

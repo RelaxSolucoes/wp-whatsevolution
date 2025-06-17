@@ -1,4 +1,4 @@
-=== WP WhatsApp Evolution ===
+=== WP WhatsEvolution ===
 Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
@@ -8,17 +8,17 @@ Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Integração completa do WhatsApp com WooCommerce usando Evolution API. Envio automático para carrinho abandonado, por status de pedido, mensagens em massa e muito mais.
+Integração completa com WooCommerce usando Evolution API. Envio automático para carrinho abandonado, por status de pedido, mensagens em massa e muito mais.
 
 == Descrição ==
 
-🚀 **WP WhatsApp Evolution** é o plugin mais completo para integração do WhatsApp com WooCommerce usando a poderosa Evolution API.
+🚀 **WP WhatsEvolution** é o plugin mais completo para integração de mensagens com WooCommerce usando a poderosa Evolution API.
 
 ### ✨ Funcionalidades Principais
 
 **🛒 Carrinho Abandonado (NOVO!)**
 * Integração automática com plugin "WooCommerce Cart Abandonment Recovery"
-* Envio automático de mensagens WhatsApp para carrinhos abandonados
+* Envio automático de mensagens para carrinhos abandonados
 * Templates personalizáveis com shortcodes dinâmicos
 * Logs detalhados de todos os envios
 
@@ -28,7 +28,7 @@ Integração completa do WhatsApp com WooCommerce usando Evolution API. Envio au
 * Suporte a shortcodes dinâmicos (nome, valor, produtos, etc)
 
 **📱 Envio Individual**
-* Envie mensagens WhatsApp para clientes específicos
+* Envie mensagens para clientes específicos
 * Interface simples e intuitiva
 * Validação automática de números
 
@@ -60,11 +60,11 @@ Integração completa do WhatsApp com WooCommerce usando Evolution API. Envio au
 ### 🎯 Como Usar Carrinho Abandonado
 
 1. **Instale o plugin** "WooCommerce Cart Abandonment Recovery"
-2. **Ative a integração** em "WhatsApp Evolution > Carrinho Abandonado"
+2. **Ative a integração** em "WhatsEvolution > Carrinho Abandonado"
 3. **Personalize a mensagem** com shortcodes disponíveis
 4. **Monitore os envios** através dos logs em tempo real
 
-O sistema intercepta automaticamente os carrinhos abandonados e envia mensagens WhatsApp personalizadas!
+O sistema intercepta automaticamente os carrinhos abandonados e envia mensagens personalizadas!
 
 ### 🔗 Shortcodes Disponíveis
 
@@ -80,7 +80,7 @@ O sistema intercepta automaticamente os carrinhos abandonados e envia mensagens 
 
 1. Faça upload do plugin para `/wp-content/plugins/`
 2. Ative o plugin no painel do WordPress
-3. Vá em "WhatsApp Evolution" para configurar
+3. Vá em "WhatsEvolution" para configurar
 4. Configure sua Evolution API
 5. Teste a conexão
 6. Configure as funcionalidades desejadas
@@ -118,6 +118,7 @@ Sim, 100% gratuito e open source.
 * ✨ Logs otimizados e mais limpos
 * 🔧 Formatação automática de moeda brasileira (R$)
 * 🐛 Correções de compatibilidade
+* 🏷️ Renomeado para WP WhatsEvolution (questões legais)
 
 = 1.0.3 =
 * ✨ Envio por status de pedido
@@ -143,4 +144,4 @@ Sim, 100% gratuito e open source.
 == Upgrade Notice ==
 
 = 1.0.4 =
-Nova funcionalidade: Carrinho Abandonado! Integração automática com plugin Cart Abandonment Recovery para enviar mensagens WhatsApp para clientes que abandonaram o carrinho. Atualize agora! 
+REBRANDING: Agora é WP WhatsEvolution! Nova funcionalidade: Carrinho Abandonado com integração automática e templates personalizáveis. Atualize agora! 
