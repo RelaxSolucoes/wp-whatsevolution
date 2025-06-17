@@ -102,10 +102,7 @@ class Settings_Page {
 				throw new \Exception(__('URL da API inválida.', 'wp-whatsapp-evolution'));
 			}
 
-			// Valida formato da API Key (formato flexível para Evolution API)
-			if (!preg_match('/^[A-F0-9]{8,}-[A-F0-9]{4,}-[A-F0-9]{4,}-[A-F0-9]{4,}-[A-F0-9]{12,}$/i', $api_key)) {
-				throw new \Exception(__('Formato da API Key inválido. Use o formato: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'wp-whatsapp-evolution'));
-			}
+			// A Evolution API que valida a chave - não fazemos validação local
 
 			// Atualiza as opções
 			update_option('wpwevo_api_url', $api_url);

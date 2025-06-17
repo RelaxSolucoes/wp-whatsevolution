@@ -1,5 +1,13 @@
 # Changelog - WP WhatsEvolution
 
+## [1.0.7] - 2025-06-17
+
+### 🔥 CORREÇÃO URGENTE - VALIDAÇÃO API KEY
+- **🚨 REMOVIDA**: Validação local da API Key completamente removida
+- **✅ DEIXA**: Evolution API validar a própria chave
+- **🛡️ ZERO**: Interferência do plugin na validação
+- **🎯 FUNCIONA**: Com QUALQUER Evolution API existente
+
 ## [1.0.6] - 2025-06-17
 
 ### 🔒 SEGURANÇA & LIMPEZA
