@@ -1,5 +1,18 @@
 # Changelog - WP WhatsEvolution
 
+## [1.0.9] - 2025-06-17
+
+### 🔧 CORREÇÃO - INTERFERÊNCIA NA DIGITAÇÃO
+- **🐛 BUG CORRIGIDO**: Campo "pulando" caracteres durante digitação (ex: 19 virando 91)
+- **⚡ MELHORADO**: Não manipula mais o valor do campo, apenas extrai números para validação
+- **🎯 OTIMIZADO**: Debounce aumentado para 1.5s para evitar conflitos com máscaras
+- **✅ EVENTOS**: Adicionado suporte para 'input' e 'paste' além de 'keyup'
+
+### 🛡️ COMPATIBILIDADE
+- **Brazilian Market**: Zero interferência com máscaras de CPF/telefone
+- **WooCommerce**: Compatível com formatação automática
+- **Navegadores**: Não conflita com auto-complete
+
 ## [1.0.8] - 2025-06-17
 
 ### 🚨 CORREÇÃO CRÍTICA - SPAM DE REQUESTS AJAX

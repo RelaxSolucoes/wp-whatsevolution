@@ -14,7 +14,7 @@ jQuery(document).ready(function($) {
     
     // Controle de timeout de digitação
     let typingTimer;
-    const doneTypingInterval = 1000;
+    const doneTypingInterval = 1500; // Aumentado para 1.5s para evitar conflitos
     
     // Controle para evitar múltiplas inicializações
     let isInitialized = false;
@@ -105,7 +105,7 @@ jQuery(document).ready(function($) {
         });
 
         // Handle field changes
-        $phoneFields.on('keyup', function() {
+        $phoneFields.on('keyup input paste', function(e) {
             var $field = $(this);
             var fieldId = $field.attr('id') || $field.attr('name').replace(/[^a-zA-Z0-9]/g, '_');
             var $feedback = $('#wpwevo-validation-' + fieldId);
@@ -117,8 +117,9 @@ jQuery(document).ready(function($) {
             userConfirmedNonWhatsApp = false;
             $field.removeClass('wpwevo-valid wpwevo-invalid wpwevo-validating');
 
-            // Get formatted number
-            var number = $field.val().replace(/\D/g, '');
+            // Get formatted number - NÃO modifica o campo, apenas extrai números
+            var rawValue = $field.val();
+            var number = rawValue.replace(/\D/g, '');
             
             // If number is too short, clear feedback
             if (number.length < 8) {
