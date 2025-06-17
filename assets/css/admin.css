@@ -1,0 +1,778 @@
+/* Estilos do painel WP WhatsApp Evolution */
+
+.wpwevo-panel {
+    max-width: 1200px;
+    margin: 20px 0;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.wpwevo-panel h1 {
+    color: #25d366;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.wpwevo-panel .form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+}
+
+/* Formulário de Envio Único */
+.wpwevo-send-single-form {
+    max-width: 800px;
+    margin-bottom: 30px;
+}
+
+.wpwevo-send-single-form textarea {
+    min-height: 120px;
+}
+
+.wpwevo-validation-result {
+    margin-top: 10px;
+    display: none;
+}
+
+.wpwevo-validation-result span {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.wpwevo-validation-result .validating {
+    background: #f0f0f1;
+    color: #50575e;
+}
+
+.wpwevo-validation-result .valid {
+    background: #edfaef;
+    color: #1a9247;
+}
+
+.wpwevo-validation-result .invalid {
+    background: #fef1f1;
+    color: #cc1818;
+}
+
+.wpwevo-validation-result .error {
+    background: #fef1f1;
+    color: #cc1818;
+}
+
+.wpwevo-form-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.wpwevo-send-result {
+    margin-top: 20px;
+}
+
+.wpwevo-variables-help {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.wpwevo-variables-help h3 {
+    margin-top: 0;
+    color: #1d2327;
+}
+
+.wpwevo-variables-help ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.wpwevo-variables-help code {
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* Conexão */
+.wpwevo-connection-form {
+    max-width: 800px;
+    margin-top: 20px;
+}
+
+.wpwevo-connection-form .description {
+    color: #666;
+    font-style: italic;
+    margin: 5px 0;
+}
+
+.wpwevo-connection-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Ajuda */
+.wpwevo-help-content {
+    max-width: 800px;
+}
+
+.wpwevo-help-content h3 {
+    color: #25d366;
+    margin: 30px 0 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.wpwevo-help-content ol,
+.wpwevo-help-content ul {
+    margin-left: 20px;
+    color: #444;
+}
+
+.wpwevo-help-content li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* Botões e ações */
+.wpwevo-panel .button-primary {
+    background: #25d366;
+    border-color: #1a9247;
+    color: #fff;
+    text-shadow: none;
+    box-shadow: 0 1px 0 #1a9247;
+}
+
+.wpwevo-panel .button-primary:hover,
+.wpwevo-panel .button-primary:focus {
+    background: #1a9247;
+    border-color: #147a3a;
+    color: #fff;
+}
+
+.wpwevo-panel .button-secondary {
+    color: #2271b1;
+    border-color: #2271b1;
+    background: #f6f7f7;
+}
+
+.wpwevo-panel .button-secondary:hover,
+.wpwevo-panel .button-secondary:focus {
+    color: #135e96;
+    border-color: #135e96;
+    background: #f0f0f1;
+}
+
+/* Formulários */
+.wpwevo-panel input[type="text"],
+.wpwevo-panel input[type="url"],
+.wpwevo-panel input[type="number"],
+.wpwevo-panel textarea {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.wpwevo-panel textarea {
+    max-width: 600px;
+    min-height: 100px;
+}
+
+/* Notificações */
+.wpwevo-panel .notice {
+    margin: 20px 0;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.wpwevo-panel .notice p {
+    margin: 0;
+    padding: 0;
+}
+
+/* Spinners e Loading */
+.wpwevo-panel .spinner {
+    float: none;
+    margin: 0 10px;
+}
+
+/* Responsividade */
+@media screen and (max-width: 782px) {
+    .wpwevo-panel {
+        padding: 16px;
+    }
+
+    .wpwevo-connection-actions,
+    .wpwevo-form-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .wpwevo-panel .form-table th {
+        width: 100%;
+        display: block;
+        padding-bottom: 0;
+    }
+
+    .wpwevo-panel input[type="text"],
+    .wpwevo-panel input[type="url"],
+    .wpwevo-panel input[type="number"],
+    .wpwevo-panel textarea {
+        max-width: 100%;
+    }
+}
+
+/* Tabelas */
+.wpwevo-panel table.widefat {
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.wpwevo-panel table.widefat th {
+    background: #f9f9f9;
+    padding: 12px;
+    font-weight: 600;
+}
+
+.wpwevo-panel table.widefat td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Progress Bar */
+.wpwevo-progress-wrapper {
+    margin: 20px 0;
+    background: #f0f0f1;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.wpwevo-progress-bar {
+    height: 24px;
+    background: #2271b1;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.wpwevo-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    font-weight: 500;
+    z-index: 1;
+}
+
+.wpwevo-progress-warning {
+    margin: 10px 0;
+    padding: 10px;
+    background: #fcf9e8;
+    border-left: 4px solid #dba617;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.wpwevo-error-list {
+    margin: 10px 0;
+    padding-left: 20px;
+    color: #d63638;
+}
+
+/* Disable form during sending */
+.wpwevo-bulk-form.sending {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Envio por Status */
+.wpwevo-send-by-status-form {
+    margin: 20px 0;
+}
+
+.wpwevo-status-message {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    padding: 15px;
+}
+
+.wpwevo-status-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.wpwevo-status-toggle {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.wpwevo-status-name {
+    margin-left: 8px;
+    font-weight: 600;
+}
+
+.wpwevo-status-content {
+    position: relative;
+}
+
+.wpwevo-status-content textarea {
+    width: 100%;
+    margin-bottom: 10px;
+    resize: vertical;
+}
+
+.wpwevo-message-preview {
+    margin-top: 10px;
+}
+
+.wpwevo-form-actions {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.wpwevo-form-actions .spinner {
+    float: none;
+    margin-left: 10px;
+}
+
+.wpwevo-save-result {
+    margin-top: 15px;
+}
+
+.wpwevo-preview-message,
+.wpwevo-reset-message {
+    margin-left: 10px !important;
+}
+
+.wpwevo-reset-message {
+    color: #a00 !important;
+}
+
+.wpwevo-reset-message:hover {
+    color: #dc3232 !important;
+}
+
+/* Responsividade */
+@media screen and (max-width: 782px) {
+    .wpwevo-status-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .wpwevo-status-toggle {
+        margin-bottom: 10px;
+    }
+
+    .wpwevo-preview-message,
+    .wpwevo-reset-message {
+        margin-left: 0 !important;
+        margin-top: 5px;
+    }
+}
+
+/* Estilos do painel administrativo */
+.wpwevo-connection-status {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.wpwevo-connection-status.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+}
+
+.wpwevo-connection-status.error {
+    background-color: #f2dede;
+    color: #a94442;
+}
+
+.wpwevo-connection-status .dashicons {
+    margin-right: 5px;
+}
+
+.wpwevo-form-actions {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.wpwevo-form-actions .button {
+    margin-right: 10px;
+}
+
+.wpwevo-form-actions .spinner {
+    float: none;
+}
+
+.wpwevo-validation-result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.wpwevo-validation-result.success {
+    background-color: #dff0d8;
+    border: 1px solid #d6e9c6;
+    color: #3c763d;
+}
+
+.wpwevo-validation-result.error {
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    color: #a94442;
+}
+
+.wpwevo-cta-box {
+    background: #f6fff8;
+    border: 2px solid #00a32a;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin: 20px 0 30px;
+    padding: 25px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px;
+    gap: 20px;
+}
+
+.wpwevo-cta-content {
+    flex: 1;
+}
+
+.wpwevo-cta-title {
+    font-size: 1.4em;
+    margin: 0 0 15px;
+    color: #1d2327;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wpwevo-cta-description {
+    margin: 0;
+    color: #50575e;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.wpwevo-cta-button {
+    display: inline-block;
+    background: linear-gradient(45deg, #00a32a, #008a20);
+    color: #fff;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 250px;
+    box-shadow: 0 4px 15px rgba(0,163,42,0.2);
+    border: none;
+}
+
+.wpwevo-cta-button:hover {
+    background: linear-gradient(45deg, #008a20, #006d1b);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,163,42,0.3);
+}
+
+.wpwevo-cta-emoji {
+    font-size: 1.5em;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Tabs */
+.wpwevo-tabs {
+    margin: 20px 0;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    gap: 2px;
+    padding: 0;
+}
+
+.wpwevo-tab-button {
+    padding: 10px 20px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: #444;
+    font-weight: 500;
+    margin-bottom: -1px;
+    transition: all 0.2s ease;
+}
+
+.wpwevo-tab-button:hover {
+    background: #fff;
+    color: #135e96;
+}
+
+.wpwevo-tab-button.active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    color: #135e96;
+}
+
+.wpwevo-tab-content {
+    display: none;
+    padding: 20px 0;
+    border-top: none;
+}
+
+.wpwevo-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Formulário */
+.wpwevo-bulk-form {
+    margin-top: 20px;
+}
+
+.wpwevo-bulk-form .form-table {
+    margin-top: 0;
+}
+
+.wpwevo-bulk-form textarea {
+    width: 100%;
+    min-height: 100px;
+}
+
+.wpwevo-bulk-form select[multiple] {
+    min-height: 120px;
+}
+
+/* Preview de clientes */
+#wpwevo-customers-preview {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+#wpwevo-customers-preview table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#wpwevo-customers-preview th,
+#wpwevo-customers-preview td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+#wpwevo-customers-preview th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Status e Progresso */
+.wpwevo-bulk-status {
+    margin-top: 20px;
+}
+
+.wpwevo-bulk-status .notice {
+    margin: 5px 0 15px;
+}
+
+.wpwevo-bulk-submit {
+    margin-top: 20px !important;
+}
+
+/* Agendamento */
+.wpwevo-schedule-options {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* Responsivo */
+@media screen and (max-width: 782px) {
+    .wpwevo-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .wpwevo-tab-button {
+        flex: 1;
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .wpwevo-bulk-form .form-table td {
+        padding: 15px 0;
+    }
+    
+    .wpwevo-bulk-form input[type="text"],
+    .wpwevo-bulk-form input[type="number"],
+    .wpwevo-bulk-form select,
+    .wpwevo-bulk-form textarea {
+        width: 100%;
+    }
+}
+
+/* Spinner */
+.wpwevo-bulk-form .spinner {
+    float: none;
+    margin: 0 10px;
+    display: inline-block;
+    visibility: visible;
+}
+
+/* Select Múltiplo de Status */
+.wpwevo-panel select[multiple] {
+    min-height: 150px;
+    width: 100%;
+    max-width: 400px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.wpwevo-panel select[multiple] option {
+    padding: 6px 8px;
+    margin: 2px 0;
+    border-radius: 3px;
+}
+
+.wpwevo-panel select[multiple] option:hover {
+    background-color: #f0f0f1;
+}
+
+.wpwevo-panel select[multiple] option:checked {
+    background-color: #2271b1;
+    color: #fff;
+}
+
+/* Checkboxes de Status */
+.wpwevo-status-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 600px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.wpwevo-status-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wpwevo-status-checkbox:hover {
+    background: #f0f0f1;
+}
+
+.wpwevo-status-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.wpwevo-status-checkbox span {
+    font-size: 13px;
+    color: #50575e;
+}
+
+.wpwevo-status-checkbox input[type="checkbox"]:checked + span {
+    color: #2271b1;
+    font-weight: 500;
+}
+
+/* Histórico */
+.wpwevo-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.wpwevo-history-header h3 {
+    margin: 0;
+    color: #1d2327;
+}
+
+#wpwevo-clear-history {
+    display: inline-flex;
+    align-items: center;
+    color: #b32d2e;
+    padding: 4px 8px;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+#wpwevo-clear-history:hover {
+    color: #fff;
+    background: #b32d2e;
+}
+
+#wpwevo-clear-history .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.wpwevo-bulk-history mark {
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+.wpwevo-bulk-history mark.success {
+    background: #edfaef;
+    color: #1a9247;
+}
+
+.wpwevo-bulk-history mark.error {
+    background: #fef1f1;
+    color: #cc1818;
+} 
