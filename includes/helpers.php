@@ -91,16 +91,40 @@ function wpwevo_replace_vars($message, $order = null) {
 }
 
 /**
- * Registra um erro no log
+ * Registra um log com nível específico
  */
-function wpwevo_log_error($message, $data = []) {
+function wpwevo_log_error($message, $data = [], $level = 'info') {
+	// Verifica se debug está habilitado
+	$debug_enabled = get_option('wpwevo_debug_enabled', false);
+	
+	// Se debug não estiver habilitado, só registra erros reais
+	if (!$debug_enabled && $level !== 'error') {
+		return;
+	}
+	
 	if (!function_exists('wc_get_logger')) {
 		return;
 	}
 
 	$logger = wc_get_logger();
 	$context = array_merge(['source' => 'wpwevo'], $data);
-	$logger->error($message, $context);
+	
+	// Usa o nível apropriado
+	switch($level) {
+		case 'error':
+			$logger->error($message, $context);
+			break;
+		case 'warning':
+			$logger->warning($message, $context);
+			break;
+		case 'info':
+			$logger->info($message, $context);
+			break;
+		case 'debug':
+		default:
+			$logger->debug($message, $context);
+			break;
+	}
 }
 
 /**

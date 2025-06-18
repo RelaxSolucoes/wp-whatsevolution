@@ -656,11 +656,7 @@ class Cart_Abandonment {
      * Handle webhook externo (fallback)
      */
     public function handle_webhook() {
-        // DEBUG: Log de entrada
-        error_log('=== WP WHATSAPP EVOLUTION - WEBHOOK DEBUG ===');
-        error_log('Timestamp: ' . date('Y-m-d H:i:s'));
-        error_log('REQUEST_METHOD: ' . ($_SERVER['REQUEST_METHOD'] ?? 'N/A'));
-        error_log('HTTP_USER_AGENT: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'N/A'));
+        // Log removido - operação normal
         
         // Headers específicos para compatibilidade com Cart Abandonment Recovery
         http_response_code(200);
@@ -668,21 +664,17 @@ class Cart_Abandonment {
         header('Cache-Control: no-cache');
         header('X-Webhook-Status: OK');
         
-        // DEBUG: Confirma que chegou até aqui
-        error_log('Headers enviados - Content-Type: application/json');
+        // Log removido - operação normal
         
         // Log dos dados recebidos para debug
         $data = $this->get_safe_headers();
         
-        // DEBUG: Log dos dados recebidos
-        error_log('Dados recebidos: ' . print_r($data, true));
+        // Log removido - operação normal
         
         if (!get_option('wpwevo_cart_abandonment_enabled', 0)) {
-            error_log('DEBUG: Integração desabilitada');
             $this->log_info("⚠️ Webhook recebido mas integração está desabilitada");
             // Resposta JSON que o Cart Abandonment Recovery espera
             $response = ['status' => 'success', 'message' => 'Webhook received but integration disabled'];
-            error_log('DEBUG: Enviando resposta: ' . json_encode($response));
             echo json_encode($response);
             wp_die();
         }
@@ -696,11 +688,10 @@ class Cart_Abandonment {
             (isset($data['email']) && strpos($data['email'], '@example.') !== false)
         );
         
-        // DEBUG: Log da detecção de teste
-        error_log('DEBUG: É teste? ' . ($is_test ? 'SIM' : 'NÃO'));
+        // Log removido - operação normal
         
         if ($is_test) {
-            error_log('DEBUG: Processando como teste');
+            // Log removido - operação normal
             $this->log_success("🧪 Teste de conectividade OK (Trigger Sample)");
             
             // Limpa qualquer output anterior
@@ -715,7 +706,6 @@ class Cart_Abandonment {
             header('Expires: 0');
             
             // Resposta EXATA que o JavaScript espera
-            error_log('DEBUG: Enviando resposta otimizada: accepted');
             echo 'accepted';
             
             // Força envio imediato
@@ -729,8 +719,6 @@ class Cart_Abandonment {
         $customer_name = ($data['first_name'] ?? 'Cliente') . ' ' . ($data['last_name'] ?? '');
         $customer_name = trim($customer_name);
         $this->log_info("📨 Webhook externo recebido: {$customer_name}");
-        
-        error_log('DEBUG: Processando carrinho real para: ' . $customer_name);
         
         $result = $this->process_webhook_data($data);
             
@@ -751,7 +739,6 @@ class Cart_Abandonment {
             ];
         }
         
-        error_log('DEBUG: Enviando resposta final: ' . json_encode($response));
         echo json_encode($response);
         wp_die();
     }

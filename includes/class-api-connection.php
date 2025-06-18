@@ -80,10 +80,7 @@ class Api_Connection {
         // Constrói a URL exatamente como no teste
         $url = rtrim($this->api_url, '/') . '/instance/connectionState/' . $this->instance_name;
 
-        // Log para debug
-        wpwevo_log_error('Making API request:');
-        wpwevo_log_error('URL: ' . $url);
-        wpwevo_log_error('API Key: ' . substr($this->api_key, 0, 8) . '...');
+        // Log removido - operação normal
 
         $args = [
             'headers' => [
@@ -94,8 +91,7 @@ class Api_Connection {
             'sslverify' => false // Temporário para debug
         ];
 
-        // Log dos argumentos da requisição
-        wpwevo_log_error('Request args: ' . print_r($args, true));
+        // Log removido - operação normal
 
         $response = wp_remote_get($url, $args);
 
@@ -125,11 +121,7 @@ class Api_Connection {
         $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
 
-        // Log da resposta completa
-        wpwevo_log_error('API Response:');
-        wpwevo_log_error('Status: ' . $status_code);
-        wpwevo_log_error('Headers: ' . print_r(wp_remote_retrieve_headers($response), true));
-        wpwevo_log_error('Body: ' . $body);
+        // Log removido - operação normal
 
         $data = json_decode($body, true);
 
@@ -310,10 +302,7 @@ class Api_Connection {
             '{store_email}' => get_option('admin_email')
         ];
 
-        // Log para debug
-        wpwevo_log_error('Replacing variables in message:');
-        wpwevo_log_error('Original message: ' . $message);
-        wpwevo_log_error('Variables: ' . print_r($variables, true));
+        // Log removido - operação normal
 
         $replaced_message = str_replace(
             array_keys($variables),
@@ -321,8 +310,7 @@ class Api_Connection {
             $message
         );
 
-        // Log da mensagem final
-        wpwevo_log_error('Final message: ' . $replaced_message);
+        // Log removido - operação normal
 
         return $replaced_message;
     }
@@ -354,11 +342,7 @@ class Api_Connection {
         // Constrói a URL do endpoint
         $url = rtrim($this->api_url, '/') . '/message/sendText/' . $this->instance_name;
 
-        // Log para debug
-        wpwevo_log_error('Enviando mensagem:');
-        wpwevo_log_error('URL: ' . $url);
-        wpwevo_log_error('Número: ' . $number);
-        wpwevo_log_error('Mensagem: ' . $message);
+        // Log removido - operação normal
 
         // Prepara o corpo da requisição no formato correto
         $body = [
@@ -380,8 +364,7 @@ class Api_Connection {
             'sslverify' => false // Temporário para debug
         ];
 
-        // Log dos argumentos da requisição
-        wpwevo_log_error('Request args: ' . print_r($args, true));
+        // Log removido - operação normal
 
         $response = wp_remote_post($url, $args);
 
@@ -399,10 +382,7 @@ class Api_Connection {
         $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
 
-        // Log da resposta
-        wpwevo_log_error('API Response:');
-        wpwevo_log_error('Status: ' . $status_code);
-        wpwevo_log_error('Body: ' . $body);
+        // Log removido - operação normal
 
         $data = json_decode($body, true);
 
@@ -455,10 +435,7 @@ class Api_Connection {
         // Constrói a URL para validação do número
         $url = rtrim($this->api_url, '/') . '/chat/whatsappNumbers/' . $this->instance_name;
 
-        // Log para debug
-        wpwevo_log_error('Validating number:');
-        wpwevo_log_error('URL: ' . $url);
-        wpwevo_log_error('Number: ' . $number);
+        // Log removido - operação normal
 
         $response = wp_remote_post($url, [
             'headers' => [
@@ -486,10 +463,7 @@ class Api_Connection {
         $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
 
-        // Log da resposta
-        wpwevo_log_error('API Response:');
-        wpwevo_log_error('Status: ' . $status_code);
-        wpwevo_log_error('Body: ' . $body);
+        // Log removido - operação normal
 
         if ($status_code !== 200) {
             return [

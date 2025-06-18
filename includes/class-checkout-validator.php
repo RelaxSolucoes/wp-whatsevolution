@@ -372,9 +372,7 @@ class Checkout_Validator {
 		}
 
 		// Debug
-		error_log('WP WhatsApp Evolution: Loading checkout validation scripts');
-		error_log('Current page ID: ' . $current_page_id);
-		error_log('Checkout page ID: ' . $checkout_page_id);
+		// Log removido - operação normal
 
 		wp_enqueue_style(
 			'wpwevo-checkout-validator',
