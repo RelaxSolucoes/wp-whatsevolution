@@ -1,6 +1,6 @@
 # 🎨 Release v1.1 - Interface Modernizada e UX Aprimorada
 
-**Data:** 22 de Janeiro de 2025  
+**Data:** 17 de Junho de 2025  
 **Prioridade:** ⭐ MELHORIA VISUAL - Recomendada para todos os usuários
 
 ---
