@@ -1,4 +1,43 @@
 /* Envio por status do pedido */
+
+// Função global para copiar variáveis
+function copyVariable(variable) {
+    // Copia para o clipboard
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(variable).then(function() {
+            // Mostra feedback visual
+            var button = event.target.closest('div');
+            var originalBg = button.style.background;
+            button.style.background = '#48bb78';
+            button.style.transform = 'scale(1.05)';
+            
+            setTimeout(function() {
+                button.style.background = originalBg;
+                button.style.transform = 'translateY(0)';
+            }, 300);
+        });
+    } else {
+        // Fallback para browsers antigos
+        var textArea = document.createElement('textarea');
+        textArea.value = variable;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        // Feedback visual
+        var button = event.target.closest('div');
+        var originalBg = button.style.background;
+        button.style.background = '#48bb78';
+        button.style.transform = 'scale(1.05)';
+        
+        setTimeout(function() {
+            button.style.background = originalBg;
+            button.style.transform = 'translateY(0)';
+        }, 300);
+    }
+}
+
 jQuery(document).ready(function($) {
     var $form = $('#wpwevo-status-messages-form');
     var $button = $form.find('button[type="submit"]');
