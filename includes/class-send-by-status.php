@@ -175,7 +175,7 @@ class Send_By_Status {
 	}
 
 	public function enqueue_scripts($hook) {
-		if ($hook !== 'whatsapp-evolution_page_wpwevo-send-by-status') {
+		if (strpos($hook, 'wpwevo') === false) {
 			return;
 		}
 

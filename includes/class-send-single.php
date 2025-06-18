@@ -51,7 +51,7 @@ class Send_Single {
 	}
 
 	public function enqueue_scripts($hook) {
-		if ($hook !== 'whatsapp-evolution_page_wpwevo-send-single') {
+		if (strpos($hook, 'wpwevo') === false) {
 			return;
 		}
 
@@ -116,7 +116,7 @@ class Send_Single {
 							<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Enviar Mensagem</h3>
 						</div>
 						
-						<form id="wpwevo-send-single-form">
+						<form id="wpwevo-send-single-form" method="post">
 							<div style="display: grid; gap: 20px;">
 								<!-- Campo Número -->
 								<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">

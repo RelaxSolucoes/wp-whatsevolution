@@ -249,8 +249,8 @@ class Cart_Abandonment {
     }
 
     public function enqueue_scripts($hook) {
-        // Aplica o fix em qualquer página admin que contenha 'cart-abandonment'
-        if (strpos($hook, 'cart-abandonment') === false && strpos($_GET['page'] ?? '', 'cart-abandonment') === false) {
+        // Aplica o fix em qualquer página admin que contenha 'wpwevo'
+        if (strpos($hook, 'wpwevo') === false) {
             return;
         }
 

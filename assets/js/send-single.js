@@ -1,4 +1,21 @@
 /* Envio único de WhatsApp */
+
+// Função global para inserir variáveis (usada pelos botões de variáveis)
+function insertVariable(variable) {
+    var textarea = document.getElementById('wpwevo-message');
+    if (textarea) {
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var text = textarea.value;
+        var before = text.substring(0, start);
+        var after = text.substring(end);
+        
+        textarea.value = before + variable + after;
+        textarea.focus();
+        textarea.setSelectionRange(start + variable.length, start + variable.length);
+    }
+}
+
 jQuery(document).ready(function($) {
     var validateTimeout;
     var $form = $('#wpwevo-send-single-form');

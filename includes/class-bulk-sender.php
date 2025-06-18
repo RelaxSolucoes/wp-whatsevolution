@@ -99,8 +99,8 @@ class Bulk_Sender {
 	}
 
 	public function enqueue_scripts($hook) {
-		// Aplica scripts em qualquer página admin que contenha 'bulk-send'
-		if (strpos($hook, 'bulk-send') === false && strpos($_GET['page'] ?? '', 'bulk-send') === false) {
+		// Aplica scripts em qualquer página admin que contenha 'wpwevo'
+		if (strpos($hook, 'wpwevo') === false) {
 			return;
 		}
 

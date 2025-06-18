@@ -62,8 +62,8 @@ class Checkout_Validator {
 	 * Enqueue admin scripts and styles
 	 */
 	public function enqueue_admin_scripts($hook) {
-		// Só carrega na página de configurações do checkout
-		if ($hook !== 'whatsapp-evolution_page_' . $this->menu_slug) {
+		// Só carrega nas páginas do plugin
+		if (strpos($hook, 'wpwevo') === false) {
 			return;
 		}
 

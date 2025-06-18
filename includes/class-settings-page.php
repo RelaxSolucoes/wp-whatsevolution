@@ -133,7 +133,7 @@ class Settings_Page {
 	}
 
 	public function enqueue_admin_assets($hook) {
-		if (strpos($hook, 'wpwevo-settings') === false) {
+		if (strpos($hook, 'wpwevo') === false) {
 			return;
 		}
 
