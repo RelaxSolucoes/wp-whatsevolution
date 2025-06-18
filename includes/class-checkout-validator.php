@@ -108,8 +108,8 @@ class Checkout_Validator {
 	 */
 	public function render_page() {
 		?>
-		<div class="wrap wpwevo-checkout-page">
-			<h1><?php _e('Validação de WhatsApp no Checkout', 'wp-whatsapp-evolution'); ?></h1>
+		<div class="wrap wpwevo-checkout-page" style="max-width: none;">
+			<h1>📱 Validação de WhatsApp no Checkout</h1>
 			
 			<form method="post" action="options.php">
 				<?php
@@ -117,85 +117,110 @@ class Checkout_Validator {
 				do_settings_sections('wpwevo_checkout_settings');
 				?>
 				
-				<table class="form-table">
-					<tr>
-						<th scope="row"><?php _e('Validação de WhatsApp', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="wpwevo_checkout_enabled" value="yes" 
-									<?php checked($this->settings['enabled'], 'yes'); ?>>
-								<?php _e('Ativar validação de WhatsApp nos campos de telefone/celular', 'wp-whatsapp-evolution'); ?>
-							</label>
-							<p class="description">
-								<?php _e('Os campos de telefone e celular do checkout serão validados para garantir que são números de WhatsApp válidos.', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php _e('Validação em Tempo Real', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="wpwevo_checkout_validation" value="yes" 
-									<?php checked($this->settings['validation'], 'yes'); ?>>
-								<?php _e('Validar número em tempo real', 'wp-whatsapp-evolution'); ?>
-							</label>
-							<p class="description">
-								<?php _e('O número será validado enquanto o cliente digita.', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php _e('Modal de Confirmação', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="wpwevo_checkout_show_modal" value="yes" 
-									<?php checked($this->settings['show_modal'], 'yes'); ?>>
-								<?php _e('Mostrar modal de confirmação', 'wp-whatsapp-evolution'); ?>
-							</label>
-							<p class="description">
-								<?php _e('Exibe um modal quando o número não for um WhatsApp válido.', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-					<tr class="wpwevo-modal-fields">
-						<th scope="row"><?php _e('Título do Modal', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<input type="text" name="wpwevo_checkout_modal_title" value="<?php echo esc_attr($this->settings['modal_title']); ?>" class="regular-text">
-						</td>
-					</tr>
-					<tr class="wpwevo-modal-fields">
-						<th scope="row"><?php _e('Mensagem do Modal', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<textarea name="wpwevo_checkout_modal_message" rows="3" class="large-text"><?php echo esc_textarea($this->settings['modal_message']); ?></textarea>
-						</td>
-					</tr>
-					<tr class="wpwevo-modal-fields">
-						<th scope="row"><?php _e('Texto do Botão', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<input type="text" name="wpwevo_checkout_modal_button_text" value="<?php echo esc_attr($this->settings['modal_button_text']); ?>" class="regular-text">
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php _e('Mensagem de Sucesso', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<input type="text" name="wpwevo_checkout_validation_success" value="<?php echo esc_attr($this->settings['validation_success_message']); ?>" class="regular-text">
-							<p class="description">
-								<?php _e('Mensagem exibida quando o número for um WhatsApp válido.', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php _e('Mensagem de Erro', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<input type="text" name="wpwevo_checkout_validation_error" value="<?php echo esc_attr($this->settings['validation_error_message']); ?>" class="regular-text">
-							<p class="description">
-								<?php _e('Mensagem exibida quando o número não for um WhatsApp válido.', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-				</table>
+				<!-- Cards de Configuração Organizados -->
+				<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
+					
+					<!-- Card 1: Configurações Principais -->
+					<div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.2); overflow: hidden;">
+						<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+							<div style="display: flex; align-items: center; margin-bottom: 20px;">
+								<div style="background: #4facfe; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">⚙️</div>
+								<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Configurações Principais</h3>
+							</div>
+							
+							<div style="display: grid; gap: 20px;">
+								<!-- Ativar Validação -->
+								<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
+									<label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+										<input type="checkbox" name="wpwevo_checkout_enabled" value="yes" <?php checked($this->settings['enabled'], 'yes'); ?> style="transform: scale(1.2);">
+										<strong style="color: #2d3748;">✅ Ativar validação de WhatsApp</strong>
+									</label>
+									<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 14px;">
+										Os campos de telefone e celular do checkout serão validados para garantir que são números de WhatsApp válidos.
+									</p>
+								</div>
+								
+								<!-- Validação Tempo Real -->
+								<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
+									<label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+										<input type="checkbox" name="wpwevo_checkout_validation" value="yes" <?php checked($this->settings['validation'], 'yes'); ?> style="transform: scale(1.2);">
+										<strong style="color: #2d3748;">⚡ Validação em tempo real</strong>
+									</label>
+									<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 14px;">
+										O número será validado enquanto o cliente digita.
+									</p>
+								</div>
+								
+								<!-- Modal de Confirmação -->
+								<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
+									<label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+										<input type="checkbox" name="wpwevo_checkout_show_modal" value="yes" <?php checked($this->settings['show_modal'], 'yes'); ?> style="transform: scale(1.2);">
+										<strong style="color: #2d3748;">💬 Modal de confirmação</strong>
+									</label>
+									<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 14px;">
+										Exibe um modal quando o número não for um WhatsApp válido.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
 
-				<?php submit_button(); ?>
+					<!-- Card 2: Configuração do Modal -->
+					<div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(168, 237, 234, 0.2); overflow: hidden;">
+						<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+							<div style="display: flex; align-items: center; margin-bottom: 20px;">
+								<div style="background: #a8edea; color: #2d3748; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">💬</div>
+								<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Personalização do Modal</h3>
+							</div>
+							
+							<div style="display: grid; gap: 15px;">
+								<div>
+									<label style="display: block; margin-bottom: 5px; font-weight: 500; color: #2d3748;">📝 Título do Modal</label>
+									<input type="text" name="wpwevo_checkout_modal_title" value="<?php echo esc_attr($this->settings['modal_title']); ?>" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+								</div>
+								
+								<div>
+									<label style="display: block; margin-bottom: 5px; font-weight: 500; color: #2d3748;">💭 Mensagem do Modal</label>
+									<textarea name="wpwevo_checkout_modal_message" rows="3" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; resize: vertical;"><?php echo esc_textarea($this->settings['modal_message']); ?></textarea>
+								</div>
+								
+								<div>
+									<label style="display: block; margin-bottom: 5px; font-weight: 500; color: #2d3748;">🔘 Texto do Botão</label>
+									<input type="text" name="wpwevo_checkout_modal_button_text" value="<?php echo esc_attr($this->settings['modal_button_text']); ?>" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Card 3: Mensagens de Validação -->
+					<div style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(255, 236, 210, 0.2); overflow: hidden;">
+						<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+							<div style="display: flex; align-items: center; margin-bottom: 20px;">
+								<div style="background: #ffecd2; color: #2d3748; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">💬</div>
+								<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Mensagens de Validação</h3>
+							</div>
+							
+							<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+								<div>
+									<label style="display: block; margin-bottom: 5px; font-weight: 500; color: #2d3748;">✅ Mensagem de Sucesso</label>
+									<input type="text" name="wpwevo_checkout_validation_success" value="<?php echo esc_attr($this->settings['validation_success_message']); ?>" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+									<p style="margin: 5px 0 0 0; color: #4a5568; font-size: 12px;">Exibida quando o número for válido</p>
+								</div>
+								
+								<div>
+									<label style="display: block; margin-bottom: 5px; font-weight: 500; color: #2d3748;">⚠️ Mensagem de Erro</label>
+									<input type="text" name="wpwevo_checkout_validation_error" value="<?php echo esc_attr($this->settings['validation_error_message']); ?>" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+									<p style="margin: 5px 0 0 0; color: #4a5568; font-size: 12px;">Exibida quando o número for inválido</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+
+				<div style="margin-top: 30px;">
+					<?php submit_button('💾 Salvar Configurações', 'primary', 'submit', false, 'style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);"'); ?>
+				</div>
 			</form>
 		</div>
 

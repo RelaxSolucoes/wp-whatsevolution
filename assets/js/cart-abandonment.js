@@ -16,13 +16,13 @@ jQuery(document).ready(function($) {
             
             // Store active tab in session
             if (typeof(Storage) !== "undefined") {
-                sessionStorage.setItem('wpwevo_cart_active_tab', tab);
+                sessionStorage.setItem('wpwevo_cart_abandonment_active_tab', tab);
             }
         });
 
         // Restore last active tab
         if (typeof(Storage) !== "undefined") {
-            var lastTab = sessionStorage.getItem('wpwevo_cart_active_tab');
+            var lastTab = sessionStorage.getItem('wpwevo_cart_abandonment_active_tab');
             if (lastTab) {
                 $('.wpwevo-tab-button[data-tab="' + lastTab + '"]').trigger('click');
             }
@@ -111,32 +111,32 @@ jQuery(document).ready(function($) {
 
     // Test Functions
     function initTest() {
-        $('#test-internal-webhook').on('click', function() {
-            const button = $(this);
-            const originalText = button.text();
+        $('#test-internal-webhook').on('click', function(e) {
+            e.preventDefault();
+            var $button = $(this);
+            var originalText = $button.text();
             
-            button.prop('disabled', true).text(wpwevoCartAbandonment.i18n.testing);
+            $button.prop('disabled', true).text('🧪 Testando...');
             
             $.ajax({
-                url: wpwevoCartAbandonment.ajaxurl,
+                url: ajaxurl,
                 type: 'POST',
                 data: {
-                    action: 'wpwevo_test_webhook',
-                    nonce: wpwevoCartAbandonment.nonce
+                    action: 'wpwevo_test_cart_abandonment_webhook',
+                    nonce: wpwevoCartAbandonment?.nonce || ''
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert('✅ ' + response.data);
-                        refreshLogs();
+                        alert('✅ Teste realizado com sucesso!\n\n' + response.data);
                     } else {
-                        alert('❌ ' + response.data);
+                        alert('❌ Erro no teste:\n\n' + response.data);
                     }
                 },
                 error: function() {
-                    alert('❌ Erro na comunicação com o servidor');
+                    alert('❌ Erro de comunicação com o servidor.');
                 },
                 complete: function() {
-                    button.prop('disabled', false).text(originalText);
+                    $button.prop('disabled', false).text(originalText);
                 }
             });
         });
@@ -182,11 +182,11 @@ jQuery(document).ready(function($) {
 
     // Global Functions
     window.copyWebhookUrl = function() {
-        const input = document.querySelector('input[readonly]');
-        if (input) {
-            input.select();
+        var webhookInput = document.querySelector('input[readonly]');
+        if (webhookInput) {
+            webhookInput.select();
             document.execCommand('copy');
-            alert('✅ URL do webhook copiada para a área de transferência!');
+            alert('URL copiada para a área de transferência!');
         }
     };
 

@@ -14,7 +14,7 @@ jQuery(document).ready(function($) {
         };
         
         // Processa todos os status, independente do checkbox
-        $form.find('.wpwevo-status-message').each(function() {
+        $form.find('div[style*="border-left: 4px solid"]').each(function() {
             var $statusBlock = $(this);
             var $checkbox = $statusBlock.find('input[type="checkbox"]');
             var $textarea = $statusBlock.find('textarea');
@@ -70,7 +70,7 @@ jQuery(document).ready(function($) {
     $('.wpwevo-reset-message').on('click', function() {
         var $button = $(this);
         var defaultMessage = $button.data('default');
-        var $textarea = $button.closest('.wpwevo-status-message').find('textarea');
+        var $textarea = $button.closest('div').find('textarea');
         
         if (confirm(wpwevoSendByStatus.i18n.confirmReset)) {
             $textarea.val(defaultMessage);
@@ -79,13 +79,21 @@ jQuery(document).ready(function($) {
 
     // Função para mostrar resultado
     function showResult(type, message) {
-        var className = type === 'success' ? 'notice-success' : 'notice-error';
-        $result.html('<div class="notice ' + className + '"><p>' + message + '</p></div>').fadeIn();
+        var bgColor = type === 'success' ? '#d4edda' : '#f8d7da';
+        var borderColor = type === 'success' ? '#c3e6cb' : '#f5c6cb';
+        var textColor = type === 'success' ? '#155724' : '#721c24';
+        var icon = type === 'success' ? '✅' : '❌';
+        
+        $result.html(
+            '<div style="background: ' + bgColor + '; border: 1px solid ' + borderColor + '; color: ' + textColor + '; padding: 12px; border-radius: 6px; margin-top: 15px;">' +
+            '<span style="margin-right: 8px;">' + icon + '</span>' + message +
+            '</div>'
+        ).fadeIn();
         
         if (type === 'success') {
             setTimeout(function() {
                 window.location.reload();
-            }, 1000);
+            }, 1500);
         }
     }
 }); 

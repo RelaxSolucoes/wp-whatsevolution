@@ -16,13 +16,13 @@ jQuery(document).ready(function($) {
             
             // Store active tab in session
             if (typeof(Storage) !== "undefined") {
-                sessionStorage.setItem('wpwevo_active_tab', tab);
+                sessionStorage.setItem('wpwevo_bulk_send_active_tab', tab);
             }
         });
 
         // Restore last active tab
         if (typeof(Storage) !== "undefined") {
-            var lastTab = sessionStorage.getItem('wpwevo_active_tab');
+            var lastTab = sessionStorage.getItem('wpwevo_bulk_send_active_tab');
             if (lastTab) {
                 $('.wpwevo-tab-button[data-tab="' + lastTab + '"]').trigger('click');
             }

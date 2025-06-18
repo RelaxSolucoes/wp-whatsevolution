@@ -99,7 +99,8 @@ class Bulk_Sender {
 	}
 
 	public function enqueue_scripts($hook) {
-		if ('whatsapp-evolution_page_wpwevo-bulk-send' !== $hook) {
+		// Aplica scripts em qualquer página admin que contenha 'bulk-send'
+		if (strpos($hook, 'bulk-send') === false && strpos($_GET['page'] ?? '', 'bulk-send') === false) {
 			return;
 		}
 
@@ -139,24 +140,40 @@ class Bulk_Sender {
 
 	public function render_page() {
 		?>
-		<div class="wrap wpwevo-panel">
-			<h1><?php echo esc_html($this->page_title); ?></h1>
-			
-			<div class="wpwevo-bulk-form">
-				<form method="post" id="wpwevo-bulk-form" enctype="multipart/form-data">
-					<?php wp_nonce_field('wpwevo_bulk_send', 'wpwevo_bulk_send_nonce'); ?>
+		<div class="wrap">
+			<!-- Header com Gradiente Azul -->
+			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin: 20px 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+				<div style="display: flex; align-items: center; color: white;">
+					<div style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 20px;">
+						📢
+					</div>
+					<div>
+						<h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;"><?php echo esc_html($this->page_title); ?></h1>
+						<p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Envie mensagens para múltiplos clientes de forma automatizada</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Container Principal -->
+			<div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.2); overflow: hidden; margin-bottom: 20px;">
+				<div style="background: rgba(255,255,255,0.98); margin: 2px; border-radius: 10px; padding: 25px;">
 					
-					<nav class="wpwevo-tabs">
-						<a href="#tab-customers" class="wpwevo-tab-button active" data-tab="customers">
-							<?php echo esc_html($this->i18n['tabs']['customers']); ?>
-						</a>
-						<a href="#tab-csv" class="wpwevo-tab-button" data-tab="csv">
-							<?php echo esc_html($this->i18n['tabs']['csv']); ?>
-						</a>
-						<a href="#tab-manual" class="wpwevo-tab-button" data-tab="manual">
-							<?php echo esc_html($this->i18n['tabs']['manual']); ?>
-						</a>
-					</nav>
+					<div class="wpwevo-bulk-form">
+						<form method="post" id="wpwevo-bulk-form" enctype="multipart/form-data">
+							<?php wp_nonce_field('wpwevo_bulk_send', 'wpwevo_bulk_send_nonce'); ?>
+							
+							<!-- Abas com CSS original -->
+							<nav class="wpwevo-tabs">
+								<a href="#tab-customers" class="wpwevo-tab-button active" data-tab="customers">
+									🛒 <?php echo esc_html($this->i18n['tabs']['customers']); ?>
+								</a>
+								<a href="#tab-csv" class="wpwevo-tab-button" data-tab="csv">
+									📄 <?php echo esc_html($this->i18n['tabs']['csv']); ?>
+								</a>
+								<a href="#tab-manual" class="wpwevo-tab-button" data-tab="manual">
+									✍️ <?php echo esc_html($this->i18n['tabs']['manual']); ?>
+								</a>
+							</nav>
 
 					<div class="wpwevo-tab-content active" id="tab-customers">
 						<table class="form-table">
@@ -398,36 +415,43 @@ Maria Santos,5511988888888</pre>
 						</table>
 					</div>
 
-					<table class="form-table">
-						<tr>
-							<th scope="row"><?php echo esc_html($this->i18n['form']['message']); ?></th>
-							<td>
+							<!-- Seção de Mensagem e Configurações -->
+							<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4facfe;">
+								<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
+									<span style="margin-right: 10px;">💬</span> <?php echo esc_html($this->i18n['form']['message']); ?>
+								</h3>
 								<textarea name="wpwevo_bulk_message" id="wpwevo-bulk-message" 
-										  rows="4" class="large-text" required
+										  rows="4" required
+										  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
 										  placeholder="<?php echo esc_attr($this->i18n['form']['message_placeholder']); ?>"></textarea>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php echo esc_html($this->i18n['form']['interval']); ?></th>
-							<td>
-								<input type="number" name="wpwevo_interval" value="5" min="1" max="60" class="small-text">
-								<span class="description">
-									<?php echo esc_html($this->i18n['form']['interval_help']); ?>
-								</span>
-							</td>
-						</tr>
-					</table>
+							</div>
 
-					<div class="wpwevo-bulk-actions">
-						<button type="submit" class="button button-primary wpwevo-bulk-submit">
-							<?php echo esc_html($this->i18n['form']['start_sending']); ?>
-						</button>
-						<div class="wpwevo-bulk-status"></div>
+							<!-- Configurações de Envio -->
+							<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #a8edea;">
+								<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
+									<span style="margin-right: 10px;">⏱️</span> <?php echo esc_html($this->i18n['form']['interval']); ?>
+								</h3>
+								<div style="display: flex; align-items: center; gap: 10px;">
+									<input type="number" name="wpwevo_interval" value="5" min="1" max="60" 
+										   style="width: 80px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
+									<span style="color: #4a5568; font-size: 14px;"><?php echo esc_html($this->i18n['form']['interval_help']); ?></span>
+								</div>
+							</div>
+
+							<!-- Botão de Envio -->
+							<div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+								<button type="submit" class="wpwevo-bulk-submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); font-weight: 600;">
+									🚀 <?php echo esc_html($this->i18n['form']['start_sending']); ?>
+								</button>
+								<div class="wpwevo-bulk-status"></div>
+							</div>
+						</form>
 					</div>
-				</form>
+				</div>
 			</div>
 
-			<div id="wpwevo-history-container">
+			<!-- Histórico de Envios -->
+			<div id="wpwevo-history-container" style="margin-top: 20px;">
 				<?php echo $this->get_history_html(); ?>
 			</div>
 		</div>

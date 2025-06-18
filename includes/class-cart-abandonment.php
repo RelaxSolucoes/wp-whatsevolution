@@ -254,6 +254,33 @@ class Cart_Abandonment {
             return;
         }
 
+        // CSS das abas igual ao bulk-send
+        wp_enqueue_style(
+            'wpwevo-admin',
+            WPWEVO_URL . 'assets/css/admin.css',
+            [],
+            WPWEVO_VERSION
+        );
+
+        // JavaScript das abas igual ao bulk-send
+        wp_enqueue_script(
+            'wpwevo-cart-abandonment',
+            WPWEVO_URL . 'assets/js/cart-abandonment.js',
+            ['jquery'],
+            WPWEVO_VERSION,
+            true
+        );
+
+        // Localizar script para AJAX
+        wp_localize_script('wpwevo-cart-abandonment', 'wpwevoCartAbandonment', [
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('wpwevo_cart_nonce'),
+            'i18n' => [
+                'saving' => __('💾 Salvando...', 'wp-whatsapp-evolution'),
+                'generating' => __('👁️ Gerando...', 'wp-whatsapp-evolution'),
+            ]
+        ]);
+
         // JavaScript inline para corrigir bug do Cart Abandonment Recovery
         $inline_js = "
         jQuery(document).ready(function($) {
@@ -397,9 +424,6 @@ class Cart_Abandonment {
                     
                     <p class="submit">
                                         <input type="submit" name="save_settings" class="button-primary button-large" value="💾 Salvar Configurações">
-                                        <?php if ($enabled): ?>
-                                        <button type="button" id="test-internal-webhook" class="button button-large">🧪 Testar Envio</button>
-                                        <?php endif; ?>
                                     </p>
                                 </form>
                             </div>
@@ -419,35 +443,68 @@ class Cart_Abandonment {
                                     <button type="button" onclick="copyWebhookUrl()" class="button" style="margin-left: 10px;">📋 Copiar</button>
                 </div>
                 
-                                <div style="background: #e7f3ff; padding: 15px; border: 1px solid #bee5eb; border-radius: 5px;">
-                                    <h4 style="margin-top: 0;">📋 Passos de Configuração:</h4>
-                                    <ol style="margin: 0;">
-                                        <li>Vá em <strong>WooCommerce → Cart Abandonment → Settings → Webhook Settings</strong></li>
-                                        <li>Ative <strong>"Enable Webhook"</strong></li>
-                        <li>Cole a URL acima no campo <strong>"Webhook URL"</strong></li>
-                                        <li>Salve as configurações</li>
-                                        <li>Teste com <strong>"Trigger Sample"</strong> - deve mostrar sucesso ✅ (não fica mais "eternamente disparando")</li>
-                    </ol>
+                                <!-- Cards de Configuração Organizados -->
+                                <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
                                     
-                                    <div style="background: #f8f9fa; padding: 15px; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 4px;">
-                                        <h4 style="margin-top: 0;">🧪 Duas Formas de Testar:</h4>
-                                        
-                                        <div style="background: #e7f3ff; padding: 10px; margin: 10px 0; border-left: 4px solid #007cba; border-radius: 3px;">
-                                                            <strong>1️⃣ "Trigger Sample" (Cart Abandonment)</strong><br>
-                <small>✅ Testa conectividade do webhook | ✅ Resposta JSON otimizada | ❌ NÃO envia WhatsApp (dados fictícios)</small><br>
-                <em>📋 Uso: Verificar se webhook está configurado corretamente (não fica mais "eternamente disparando")</em>
-                                        </div>
-                                        
-                                        <div style="background: #d4edda; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 3px;">
-                                            <strong>2️⃣ "Testar Envio" (Nosso Plugin)</strong><br>
-                                            <small>✅ Testa envio real de WhatsApp | ✅ Usa dados reais com telefone válido</small><br>
-                                            <em>📋 Uso: Testar se WhatsApp está funcionando de verdade</em>
-                                        </div>
-                                        
-                                        <div style="background: #fff3cd; padding: 8px; margin-top: 10px; border: 1px solid #ffeaa7; border-radius: 3px; font-size: 13px;">
-                                            <strong>💡 Recomendação:</strong> Use AMBOS os botões - primeiro "Trigger Sample" para conectividade, depois "Testar Envio" para WhatsApp real.
+                                    <!-- Card 1: Configuração Básica do Webhook -->
+                                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2); overflow: hidden;">
+                                        <div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+                                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                                <div style="background: #667eea; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">📋</div>
+                                                <h4 style="margin: 0; color: #2d3748; font-size: 18px;">Configuração Básica do Webhook</h4>
+                                            </div>
+                                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+                                                <p style="margin: 0 0 10px 0; color: #4a5568; font-weight: 500;">Navegue até:</p>
+                                                <p style="margin: 0 0 15px 0; color: #2d3748; font-family: 'Segoe UI', sans-serif;"><strong>WooCommerce → Cart Abandonment → Settings → Webhook Settings</strong></p>
+                                                <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center;">
+                                                    <span style="color: #667eea; font-weight: bold;">1.</span> <span>Ative <strong>"Enable Webhook"</strong></span>
+                                                    <span style="color: #667eea; font-weight: bold;">2.</span> <span>Cole a URL acima no campo <strong>"Webhook URL"</strong></span>
+                                                    <span style="color: #667eea; font-weight: bold;">3.</span> <span>Salve as configurações</span>
+                                                    <span style="color: #667eea; font-weight: bold;">4.</span> <span>Teste com <strong>"Trigger Sample"</strong></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <!-- Card 2: Configuração de Cupons -->
+                                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(240, 147, 251, 0.2); overflow: hidden;">
+                                        <div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+                                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                                <div style="background: #f093fb; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🎁</div>
+                                                <h4 style="margin: 0; color: #2d3748; font-size: 18px;">Configuração de Cupons (Opcional)</h4>
+                                            </div>
+                                            
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <!-- Criar Cupons -->
+                                                <div style="background: #fef5e7; padding: 15px; border-radius: 8px; border-left: 4px solid #f6ad55;">
+                                                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                                        <span style="font-size: 16px; margin-right: 8px;">📦</span>
+                                                        <strong style="color: #2d3748;">Criar Cupons Automáticos</strong>
+                                                    </div>
+                                                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #4a5568;">Vá em <strong>Settings → Configurações de Webhook</strong></p>
+                                                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #2d3748;">
+                                                        <li>Ative "Criar código de cupom"</li>
+                                                        <li>Selecione tipo de desconto</li>
+                                                        <li>Defina valor e expiração</li>
+                                                    </ul>
+                                                </div>
+                                                
+                                                <!-- Excluir Cupons -->
+                                                <div style="background: #f0fff4; padding: 15px; border-radius: 8px; border-left: 4px solid #48bb78;">
+                                                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                                        <span style="font-size: 16px; margin-right: 8px;">🗑️</span>
+                                                        <strong style="color: #2d3748;">Limpeza Automática</strong>
+                                                    </div>
+                                                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #4a5568;">Vá em <strong>Settings → Configurações de cupons</strong></p>
+                                                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #2d3748;">
+                                                        <li>Marque "Excluir cupons automaticamente"</li>
+                                                        <li>Cupons expirados serão removidos</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                 </div>
@@ -535,11 +592,39 @@ class Cart_Abandonment {
                                         <br><span style="color: #666;"><?php echo $wcar_active ? 'Plugin instalado e ativo' : 'Plugin não instalado'; ?></span>
                     </div>
                     
-                                    <div style="text-align: center; padding: 25px; border: 2px solid <?php echo Api_Connection::get_instance()->is_configured() ? '#28a745' : '#ffc107'; ?>; border-radius: 8px; background: <?php echo Api_Connection::get_instance()->is_configured() ? '#d4edda' : '#fff3cd'; ?>;">
-                                        <div style="font-size: 3em; margin-bottom: 15px;"><?php echo Api_Connection::get_instance()->is_configured() ? '✅' : '⚠️'; ?></div>
+                                    <?php 
+                                    $api = Api_Connection::get_instance();
+                                    $api_configured = $api->is_configured();
+                                    $connection_status = null;
+                                    $display_status = 'not_configured';
+                                    $status_text = 'Não configurada';
+                                    
+                                    if ($api_configured) {
+                                        $connection_status = $api->check_connection();
+                                        if ($connection_status['success']) {
+                                            $display_status = 'connected';
+                                            $status_text = 'Conectada e funcionando';
+                                        } else {
+                                            $display_status = 'error';
+                                            $status_text = 'Erro de conexão';
+                                        }
+                                    }
+                                    
+                                    $colors = [
+                                        'connected' => ['border' => '#28a745', 'bg' => '#d4edda', 'icon' => '✅'],
+                                        'error' => ['border' => '#dc3545', 'bg' => '#f8d7da', 'icon' => '❌'],
+                                        'not_configured' => ['border' => '#ffc107', 'bg' => '#fff3cd', 'icon' => '⚠️']
+                                    ];
+                                    $color = $colors[$display_status];
+                                    ?>
+                                    <div style="text-align: center; padding: 25px; border: 2px solid <?php echo $color['border']; ?>; border-radius: 8px; background: <?php echo $color['bg']; ?>;">
+                                        <div style="font-size: 3em; margin-bottom: 15px;"><?php echo $color['icon']; ?></div>
                                         <strong style="font-size: 16px;">Evolution API</strong>
-                                        <br><span style="color: #666;"><?php echo Api_Connection::get_instance()->is_configured() ? 'Configurada corretamente' : 'Não configurada'; ?></span>
-                    </div>
+                                        <br><span style="color: #666;"><?php echo $status_text; ?></span>
+                                        <?php if ($display_status === 'error' && $connection_status): ?>
+                                        <br><small style="color: #dc3545; font-size: 12px;"><?php echo esc_html($connection_status['message']); ?></small>
+                                        <?php endif; ?>
+                                    </div>
                     
                                 </div>
                 </div>
@@ -951,7 +1036,7 @@ class Cart_Abandonment {
             return;
         }
 
-        $template = sanitize_textarea_field($_POST['template'] ?? '');
+        $template = wp_unslash($_POST['template'] ?? '');
         
         if (empty($template)) {
             wp_send_json_error(['message' => 'Template não pode estar vazio']);
@@ -971,7 +1056,7 @@ class Cart_Abandonment {
             return;
         }
 
-        $template = sanitize_textarea_field($_POST['template'] ?? '');
+        $template = wp_unslash($_POST['template'] ?? '');
         
         if (empty($template)) {
             wp_send_json_error(['message' => 'Template não pode estar vazio']);
@@ -983,9 +1068,9 @@ class Cart_Abandonment {
             'first_name' => 'João',
             'last_name' => 'Silva',
             'email' => 'joao@exemplo.com',
-            'product_names' => 'REFIL ELF BAR EW 16k PUFFS & CARTUCHO P/ REPOSIÇÃO ELF BAR EW9000',
-            'cart_total' => '233.62',
-            'coupon_code' => '5IIHKRZI',
+            'product_names' => 'PRODUTO TESTE',
+            'cart_total' => '99.99',
+            'coupon_code' => 'WHATSEVO',
             'checkout_url' => site_url('/checkout?token=exemplo'),
         ];
 
@@ -1005,8 +1090,7 @@ class Cart_Abandonment {
         $cart_total = $data['cart_total'] ?? '0';
         
         // Formato moeda brasileiro
-        $currency_symbol = get_woocommerce_currency_symbol();
-        $formatted_total = $currency_symbol . ' ' . number_format(floatval($cart_total), 2, ',', '.');
+        $formatted_total = 'R$ ' . number_format(floatval($cart_total), 2, ',', '.');
 
         $shortcodes = [
             '{first_name}' => $first_name,
@@ -1023,8 +1107,7 @@ class Cart_Abandonment {
         ];
 
         $message = str_replace(array_keys($shortcodes), array_values($shortcodes), $template);
-        $message = preg_replace('/\n\s*\n/', "\n", $message);
-        return trim($message);
+        return $message;
     }
 }
 

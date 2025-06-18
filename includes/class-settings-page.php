@@ -6,8 +6,8 @@ namespace WpWhatsAppEvolution;
  */
 class Settings_Page {
 	private static $instance = null;
-	private static $menu_title = 'WhatsApp Evolution';
-	private static $page_title = 'WhatsApp Evolution';
+	private static $menu_title = 'Whats Evolution';
+	private static $page_title = 'Whats Evolution';
 
 	public static function init() {
 		if (self::$instance === null) {
@@ -26,8 +26,8 @@ class Settings_Page {
 	}
 
 	public function setup() {
-		self::$menu_title = __('WhatsApp Evolution', 'wp-whatsapp-evolution');
-		self::$page_title = __('WhatsApp Evolution', 'wp-whatsapp-evolution');
+		self::$menu_title = __('Whats Evolution', 'wp-whatsapp-evolution');
+		self::$page_title = __('Whats Evolution', 'wp-whatsapp-evolution');
 	}
 
 	public function add_menu() {
@@ -141,7 +141,7 @@ class Settings_Page {
 			'wpwevo-admin',
 			WPWEVO_URL . 'assets/css/admin.css',
 			[],
-			WPWEVO_VERSION
+			WPWEVO_VERSION . '.' . time() . '.FORCECACHE'
 		);
 
 		wp_enqueue_script(
@@ -172,8 +172,8 @@ class Settings_Page {
 			echo '<div class="notice notice-' . esc_attr($type) . '"><p>' . esc_html($message) . '</p></div>';
 		}
 		?>
-		<div class="wrap wpwevo-panel">
-			<h1><?php echo esc_html__('WhatsApp Evolution - Configurações', 'wp-whatsapp-evolution'); ?></h1>
+		<div class="wrap wpwevo-panel" style="max-width: none;">
+							<h1>⚙️ Whats Evolution - Configurações</h1>
 
 			<div class="wpwevo-cta-box">
 				<div class="wpwevo-cta-content">
@@ -182,7 +182,7 @@ class Settings_Page {
 					</h3>
 					<p class="wpwevo-cta-description">
 						<span class="wpwevo-cta-emoji">🎯</span> Envie mensagens automatizadas para seus clientes em minutos!<br>
-						<span class="wpwevo-cta-emoji">✨</span> Ative sua instância agora e aproveite todos os recursos premium do WhatsApp Evolution.
+						<span class="wpwevo-cta-emoji">✨</span> Ative sua instância agora e aproveite todos os recursos premium do Whats Evolution.
 					</p>
 				</div>
 				<a href="https://whats-evolution.vercel.app/" 
@@ -212,6 +212,21 @@ class Settings_Page {
 			}
 			?>
 		</div>
+		
+		<script>
+		function toggleApiKeyVisibility() {
+			const apiKeyInput = document.getElementById('wpwevo-api-key');
+			const eyeIcon = document.getElementById('wpwevo-eye-icon');
+			
+			if (apiKeyInput.type === 'password') {
+				apiKeyInput.type = 'text';
+				eyeIcon.textContent = '🙈';
+			} else {
+				apiKeyInput.type = 'password';
+				eyeIcon.textContent = '👁️';
+			}
+		}
+		</script>
 		<?php
 	}
 
@@ -219,118 +234,280 @@ class Settings_Page {
 		$api = Api_Connection::get_instance();
 		$connection_status = $api->is_configured() ? $api->check_connection() : null;
 		?>
-		<div class="wpwevo-connection-form">
-			<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="wpwevo-settings-form">
-				<?php settings_fields('wpwevo_settings'); ?>
-				<table class="form-table">
-					<tr>
-						<th scope="row"><?php _e('URL da API', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<input type="url" name="api_url" 
-								   value="<?php echo esc_attr(get_option('wpwevo_api_url', '')); ?>" 
-								   class="regular-text wpwevo-api-field" required
-								   placeholder="https://sua-api.exemplo.com">
-							<p class="description">
-								<?php _e('URL completa onde a Evolution API está instalada', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php _e('API KEY', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<input type="text" name="api_key" 
-								   value="<?php echo esc_attr(get_option('wpwevo_api_key', '')); ?>" 
-								   class="regular-text wpwevo-api-field" required>
-							<p class="description">
-								<?php _e('Chave de API gerada nas configurações da Evolution API', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php _e('Nome da Instância', 'wp-whatsapp-evolution'); ?></th>
-						<td>
-							<input type="text" name="instance" 
-								   value="<?php echo esc_attr(get_option('wpwevo_instance', '')); ?>" 
-								   class="regular-text wpwevo-api-field" required>
-							<p class="description">
-								<?php _e('Nome da instância criada na Evolution API', 'wp-whatsapp-evolution'); ?>
-							</p>
-						</td>
-					</tr>
-				</table>
-
-				<div class="wpwevo-form-actions">
-					<button type="submit" class="button button-primary">
-						<?php _e('Salvar Configurações', 'wp-whatsapp-evolution'); ?>
-					</button>
+		
+		<!-- Cards de Configuração -->
+		<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
+			
+			<!-- Card 1: Configuração da API -->
+			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 20px;">
+						<div style="background: #667eea; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🔗</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Configuração da Evolution API</h3>
+					</div>
 					
-					<?php if ($api->is_configured()): ?>
-						<a href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=wpwevo_test_connection'), 'wpwevo_test_connection'); ?>" 
-						   class="button button-secondary">
-							<?php _e('Testar Conexão', 'wp-whatsapp-evolution'); ?>
-						</a>
+					<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="wpwevo-settings-form">
+						<?php settings_fields('wpwevo_settings'); ?>
+						
+						<div style="display: grid; gap: 20px;">
+							<!-- URL da API -->
+							<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">🌐 URL da API</label>
+								<input type="url" name="api_url" 
+									   value="<?php echo esc_attr(get_option('wpwevo_api_url', '')); ?>" 
+									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" required
+									   placeholder="https://sua-api.exemplo.com">
+								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
+									URL completa onde a Evolution API está instalada
+								</p>
+							</div>
+							
+							<!-- API Key -->
+							<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">🔑 API KEY</label>
+								<input type="text" name="api_key" 
+									   value="<?php echo esc_attr(get_option('wpwevo_api_key', '')); ?>" 
+									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" required
+									   placeholder="Sua chave de API">
+								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
+									Chave de API gerada nas configurações da Evolution API
+								</p>
+							</div>
+							
+							<!-- Nome da Instância -->
+							<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">📱 Nome da Instância</label>
+								<input type="text" name="instance" 
+									   value="<?php echo esc_attr(get_option('wpwevo_instance', '')); ?>" 
+									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" required
+									   placeholder="Nome da sua instância">
+								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
+									Nome da instância criada na Evolution API
+								</p>
+							</div>
+						</div>
+						
+						<!-- Botões de Ação -->
+						<div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+							<button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 24px; font-size: 14px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+								💾 Salvar Configurações
+							</button>
+							
+							<?php if ($api->is_configured()): ?>
+								<a href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=wpwevo_test_connection'), 'wpwevo_test_connection'); ?>" 
+								   style="background: #4a5568; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px;">
+									🧪 Testar Conexão
+								</a>
+							<?php endif; ?>
+							
+							<span class="spinner"></span>
+						</div>
 						
 						<?php if ($connection_status): ?>
-							<div class="wpwevo-connection-status <?php echo $connection_status['success'] ? 'success' : 'error'; ?>">
-								<span class="dashicons <?php echo $connection_status['success'] ? 'dashicons-yes' : 'dashicons-no'; ?>"></span>
+							<div style="margin-top: 15px; padding: 12px; border-radius: 8px; background: <?php echo $connection_status['success'] ? '#d4edda' : '#f8d7da'; ?>; border: 1px solid <?php echo $connection_status['success'] ? '#c3e6cb' : '#f5c6cb'; ?>; color: <?php echo $connection_status['success'] ? '#155724' : '#721c24'; ?>;">
+								<span style="font-size: 16px; margin-right: 8px;"><?php echo $connection_status['success'] ? '✅' : '❌'; ?></span>
 								<?php echo esc_html($connection_status['message']); ?>
 							</div>
 						<?php endif; ?>
-					<?php endif; ?>
-					
-					<span class="spinner"></span>
+						
+						<div id="wpwevo-validation-result" style="display: none; margin-top: 15px;"></div>
+					</form>
 				</div>
+			</div>
 
-				<div id="wpwevo-validation-result" class="wpwevo-validation-result" style="display: none;"></div>
-			</form>
 		</div>
 		<?php
 	}
 
 	private function render_help_tab() {
 		?>
-		<div class="wpwevo-help-content">
-			<div class="wpwevo-help-section">
-				<h3><span class="dashicons dashicons-admin-generic"></span> <?php _e('Como configurar', 'wp-whatsapp-evolution'); ?></h3>
-				<ol>
-					<li><?php _e('Obtenha uma API Key válida do Evolution API', 'wp-whatsapp-evolution'); ?></li>
-					<li><?php _e('Insira a URL da sua API, API Key e nome da instância', 'wp-whatsapp-evolution'); ?></li>
-					<li><?php _e('Clique em "Testar Conexão" para verificar se está funcionando', 'wp-whatsapp-evolution'); ?></li>
-					<li><?php _e('Salve as configurações', 'wp-whatsapp-evolution'); ?></li>
-				</ol>
+		<!-- Cards de Documentação Completa -->
+		<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
+			
+			<!-- Card 1: Configuração Inicial -->
+			<div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 15px;">
+						<div style="background: #4facfe; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🚀</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Configuração Inicial</h3>
+					</div>
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
+							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 16px;">🔧 Requisitos</h4>
+							<ul style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 14px;">
+								<li>PHP 7.4 ou superior</li>
+								<li>WordPress 5.8+</li>
+								<li>WooCommerce 5.0+</li>
+								<li>Evolution API v2.0+</li>
+							</ul>
+						</div>
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
+							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 16px;">⚙️ Passos de Configuração</h4>
+							<ol style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 14px;">
+								<li>Configure sua Evolution API</li>
+								<li>Insira URL, API Key e Instância</li>
+								<li>Teste a conexão</li>
+								<li>Ative as funcionalidades desejadas</li>
+							</ol>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<div class="wpwevo-help-section">
-				<h3><span class="dashicons dashicons-phone"></span> <?php _e('Validação de Telefone', 'wp-whatsapp-evolution'); ?></h3>
-				<p><?php _e('O plugin valida automaticamente se o número de telefone informado no checkout possui WhatsApp ativo.', 'wp-whatsapp-evolution'); ?></p>
-				<p><?php _e('Se o número não possuir WhatsApp, o cliente será notificado e não poderá finalizar a compra.', 'wp-whatsapp-evolution'); ?></p>
+			<!-- Card 2: Carrinho Abandonado -->
+			<div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(168, 237, 234, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 15px;">
+						<div style="background: #a8edea; color: #2d3748; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🛒</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Carrinho Abandonado (NOVO!)</h3>
+					</div>
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #a8edea;">
+							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 16px;">✨ Funcionalidades</h4>
+							<ul style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 14px;">
+								<li>⚡ Interceptação interna automática</li>
+								<li>🔒 100% seguro (dados não saem do servidor)</li>
+								<li>🎯 Zero configuração de webhook</li>
+								<li>📱 Templates personalizáveis</li>
+								<li>🏷️ Shortcodes dinâmicos</li>
+							</ul>
+						</div>
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #a8edea;">
+							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 16px;">🔧 Como Usar</h4>
+							<ol style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 14px;">
+								<li>Instale "WooCommerce Cart Abandonment Recovery"</li>
+								<li>Ative em "Carrinho Abandonado"</li>
+								<li>Personalize a mensagem</li>
+								<li>Monitore através dos logs</li>
+							</ol>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<div class="wpwevo-help-section">
-				<h3><span class="dashicons dashicons-format-status"></span> <?php _e('Envio por Status', 'wp-whatsapp-evolution'); ?></h3>
-				<p><?php _e('Configure mensagens automáticas baseadas no status do pedido:', 'wp-whatsapp-evolution'); ?></p>
-				<ul>
-					<li><?php _e('Pedido confirmado', 'wp-whatsapp-evolution'); ?></li>
-					<li><?php _e('Pedido em processamento', 'wp-whatsapp-evolution'); ?></li>
-					<li><?php _e('Pedido enviado', 'wp-whatsapp-evolution'); ?></li>
-					<li><?php _e('Pedido entregue', 'wp-whatsapp-evolution'); ?></li>
-				</ul>
+			<!-- Card 3: Shortcodes Disponíveis -->
+			<div style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(255, 236, 210, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 15px;">
+						<div style="background: #ffecd2; color: #2d3748; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🏷️</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Shortcodes Disponíveis</h3>
+					</div>
+					<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+						<div style="background: #f7fafc; padding: 12px; border-radius: 6px; text-align: center;">
+							<code style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: block; margin-bottom: 5px;">{first_name}</code>
+							<small style="color: #4a5568;">Nome do cliente</small>
+						</div>
+						<div style="background: #f7fafc; padding: 12px; border-radius: 6px; text-align: center;">
+							<code style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: block; margin-bottom: 5px;">{full_name}</code>
+							<small style="color: #4a5568;">Nome completo</small>
+						</div>
+						<div style="background: #f7fafc; padding: 12px; border-radius: 6px; text-align: center;">
+							<code style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: block; margin-bottom: 5px;">{product_names}</code>
+							<small style="color: #4a5568;">Produtos no carrinho</small>
+						</div>
+						<div style="background: #f7fafc; padding: 12px; border-radius: 6px; text-align: center;">
+							<code style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: block; margin-bottom: 5px;">{cart_total}</code>
+							<small style="color: #4a5568;">Valor formatado (R$ 99,90)</small>
+						</div>
+						<div style="background: #f7fafc; padding: 12px; border-radius: 6px; text-align: center;">
+							<code style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: block; margin-bottom: 5px;">{checkout_url}</code>
+							<small style="color: #4a5568;">Link finalizar compra</small>
+						</div>
+						<div style="background: #f7fafc; padding: 12px; border-radius: 6px; text-align: center;">
+							<code style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: block; margin-bottom: 5px;">{coupon_code}</code>
+							<small style="color: #4a5568;">Código do cupom</small>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<div class="wpwevo-help-section">
-				<h3><span class="dashicons dashicons-groups"></span> <?php _e('Envio em Massa', 'wp-whatsapp-evolution'); ?></h3>
-				<p><?php _e('Envie mensagens personalizadas para múltiplos clientes simultaneamente.', 'wp-whatsapp-evolution'); ?></p>
-				<p><?php _e('Filtre clientes por período, status do pedido ou outros critérios.', 'wp-whatsapp-evolution'); ?></p>
+			<!-- Card 4: Todas as Funcionalidades -->
+			<div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(240, 147, 251, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 15px;">
+						<div style="background: #f093fb; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">⭐</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Todas as Funcionalidades</h3>
+					</div>
+					<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px;">
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #f093fb;">
+							<h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 14px;">🛒 Carrinho Abandonado</h4>
+							<ul style="margin: 0; padding-left: 15px; color: #4a5568; font-size: 12px;">
+								<li>Interceptação automática</li>
+								<li>Templates personalizáveis</li>
+								<li>Logs em tempo real</li>
+							</ul>
+						</div>
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #f093fb;">
+							<h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 14px;">📊 Envio por Status</h4>
+							<ul style="margin: 0; padding-left: 15px; color: #4a5568; font-size: 12px;">
+								<li>Automação por status</li>
+								<li>Templates por status</li>
+								<li>Variáveis dinâmicas</li>
+							</ul>
+						</div>
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #f093fb;">
+							<h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 14px;">📱 Envio Individual</h4>
+							<ul style="margin: 0; padding-left: 15px; color: #4a5568; font-size: 12px;">
+								<li>Interface simples</li>
+								<li>Validação automática</li>
+								<li>Histórico completo</li>
+							</ul>
+						</div>
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #f093fb;">
+							<h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 14px;">📢 Envio em Massa</h4>
+							<ul style="margin: 0; padding-left: 15px; color: #4a5568; font-size: 12px;">
+								<li>Filtros avançados</li>
+								<li>Importação CSV</li>
+								<li>Controle de velocidade</li>
+							</ul>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<div class="wpwevo-help-section">
-				<h3><span class="dashicons dashicons-sos"></span> <?php _e('Suporte', 'wp-whatsapp-evolution'); ?></h3>
-				<p><?php _e('Precisa de ajuda? Entre em contato conosco:', 'wp-whatsapp-evolution'); ?></p>
-				<p>
-					<a href="mailto:suporte@exemplo.com" class="button button-secondary">
-						<span class="dashicons dashicons-email-alt"></span> <?php _e('Enviar Email', 'wp-whatsapp-evolution'); ?>
-					</a>
-				</p>
+			<!-- Card 5: Template Padrão -->
+			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 15px;">
+						<div style="background: #667eea; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">📝</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Template Padrão Brasileiro</h3>
+					</div>
+					<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+						<pre style="background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; margin: 0; white-space: pre-wrap;">🛒 Oi {first_name}!
+
+Vi que você adicionou estes itens no carrinho:
+📦 {product_names}
+
+💰 Total: {cart_total}
+
+🎁 Use o cupom *{coupon_code}* e ganhe desconto especial!
+⏰ Mas corre que é só por hoje!
+
+Finalize agora:
+👆 {checkout_url}</pre>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		
+		<!-- Card de Suporte -->
+		<div style="margin-top: 20px;">
+			<div style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(56, 178, 172, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; justify-content: space-between;">
+						<div style="display: flex; align-items: center;">
+							<div style="background: #38b2ac; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🆘</div>
+							<div>
+								<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Precisa de Suporte?</h3>
+								<p style="margin: 5px 0 0 0; color: #4a5568; font-size: 14px;">Entre em contato conosco para tirar suas dúvidas sobre qualquer funcionalidade</p>
+							</div>
+						</div>
+						<a href="mailto:chatrelaxbr@gmail.com" style="background: #38b2ac; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+							📧 Enviar Email
+						</a>
+					</div>
+				</div>
 			</div>
 		</div>
 		<?php

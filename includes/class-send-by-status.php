@@ -215,73 +215,184 @@ class Send_By_Status {
 			}
 		}
 		?>
-		<div class="wrap wpwevo-panel">
-			<h1><?php echo esc_html($this->page_title); ?></h1>
+		<div class="wrap">
+			<!-- Header com Gradiente -->
+			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin: 20px 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+				<div style="display: flex; align-items: center; color: white;">
+					<div style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 20px;">
+						📊
+					</div>
+					<div>
+						<h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;"><?php echo esc_html($this->page_title); ?></h1>
+						<p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Configure mensagens automáticas por status do pedido</p>
+					</div>
+				</div>
+			</div>
 
-			<div class="wpwevo-send-by-status-form">
-				<form id="wpwevo-status-messages-form" method="post">
-					<?php 
-					foreach ($this->available_statuses as $status => $label) : 
-						$default_message = isset($default_messages[$status]) ? $default_messages[$status]['message'] : '';
-						$enabled = isset($settings[$status]['enabled']) ? $settings[$status]['enabled'] : false;
-						$message = isset($settings[$status]['message']) ? $settings[$status]['message'] : $default_message;
-					?>
-						<div class="wpwevo-status-message">
-							<div class="wpwevo-status-header">
-								<label class="wpwevo-status-toggle">
-									<input type="checkbox" 
-										   name="status[<?php echo esc_attr($status); ?>][enabled]" 
-										   value="1" 
-										   <?php checked($enabled, true); ?>>
-									<span class="wpwevo-status-name"><?php echo esc_html($label); ?></span>
-								</label>
-								<button type="button" class="button wpwevo-reset-message" 
-										data-default="<?php echo esc_attr($default_message); ?>">
-									<?php _e('Restaurar Padrão', 'wp-whatsapp-evolution'); ?>
+			<!-- Layout em Grid -->
+			<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
+				
+				<!-- Coluna Esquerda: Configurações dos Status -->
+				<div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.2); overflow: hidden;">
+					<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 25px;">
+						<div style="display: flex; align-items: center; margin-bottom: 20px;">
+							<div style="background: #4facfe; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">⚙️</div>
+							<h2 style="margin: 0; color: #2d3748; font-size: 20px;">Configurar Mensagens por Status</h2>
+						</div>
+
+						<form id="wpwevo-status-messages-form" method="post" style="space-y: 15px;">
+							<?php 
+							$colors = [
+								'#667eea', '#f093fb', '#4facfe', '#a8edea', '#ffecd2', 
+								'#ff9a9e', '#96e6a1', '#fbc2eb', '#84fab0', '#667eea'
+							];
+							$color_index = 0;
+							
+							foreach ($this->available_statuses as $status => $label) : 
+								$default_message = isset($default_messages[$status]) ? $default_messages[$status]['message'] : '';
+								$enabled = isset($settings[$status]['enabled']) ? $settings[$status]['enabled'] : false;
+								$message = isset($settings[$status]['message']) ? $settings[$status]['message'] : $default_message;
+								$color = $colors[$color_index % count($colors)];
+								$color_index++;
+							?>
+								<div style="background: #f7fafc; border-radius: 8px; padding: 20px; margin-bottom: 15px; border-left: 4px solid <?php echo $color; ?>;">
+									<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+										<label style="display: flex; align-items: center; cursor: pointer; font-weight: 600; color: #2d3748;">
+											<input type="checkbox" 
+												   name="status[<?php echo esc_attr($status); ?>][enabled]" 
+												   value="1" 
+												   <?php checked($enabled, true); ?>
+												   style="margin-right: 10px; transform: scale(1.2);">
+											<span style="font-size: 16px;"><?php echo esc_html($label); ?></span>
+										</label>
+										<button type="button" 
+												class="wpwevo-reset-message" 
+												data-default="<?php echo esc_attr($default_message); ?>"
+												style="background: <?php echo $color; ?>; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+											🔄 Restaurar Padrão
+										</button>
+									</div>
+
+									<textarea name="status[<?php echo esc_attr($status); ?>][message]" 
+											  rows="4"
+											  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
+											  placeholder="Digite a mensagem para este status..."><?php echo esc_textarea($message); ?></textarea>
+								</div>
+							<?php endforeach; ?>
+
+							<div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+								<button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); font-weight: 600;">
+									💾 Salvar Configurações
 								</button>
+								<span class="spinner" style="float: none; margin: 0;"></span>
 							</div>
 
-							<div class="wpwevo-status-content">
-								<textarea name="status[<?php echo esc_attr($status); ?>][message]" 
-										  class="large-text" 
-										  rows="4"><?php echo esc_textarea($message); ?></textarea>
+							<div id="wpwevo-save-result" style="display: none; margin-top: 15px; padding: 12px; border-radius: 6px;"></div>
+						</form>
+					</div>
+				</div>
+
+				<!-- Coluna Direita: Variáveis Disponíveis -->
+				<div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(168, 237, 234, 0.2); overflow: hidden;">
+					<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+						<div style="display: flex; align-items: center; margin-bottom: 15px;">
+							<div style="background: #a8edea; color: #2d3748; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🏷️</div>
+							<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Variáveis Disponíveis</h3>
+						</div>
+						
+						<p style="color: #4a5568; font-size: 14px; margin-bottom: 15px;">Clique nas variáveis para copiá-las:</p>
+						
+						<div style="display: grid; gap: 8px;">
+							<?php 
+							$variables = [
+								'{customer_name}' => 'Nome do cliente',
+								'{order_id}' => 'Número do pedido',
+								'{order_total}' => 'Valor total do pedido',
+								'{payment_method}' => 'Método de pagamento',
+								'{shipping_method}' => 'Método de envio',
+								'{order_url}' => 'URL do pedido',
+								'{payment_url}' => 'URL de pagamento',
+								'{first_product}' => 'Primeiro produto',
+								'{all_products}' => 'Todos os produtos',
+								'{shipping_name}' => 'Nome destinatário',
+								'{shipping_address_line_1}' => 'Endereço linha 1',
+								'{shipping_city}' => 'Cidade',
+								'{shipping_state}' => 'Estado',
+								'{shipping_postcode}' => 'CEP'
+							];
+							
+							foreach ($variables as $var => $desc) : ?>
+								<div onclick="copyVariable('<?php echo esc_js($var); ?>')" 
+									 style="background: #e6fffa; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #b2f5ea; transition: all 0.2s;" 
+									 onmouseover="this.style.background='#b2f5ea'; this.style.transform='translateY(-1px)'" 
+									 onmouseout="this.style.background='#e6fffa'; this.style.transform='translateY(0)'">
+									<code style="background: #319795; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; margin-right: 8px;"><?php echo esc_html($var); ?></code>
+									<span style="color: #2d3748; font-size: 12px;"><?php echo esc_html($desc); ?></span>
+								</div>
+							<?php endforeach; ?>
+						</div>
+
+						<!-- Dicas de Uso -->
+						<div style="margin-top: 20px; padding: 15px; background: #f0fff4; border-radius: 8px; border-left: 4px solid #48bb78;">
+							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px;">💡 Dicas de Uso</h4>
+							<ul style="margin: 0; padding-left: 15px; color: #4a5568; font-size: 12px; line-height: 1.4;">
+								<li>Use emojis para tornar as mensagens mais atrativas</li>
+								<li>Personalize conforme seu tipo de negócio</li>
+								<li>Teste as mensagens antes de ativar</li>
+								<li>Mantenha as mensagens concisas e claras</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Card de Exemplo em Largura Total -->
+			<div style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(255, 236, 210, 0.2); overflow: hidden; margin-top: 20px;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 15px;">
+						<div style="background: #ffecd2; color: #2d3748; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">📱</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Exemplo de Mensagem Processando</h3>
+					</div>
+					
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #fcb69f;">
+							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px;">📝 Template</h4>
+							<pre style="background: #2d3748; color: #e2e8f0; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; line-height: 1.4; margin: 0; white-space: pre-wrap;">Olá {customer_name}, seu pedido #{order_id} foi aprovado e já estamos preparando tudo para o envio via {shipping_method}. 
+
+Endereço: {shipping_address_line_1}, {shipping_city}-{shipping_state}
+
+Valor: {order_total}
+🎯 {order_url}</pre>
+						</div>
+						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #fcb69f;">
+							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px;">📲 Resultado Final</h4>
+							<div style="background: #25d366; color: white; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.4; font-family: system-ui;">
+								Olá João Silva, seu pedido #12345 foi aprovado e já estamos preparando tudo para o envio via PAC.<br><br>
+								Endereço: Rua das Flores, 123, São Paulo-SP<br><br>
+								Valor: R$ 150,00<br>
+								🎯 https://relaxsolucoes.online/pedido/12345
 							</div>
 						</div>
-					<?php endforeach; ?>
-
-					<div class="wpwevo-form-actions">
-						<button type="submit" class="button button-primary">
-							<?php _e('Salvar Configurações', 'wp-whatsapp-evolution'); ?>
-						</button>
-						<span class="spinner"></span>
 					</div>
-
-					<div id="wpwevo-save-result" class="wpwevo-save-result" style="display: none;"></div>
-				</form>
-			</div>
-
-			<div class="wpwevo-variables-help">
-				<h3><?php _e('Variáveis Disponíveis', 'wp-whatsapp-evolution'); ?></h3>
-				<p><?php _e('Você pode usar as seguintes variáveis em suas mensagens:', 'wp-whatsapp-evolution'); ?></p>
-				<ul>
-					<li><code>{customer_name}</code> - <?php _e('Nome do cliente', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{order_id}</code> - <?php _e('Número do pedido', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{order_total}</code> - <?php _e('Valor total do pedido', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{payment_method}</code> - <?php _e('Método de pagamento', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{shipping_method}</code> - <?php _e('Método de envio', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{order_url}</code> - <?php _e('URL do pedido', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{payment_url}</code> - <?php _e('URL de pagamento do pedido', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{first_product}</code> - <?php _e('Nome do primeiro produto', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{all_products}</code> - <?php _e('Lista de todos os produtos', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{shipping_name}</code> - <?php _e('Nome do destinatário', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{shipping_address_line_1}</code> - <?php _e('Endereço de entrega (linha 1)', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{shipping_address_line_2}</code> - <?php _e('Endereço de entrega (linha 2)', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{shipping_city}</code> - <?php _e('Cidade de entrega', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{shipping_state}</code> - <?php _e('Estado de entrega', 'wp-whatsapp-evolution'); ?></li>
-					<li><code>{shipping_postcode}</code> - <?php _e('CEP de entrega', 'wp-whatsapp-evolution'); ?></li>
-				</ul>
+				</div>
 			</div>
 		</div>
+
+		<script>
+		function copyVariable(variable) {
+			navigator.clipboard.writeText(variable).then(function() {
+				// Feedback visual
+				var notification = document.createElement('div');
+				notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #48bb78; color: white; padding: 12px 20px; border-radius: 6px; z-index: 9999; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);';
+				notification.textContent = 'Variável ' + variable + ' copiada!';
+				document.body.appendChild(notification);
+				
+				setTimeout(function() {
+					notification.remove();
+				}, 2000);
+			});
+		}
+		</script>
 		<?php
 	}
 
