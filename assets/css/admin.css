@@ -775,4 +775,56 @@
 .wpwevo-bulk-history mark.error {
     background: #fef1f1;
     color: #cc1818;
+}
+
+/* Mensagem de sucesso do envio em massa */
+.wpwevo-bulk-status .notice.notice-success {
+    background: #d1ecf1;
+    border-left: 4px solid #0073aa;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.wpwevo-bulk-status .notice.notice-success p {
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    color: #0073aa;
+}
+
+.wpwevo-bulk-status .notice.notice-success p:last-child {
+    margin-bottom: 0;
+}
+
+.wpwevo-bulk-status .wpwevo-error-list {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 10px 15px;
+    margin: 10px 0 0 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.wpwevo-bulk-status .wpwevo-error-list li {
+    margin: 5px 0;
+    padding: 0;
+    color: #856404;
+    font-size: 13px;
+}
+
+/* Ajuste para tela pequena */
+@media screen and (max-width: 782px) {
+    .wpwevo-bulk-status .notice.notice-success {
+        padding: 12px 15px;
+        margin: 15px 0;
+    }
+    
+    .wpwevo-bulk-status .wpwevo-error-list {
+        max-height: 150px;
+        padding: 8px 12px;
+    }
 } 
