@@ -514,7 +514,7 @@ class Api_Connection {
         // Verifica se o número existe no WhatsApp
         if (!$data[0]['exists']) {
             return [
-                'success' => true,
+                'success' => false,
                 'data' => [
                     'is_whatsapp' => false,
                     'exists' => false
