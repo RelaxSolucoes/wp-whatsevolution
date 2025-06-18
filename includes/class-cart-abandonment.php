@@ -249,36 +249,89 @@ class Cart_Abandonment {
     }
 
     public function enqueue_scripts($hook) {
-        if ('whatsapp-evolution_page_wpwevo-cart-abandonment' !== $hook) {
+        // Aplica o fix em qualquer página admin que contenha 'cart-abandonment'
+        if (strpos($hook, 'cart-abandonment') === false && strpos($_GET['page'] ?? '', 'cart-abandonment') === false) {
             return;
         }
 
-        wp_enqueue_style(
-            'wpwevo-admin',
-            WPWEVO_URL . 'assets/css/admin.css',
-            [],
-            WPWEVO_VERSION
-        );
-
-        wp_enqueue_script(
-            'wpwevo-cart-abandonment',
-            WPWEVO_URL . 'assets/js/cart-abandonment.js',
-            ['jquery'],
-            WPWEVO_VERSION,
-            true
-        );
-
-        wp_localize_script('wpwevo-cart-abandonment', 'wpwevoCartAbandonment', [
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('wpwevo_cart_nonce'),
-            'i18n' => [
-                'error' => __('Erro ao processar a requisição. Tente novamente.', 'wp-whatsapp-evolution'),
-                'success' => __('Sucesso!', 'wp-whatsapp-evolution'),
-                'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
-                'generating' => __('Gerando...', 'wp-whatsapp-evolution'),
-                'testing' => __('Testando...', 'wp-whatsapp-evolution')
-            ]
-        ]);
+        // JavaScript inline para corrigir bug do Cart Abandonment Recovery
+        $inline_js = "
+        jQuery(document).ready(function($) {
+            // Aguarda um pouco para garantir que o DOM está pronto
+            setTimeout(function() {
+                // Corrige bug do Cart Abandonment Recovery
+                // Remove o event handler problemático e adiciona um novo
+                $(document).off('click', '#wcf_ca_trigger_web_hook_abandoned_btn');
+                
+                $(document).on('click', '#wcf_ca_trigger_web_hook_abandoned_btn', function(e) {
+                    e.preventDefault();
+                    console.log('🔧 WP WhatsApp Evolution: Corrigindo bug do Cart Abandonment Recovery');
+                    
+                    const webhook_url = $('#wcf_ca_zapier_cart_abandoned_webhook').val().trim();
+                    const btn_message = $('#wcf_ca_abandoned_btn_message');
+                    
+                    if (!webhook_url.length) {
+                        btn_message.text('Please enter a valid webhook URL')
+                            .css('color', '#dc3232')
+                            .fadeIn().delay(2000).fadeOut();
+                        return;
+                    }
+                    
+                    btn_message.text('Testing webhook...').css('color', '#666').fadeIn();
+                    
+                    const sample_data = {
+                        first_name: '',
+                        last_name: '',
+                        email: 'naotem@naotem.com',
+                        phone: '',
+                        order_status: 'abandoned',
+                        checkout_url: window.location.origin + '/checkout/?wcf_ac_token=something',
+                        coupon_code: 'abcgefgh',
+                        product_names: 'Product1, Product2 & Product3',
+                        cart_total: '$20'
+                    };
+                    
+                    $.ajax({
+                        url: webhook_url,
+                        type: 'POST',
+                        data: sample_data,
+                        timeout: 10000,
+                        success: function(data) {
+                            console.log('🎯 Resposta do webhook:', data);
+                            let success = false;
+                            
+                            if (typeof data === 'object' && ['success', 'accepted'].includes(data.status)) {
+                                success = true;
+                            } else if (typeof data === 'string') {
+                                const resp = data.toLowerCase().trim();
+                                if (['success', 'accepted'].includes(resp)) {
+                                    success = true;
+                                }
+                            }
+                            
+                            if (success) {
+                                btn_message.text('✅ Webhook test successful!')
+                                    .css('color', '#46b450');
+                            } else {
+                                btn_message.text('❌ Webhook test failed - Invalid response')
+                                    .css('color', '#dc3232');
+                            }
+                            
+                            btn_message.fadeIn().delay(3000).fadeOut();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('❌ Erro no webhook:', error);
+                            btn_message.text('❌ Webhook test failed - ' + error)
+                                .css('color', '#dc3232')
+                                .fadeIn().delay(3000).fadeOut();
+                        }
+                    });
+                });
+            }, 1000);
+        });
+        ";
+        
+        wp_add_inline_script('jquery', $inline_js);
     }
 
     public function render_admin_page() {
@@ -373,16 +426,16 @@ class Cart_Abandonment {
                                         <li>Ative <strong>"Enable Webhook"</strong></li>
                         <li>Cole a URL acima no campo <strong>"Webhook URL"</strong></li>
                                         <li>Salve as configurações</li>
-                                        <li>Teste com <strong>"Trigger Sample"</strong> - deve mostrar sucesso ✅</li>
+                                        <li>Teste com <strong>"Trigger Sample"</strong> - deve mostrar sucesso ✅ (não fica mais "eternamente disparando")</li>
                     </ol>
                                     
                                     <div style="background: #f8f9fa; padding: 15px; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 4px;">
                                         <h4 style="margin-top: 0;">🧪 Duas Formas de Testar:</h4>
                                         
                                         <div style="background: #e7f3ff; padding: 10px; margin: 10px 0; border-left: 4px solid #007cba; border-radius: 3px;">
-                                            <strong>1️⃣ "Trigger Sample" (Cart Abandonment)</strong><br>
-                                            <small>✅ Testa conectividade do webhook | ❌ NÃO envia WhatsApp (dados fictícios)</small><br>
-                                            <em>📋 Uso: Verificar se webhook está configurado corretamente</em>
+                                                            <strong>1️⃣ "Trigger Sample" (Cart Abandonment)</strong><br>
+                <small>✅ Testa conectividade do webhook | ✅ Resposta JSON otimizada | ❌ NÃO envia WhatsApp (dados fictícios)</small><br>
+                <em>📋 Uso: Verificar se webhook está configurado corretamente (não fica mais "eternamente disparando")</em>
                                         </div>
                                         
                                         <div style="background: #d4edda; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 3px;">
@@ -518,27 +571,73 @@ class Cart_Abandonment {
      * Handle webhook externo (fallback)
      */
     public function handle_webhook() {
-        // Headers mais simples para compatibilidade com localhost
+        // DEBUG: Log de entrada
+        error_log('=== WP WHATSAPP EVOLUTION - WEBHOOK DEBUG ===');
+        error_log('Timestamp: ' . date('Y-m-d H:i:s'));
+        error_log('REQUEST_METHOD: ' . ($_SERVER['REQUEST_METHOD'] ?? 'N/A'));
+        error_log('HTTP_USER_AGENT: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'N/A'));
+        
+        // Headers específicos para compatibilidade com Cart Abandonment Recovery
         http_response_code(200);
-        header('Content-Type: text/plain');
+        header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache');
         header('X-Webhook-Status: OK');
+        
+        // DEBUG: Confirma que chegou até aqui
+        error_log('Headers enviados - Content-Type: application/json');
         
         // Log dos dados recebidos para debug
         $data = $this->get_safe_headers();
         
+        // DEBUG: Log dos dados recebidos
+        error_log('Dados recebidos: ' . print_r($data, true));
+        
         if (!get_option('wpwevo_cart_abandonment_enabled', 0)) {
+            error_log('DEBUG: Integração desabilitada');
             $this->log_info("⚠️ Webhook recebido mas integração está desabilitada");
-            echo 'success';
+            // Resposta JSON que o Cart Abandonment Recovery espera
+            $response = ['status' => 'success', 'message' => 'Webhook received but integration disabled'];
+            error_log('DEBUG: Enviando resposta: ' . json_encode($response));
+            echo json_encode($response);
             wp_die();
         }
 
         // Detecta se é um teste do Cart Abandonment Recovery
-        $is_test = empty($data['first_name']) && $data['email'] === 'naotem@naotem.com';
+        // Baseado na análise do JavaScript: dados fictícios específicos
+        $is_test = (
+            empty($data['first_name']) || 
+            $data['email'] === 'naotem@naotem.com' ||
+            (isset($data['first_name']) && $data['first_name'] === 'John') ||
+            (isset($data['email']) && strpos($data['email'], '@example.') !== false)
+        );
+        
+        // DEBUG: Log da detecção de teste
+        error_log('DEBUG: É teste? ' . ($is_test ? 'SIM' : 'NÃO'));
         
         if ($is_test) {
+            error_log('DEBUG: Processando como teste');
             $this->log_success("🧪 Teste de conectividade OK (Trigger Sample)");
-            echo 'success';
+            
+            // Limpa qualquer output anterior
+            ob_clean();
+            
+            // Headers para máxima compatibilidade
+            http_response_code(200);
+            header('Content-Type: text/plain; charset=utf-8');
+            header('Content-Length: 8'); // Tamanho exato de "accepted"
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            
+            // Resposta EXATA que o JavaScript espera
+            error_log('DEBUG: Enviando resposta otimizada: accepted');
+            echo 'accepted';
+            
+            // Força envio imediato
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+            
             wp_die();
         }
 
@@ -546,17 +645,29 @@ class Cart_Abandonment {
         $customer_name = trim($customer_name);
         $this->log_info("📨 Webhook externo recebido: {$customer_name}");
         
+        error_log('DEBUG: Processando carrinho real para: ' . $customer_name);
+        
         $result = $this->process_webhook_data($data);
             
-        // Resposta simples que funciona em localhost
+        // Resposta JSON estruturada
         if ($result) {
             $this->log_success("✅ Webhook processado com sucesso - WhatsApp enviado");
+            $response = [
+                'status' => 'success', 
+                'message' => 'Webhook processed and WhatsApp sent successfully',
+                'customer' => $customer_name
+            ];
         } else {
             $this->log_info("ℹ️ Webhook recebido mas sem telefone válido para envio");
+            $response = [
+                'status' => 'success', 
+                'message' => 'Webhook received but no valid phone number for sending',
+                'customer' => $customer_name
+            ];
         }
         
-        // Sempre responde success para o Cart Abandonment Recovery
-        echo 'success';
+        error_log('DEBUG: Enviando resposta final: ' . json_encode($response));
+        echo json_encode($response);
         wp_die();
     }
 

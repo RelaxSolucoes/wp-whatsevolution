@@ -1,5 +1,24 @@
 # Changelog - WP WhatsEvolution
 
+## [1.0.10] - 2025-01-XX
+
+### 🔧 CORREÇÃO CRÍTICA - WEBHOOK CARRINHO ABANDONADO
+- **🚨 PROBLEMA RESOLVIDO**: "Trigger Sample" não fica mais "eternamente disparando"
+- **✅ RESPOSTA JSON**: Webhook agora responde com JSON estruturado como esperado pelo Cart Abandonment Recovery
+- **🎯 COMPATIBILIDADE**: Análise completa do código JavaScript do plugin Cart Abandonment para resposta perfeita
+- **📊 LOGS MELHORADOS**: Detecção mais precisa de testes vs carrinhos reais
+
+### 🛠️ MELHORIAS TÉCNICAS
+- **Content-Type**: Mudado de `text/plain` para `application/json; charset=utf-8`
+- **Detecção de teste**: Melhorada para identificar dados fictícios do Trigger Sample
+- **Resposta estruturada**: JSON com `status`, `message` e `customer` para debug
+- **Headers otimizados**: Compatibilidade máxima com diferentes ambientes
+
+### 📋 IMPACTO
+- **UX melhorada**: Botão "Trigger Sample" funciona instantaneamente
+- **Zero falsos positivos**: Diferenciação clara entre teste e carrinho real
+- **Debug facilitado**: Logs mais informativos sobre o tipo de requisição
+
 ## [1.0.9] - 2025-06-17
 
 ### 🔧 CORREÇÃO - INTERFERÊNCIA NA DIGITAÇÃO

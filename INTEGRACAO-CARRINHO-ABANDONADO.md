@@ -95,8 +95,9 @@ Finalize sua compra agora:
 ### **Teste 1: Trigger Sample (Recomendado)**
 1. No **Cart Abandonment Recovery → Settings → Webhook Settings**
 2. Clique em **"Trigger Sample"** ao lado da URL do webhook
-3. Vá na página **WhatsApp Evolution > Carrinho Abandonado**
-4. Verifique os logs - deve mostrar interceptação e envio!
+3. ✅ **Deve mostrar "Success" imediatamente** (não fica mais "eternamente disparando")
+4. Vá na página **WhatsApp Evolution > Carrinho Abandonado** 
+5. Verifique os logs - deve mostrar "🧪 Teste de conectividade OK"
 
 ### **Teste 2: Interceptação Simulada**
 1. Na página **WhatsApp Evolution > Carrinho Abandonado**
