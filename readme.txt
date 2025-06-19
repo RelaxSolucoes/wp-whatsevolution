@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.0.4
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -109,6 +109,18 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.2.0 =
+* 🚀 NOVO: Sistema de Onboarding 1-Click completo!
+* 🆕 Integração automática com sistema principal via Edge Functions
+* ✨ Criação de conta automática e configuração instantânea
+* 📱 QR Code dinâmico e detecção automática de conexão WhatsApp
+* ⚡ Polling otimizado (3 segundos) para detecção rápida
+* 🎯 Interface moderna e responsiva para teste grátis
+* 🔧 Sistema de status em tempo real sincronizado
+* 🛠️ Reset automático para facilitar testes
+* 🔌 Arquitetura cross-project otimizada
+* ✅ Compatibilidade total com Supabase Edge Functions
 
 = 1.0.4 =
 * 🆕 NOVO: Integração completa com carrinho abandonado

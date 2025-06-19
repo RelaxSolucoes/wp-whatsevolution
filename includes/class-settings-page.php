@@ -189,7 +189,8 @@ class Settings_Page {
 					</h3>
 					<p class="wpwevo-cta-description">
 						<span class="wpwevo-cta-emoji">🎯</span> Envie mensagens automatizadas para seus clientes em minutos!<br>
-						<span class="wpwevo-cta-emoji">✨</span> Ative sua instância agora e aproveite todos os recursos premium do Whats Evolution.
+						<span class="wpwevo-cta-emoji">✨</span> Ative sua instância agora e aproveite todos os recursos premium do Whats Evolution.<br>
+						<span class="wpwevo-cta-emoji">💡</span> <strong>Dica:</strong> Use a aba "🚀 Teste Grátis" para configuração automática em 1-click!
 					</p>
 				</div>
 				<a href="https://whats-evolution.vercel.app/" 
@@ -734,10 +735,17 @@ Finalize agora:
 							</div>
 						<?php endif; ?>
 						
-						<a href="https://whats-evolution.vercel.app/" target="_blank" 
-						   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
-							🚀 Fazer Upgrade Agora
-						</a>
+						<div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
+							<a href="https://whats-evolution.vercel.app/" target="_blank" 
+							   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
+								🚀 Fazer Upgrade Agora
+							</a>
+							
+							<button id="wpwevo-reset-plugin-btn" 
+							        style="background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);">
+								🔄 Reset Plugin (Debug)
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
