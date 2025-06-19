@@ -161,7 +161,14 @@ class Settings_Page {
 
 	public function render_page() {
 		$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'connection';
+		
+		// Se plugin não está configurado, mostra aba de teste grátis por padrão
+		if (!Quick_Signup::is_auto_configured() && !get_option('wpwevo_api_url', '')) {
+			$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'quick-signup';
+		}
+		
 		$tabs = [
+			'quick-signup' => __('🚀 Teste Grátis', 'wp-whatsapp-evolution'),
 			'connection' => __('Conexão', 'wp-whatsapp-evolution'),
 			'help' => __('Ajuda', 'wp-whatsapp-evolution'),
 		];
@@ -203,6 +210,9 @@ class Settings_Page {
 
 			<?php
 			switch ($active_tab) {
+				case 'quick-signup':
+					$this->render_quick_signup_tab();
+					break;
 				case 'connection':
 					$this->render_connection_tab();
 					break;
@@ -510,6 +520,254 @@ Finalize agora:
 				</div>
 			</div>
 		</div>
+		<?php
+	}
+
+	private function render_quick_signup_tab() {
+		$is_auto_configured = Quick_Signup::is_auto_configured();
+		$trial_days_left = Quick_Signup::get_trial_days_left();
+		?>
+		<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
+			
+			<?php if (!$is_auto_configured): ?>
+			<!-- Formulário de Teste Grátis -->
+			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
+					<div style="text-align: center; margin-bottom: 30px;">
+						<h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 28px;">🚀 Teste Grátis por 7 Dias</h2>
+						<p style="margin: 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
+							Não tem Evolution API? Sem problema! Teste nossa solução completa:
+						</p>
+					</div>
+					
+					<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+						<div style="background: #f7fafc; padding: 20px; border-radius: 10px; text-align: center;">
+							<div style="font-size: 24px; margin-bottom: 10px;">⚡</div>
+							<h4 style="margin: 0 0 8px 0; color: #2d3748;">Sem VPS, sem Docker</h4>
+							<p style="margin: 0; color: #4a5568; font-size: 14px;">Sem complicação técnica</p>
+						</div>
+						<div style="background: #f7fafc; padding: 20px; border-radius: 10px; text-align: center;">
+							<div style="font-size: 24px; margin-bottom: 10px;">🔧</div>
+							<h4 style="margin: 0 0 8px 0; color: #2d3748;">Configuração automática</h4>
+							<p style="margin: 0; color: #4a5568; font-size: 14px;">Em 30 segundos</p>
+						</div>
+						<div style="background: #f7fafc; padding: 20px; border-radius: 10px; text-align: center;">
+							<div style="font-size: 24px; margin-bottom: 10px;">🛠️</div>
+							<h4 style="margin: 0 0 8px 0; color: #2d3748;">Suporte técnico</h4>
+							<p style="margin: 0; color: #4a5568; font-size: 14px;">Incluído no teste</p>
+						</div>
+						<div style="background: #f7fafc; padding: 20px; border-radius: 10px; text-align: center;">
+							<div style="font-size: 24px; margin-bottom: 10px;">💳</div>
+							<h4 style="margin: 0 0 8px 0; color: #2d3748;">7 dias grátis</h4>
+							<p style="margin: 0; color: #4a5568; font-size: 14px;">Sem cartão de crédito</p>
+						</div>
+					</div>
+
+					<!-- Formulário -->
+					<form id="wpwevo-quick-signup-form" style="max-width: 500px; margin: 0 auto;">
+						<div style="display: grid; gap: 20px;">
+							<div>
+								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">👤 Nome completo</label>
+								<input type="text" id="wpwevo-name" required
+									   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;"
+									   placeholder="Seu nome completo">
+								<div id="name-error" style="color: #e53e3e; font-size: 12px; margin-top: 5px; display: none;"></div>
+							</div>
+							
+							<div>
+								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">📧 Email</label>
+								<input type="email" id="wpwevo-email" required
+									   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;"
+									   placeholder="seu@email.com">
+								<div id="email-error" style="color: #e53e3e; font-size: 12px; margin-top: 5px; display: none;"></div>
+							</div>
+							
+							<div>
+								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">📱 WhatsApp</label>
+								<input type="tel" id="wpwevo-whatsapp" required
+									   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;"
+									   placeholder="(11) 99999-9999">
+								<div id="whatsapp-error" style="color: #e53e3e; font-size: 12px; margin-top: 5px; display: none;"></div>
+							</div>
+						</div>
+						
+						<button type="submit" id="wpwevo-signup-btn" disabled
+								style="width: 100%; margin-top: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+							🚀 Criar Conta e Testar Agora
+						</button>
+					</form>
+				</div>
+			</div>
+			<?php endif; ?>
+
+			<!-- Container de Progresso -->
+			<div id="wpwevo-progress-container" style="display: none;">
+				<div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.2); overflow: hidden;">
+					<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
+						<div style="text-align: center; margin-bottom: 30px;">
+							<h3 style="margin: 0; color: #2d3748; font-size: 20px;">Criando sua conta...</h3>
+						</div>
+						
+						<!-- Steps -->
+						<div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+							<div class="wpwevo-step" style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: #f7fafc; margin: 0 5px;">
+								<div style="width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">1</div>
+								<span style="font-size: 12px; color: #4a5568;">Validando dados</span>
+							</div>
+							<div class="wpwevo-step" style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: #f7fafc; margin: 0 5px;">
+								<div style="width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">2</div>
+								<span style="font-size: 12px; color: #4a5568;">Criando conta</span>
+							</div>
+							<div class="wpwevo-step" style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: #f7fafc; margin: 0 5px;">
+								<div style="width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">3</div>
+								<span style="font-size: 12px; color: #4a5568;">Configurando plugin</span>
+							</div>
+							<div class="wpwevo-step" style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: #f7fafc; margin: 0 5px;">
+								<div style="width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">✅</div>
+								<span style="font-size: 12px; color: #4a5568;">Pronto!</span>
+							</div>
+						</div>
+						
+						<!-- Barra de Progresso -->
+						<div style="background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
+							<div id="wpwevo-progress-bar" style="width: 0%; height: 8px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); transition: width 0.3s ease;"></div>
+						</div>
+						
+						<div style="text-align: center;">
+							<p id="wpwevo-progress-text" style="margin: 0; color: #4a5568; font-size: 14px;">Iniciando...</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Container de Sucesso -->
+			<div id="wpwevo-success-container" style="display: none;">
+				<div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.2); overflow: hidden;">
+					<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
+						<div style="text-align: center; margin-bottom: 30px;">
+							<div style="font-size: 48px; margin-bottom: 15px;">🎉</div>
+							<h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 24px;">Sua conta de teste está ativa!</h2>
+							<p style="margin: 0; color: #4a5568; font-size: 16px;">
+								⏰ Trial expira em <strong id="trial-days-left">7</strong> dias<br>
+								Aproveite para testar todas as funcionalidades!
+							</p>
+						</div>
+						
+						<!-- QR Code -->
+						<div id="wpwevo-qr-container" style="display: none; text-align: center; margin-bottom: 30px;">
+							<h3 style="margin: 0 0 15px 0; color: #2d3748;">📱 Conecte seu WhatsApp</h3>
+							<div style="background: #f7fafc; padding: 20px; border-radius: 10px; display: inline-block;">
+								<iframe id="wpwevo-qr-iframe" width="300" height="300" style="border: none; border-radius: 8px;"></iframe>
+							</div>
+							<p style="margin: 10px 0 0 0; color: #4a5568; font-size: 14px;">
+								<span id="connection-indicator">⏳ Aguardando conexão...</span>
+							</p>
+							<div id="whatsapp-status" class="disconnected"></div>
+						</div>
+						
+						<!-- Próximos Passos -->
+						<div style="background: #f7fafc; padding: 20px; border-radius: 10px;">
+							<h3 style="margin: 0 0 15px 0; color: #2d3748;">📋 Próximos passos:</h3>
+							<div style="display: grid; gap: 10px;">
+								<div style="display: flex; align-items: center; gap: 10px;">
+									<span style="color: #48bb78; font-size: 16px;">✅</span>
+									<span style="color: #4a5568;">Conta criada e plugin configurado</span>
+								</div>
+								<div style="display: flex; align-items: center; gap: 10px;">
+									<span style="color: #4a5568; font-size: 16px;">🔗</span>
+									<span style="color: #4a5568;">Conectar seu WhatsApp (escaneie o QR acima)</span>
+								</div>
+								<div style="display: flex; align-items: center; gap: 10px;">
+									<span style="color: #4a5568; font-size: 16px;">📱</span>
+									<span style="color: #4a5568;">Testar envio de mensagem</span>
+								</div>
+								<div style="display: flex; align-items: center; gap: 10px;">
+									<span style="color: #4a5568; font-size: 16px;">🛒</span>
+									<span style="color: #4a5568;">Configurar carrinho abandonado</span>
+								</div>
+							</div>
+						</div>
+						
+						<div style="text-align: center; margin-top: 30px;">
+							<a href="#" id="upgrade-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
+								🚀 Fazer Upgrade
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Container de Erro -->
+			<div id="wpwevo-error-container" style="display: none;">
+				<div style="background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(245, 101, 101, 0.2); overflow: hidden;">
+					<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
+						<div style="text-align: center;">
+							<div style="font-size: 48px; margin-bottom: 15px;">😞</div>
+							<h3 style="margin: 0 0 15px 0; color: #2d3748;">Ops! Algo deu errado</h3>
+							<p id="wpwevo-error-message" style="margin: 0 0 20px 0; color: #4a5568;"></p>
+							<button id="wpwevo-retry-btn" style="background: #f56565; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; cursor: pointer;">
+								🔄 Tentar novamente
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<?php if ($is_auto_configured): ?>
+			<!-- Status do Trial -->
+			<div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(168, 237, 234, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
+					<div style="text-align: center;">
+						<div style="font-size: 48px; margin-bottom: 15px;">⏰</div>
+						<h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 24px;">Trial Ativo</h2>
+						<p style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px;">
+							Restam <strong><?php echo $trial_days_left; ?> dias</strong> do seu período de teste
+						</p>
+						
+						<?php if (Quick_Signup::is_trial_active()): ?>
+							<div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+								<span style="color: #155724;">✅ Plugin configurado e funcionando!</span>
+							</div>
+						<?php else: ?>
+							<div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+								<span style="color: #721c24;">⚠️ Trial expirado! Faça upgrade para continuar usando.</span>
+							</div>
+						<?php endif; ?>
+						
+						<a href="https://whats-evolution.vercel.app/" target="_blank" 
+						   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
+							🚀 Fazer Upgrade Agora
+						</a>
+					</div>
+				</div>
+			</div>
+			<?php endif; ?>
+
+		</div>
+		
+		<style>
+		.wpwevo-step.active {
+			background: #e6fffa !important;
+		}
+		.wpwevo-step.active > div {
+			background: #38b2ac !important;
+			color: white !important;
+		}
+		.wpwevo-step.completed > div {
+			background: #48bb78 !important;
+			color: white !important;
+		}
+		input.error {
+			border-color: #e53e3e !important;
+		}
+		#wpwevo-signup-btn:disabled {
+			background: #cbd5e0 !important;
+			cursor: not-allowed !important;
+		}
+		.wpwevo-step {
+			transition: all 0.3s ease;
+		}
+		</style>
 		<?php
 	}
 } 

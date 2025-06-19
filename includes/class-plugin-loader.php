@@ -61,6 +61,7 @@ class Plugin_Loader {
 		Cart_Abandonment::init();
 		Bulk_Sender::init();
 		Checkout_Validator::init();
+		Quick_Signup::init();
 	}
 
 	public function activate() {
