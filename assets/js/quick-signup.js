@@ -57,6 +57,8 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: formData,
             success: function(response) {
+                console.log('Resposta do quick signup:', response);
+                
                 if (response.success) {
                     // Etapa 2: Conta criada
                     updateProgress(1, wpwevo_quick_signup.messages.creating_account);
@@ -65,11 +67,29 @@ jQuery(document).ready(function($) {
                         saveConfiguration(response.data);
                     }, 1000);
                 } else {
-                    showError(response.data.message || wpwevo_quick_signup.messages.error);
+                    console.error('Erro no quick signup:', response);
+                    showError(response.data ? response.data.message : wpwevo_quick_signup.messages.error);
                 }
             },
-            error: function() {
-                showError(wpwevo_quick_signup.messages.error);
+            error: function(xhr, status, error) {
+                console.error('Erro AJAX quick signup:', {xhr, status, error});
+                console.error('Response text:', xhr.responseText);
+                
+                let errorMessage = wpwevo_quick_signup.messages.error;
+                
+                // Tenta extrair mensagem específica do erro
+                if (xhr.responseText) {
+                    try {
+                        const errorData = JSON.parse(xhr.responseText);
+                        if (errorData.data && errorData.data.message) {
+                            errorMessage = errorData.data.message;
+                        }
+                    } catch (e) {
+                        console.log('Não foi possível parsear erro JSON');
+                    }
+                }
+                
+                showError(errorMessage);
             }
         });
     }
