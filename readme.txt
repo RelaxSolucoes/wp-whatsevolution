@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -109,6 +109,13 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.2.1 =
+* 🤖 NOVO: Auto-update via GitHub Releases
+* 🔄 Sistema de atualização automática implementado
+* 📦 Plugin Update Checker integrado
+* ✨ Atualizações automáticas sem intervenção manual
+* 🛠️ Compatibilidade com GitHub Releases API
 
 = 1.2.0 =
 * 🚀 NOVO: Sistema de Onboarding 1-Click completo!

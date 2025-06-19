@@ -3,7 +3,7 @@
  * Plugin Name: WP WhatsEvolution
  * Plugin URI: https://relaxsolucoes.online/
  * Description: Integração avançada com WooCommerce usando Evolution API para envio de mensagens
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: Relax Soluções
  * Author URI: https://relaxsolucoes.online/
  * Text Domain: wp-whatsevolution
@@ -12,6 +12,7 @@
  * WC requires at least: 5.0
  * WC tested up to: 8.0
  * Requires at least: 5.8
+ * GitHub Plugin URI: RelaxSolucoes/wp-whatsevolution
  */
 
 // Previne acesso direto
@@ -20,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('WPWEVO_VERSION', '1.2.0');
+define('WPWEVO_VERSION', '1.2.1');
 define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));
@@ -209,77 +210,22 @@ function wpwevo_migrate_old_options() {
 	}
 }
 
-// Adiciona verificação de atualizações
-add_filter('pre_set_site_transient_update_plugins', 'wpwevo_check_update');
-function wpwevo_check_update($transient) {
-    if (empty($transient->checked)) {
-        return $transient;
-    }
 
-    $remote = wp_remote_get(
-        'https://api.github.com/repos/' . WPWEVO_GITHUB_REPO . '/releases/latest',
-        [
-            'headers' => [
-                'Accept' => 'application/vnd.github.v3+json'
-            ]
-        ]
-    );
 
-    if (
-        is_wp_error($remote) 
-        || 200 !== wp_remote_retrieve_response_code($remote) 
-        || empty(wp_remote_retrieve_body($remote))
-    ) {
-        return $transient;
-    }
+// ===== AUTO-UPDATE GITHUB =====
+require_once plugin_dir_path(__FILE__) . 'lib/plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-    $remote = json_decode(wp_remote_retrieve_body($remote));
+function wp_whatsevolution_init_auto_updater() {
+    if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) return;
     
-    // Se não encontrou release, retorna
-    if (!isset($remote->tag_name)) {
-        return $transient;
-    }
-
-    // Remove o 'v' do início da tag se existir
-    $new_version = ltrim($remote->tag_name, 'v');
-
-    // Compara versões
-    if (
-        version_compare($new_version, WPWEVO_VERSION, '<=')
-    ) {
-        return $transient;
-    }
-
-    $plugin_slug = plugin_basename(__FILE__);
-    $item = (object)[
-        'id'            => $plugin_slug,
-        'slug'          => dirname($plugin_slug),
-        'plugin'        => $plugin_slug,
-        'new_version'   => $new_version,
-        'url'           => 'https://github.com/' . WPWEVO_GITHUB_REPO,
-        'package'       => $remote->zipball_url,
-        'icons'         => [],
-        'banners'       => [],
-        'banners_rtl'   => [],
-        'tested'        => '',
-        'requires_php'  => WPWEVO_MIN_PHP_VERSION,
-        'compatibility' => new stdClass(),
-    ];
-
-    // Adiciona nossa atualização
-    $transient->response[$plugin_slug] = $item;
-
-    return $transient;
+    $updateChecker = PucFactory::buildUpdateChecker(
+        'https://github.com/RelaxSolucoes/wp-whatsevolution',
+        __FILE__,
+        'wp-whatsevolution'
+    );
+    
+    $updateChecker->getVcsApi()->enableReleaseAssets();
 }
-
-// Modifica a mensagem de atualização disponível
-add_filter('in_plugin_update_message-' . plugin_basename(__FILE__), 'wpwevo_show_upgrade_notification', 10, 2);
-function wpwevo_show_upgrade_notification($current, $new) {
-    // Se não tem release notes, retorna
-    if (empty($new->releases_notes)) {
-        return;
-    }
-
-    echo '<br><br><strong>Notas da atualização:</strong><br>';
-    echo wp_kses_post($new->releases_notes);
-} 
+add_action('init', 'wp_whatsevolution_init_auto_updater');
+// ===== FIM AUTO-UPDATE ===== 

@@ -37,4 +37,10 @@ functions/
 # API keys and config files
 config.json
 .env
-.env.local 
+.env.local
+
+# Plugin Update Checker - Ignore development files
+lib/plugin-update-checker/.git/
+lib/plugin-update-checker/composer.*
+lib/plugin-update-checker/phpunit.xml
+lib/plugin-update-checker/tests/ 
