@@ -407,41 +407,7 @@ jQuery(document).ready(function($) {
         window.open('https://whats-evolution.vercel.app/', '_blank');
     });
 
-    // Botão de reset plugin (debug)
-    $(document).on('click', '#wpwevo-reset-plugin-btn', function(e) {
-        e.preventDefault();
-        
-        if (!confirm('⚠️ ATENÇÃO!\n\nEsta ação irá resetar completamente o plugin, removendo todas as configurações.\n\nVocê terá que criar uma nova conta de teste.\n\nDeseja continuar?')) {
-            return;
-        }
-        
-        const $btn = $(this);
-        const originalText = $btn.text();
-        
-        $btn.prop('disabled', true).text('🔄 Resetando...');
-        
-        $.ajax({
-            url: wpwevo_quick_signup.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'wpwevo_reset_plugin',
-                nonce: wpwevo_quick_signup.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('✅ ' + response.data.message + '\n\nA página será recarregada.');
-                    window.location.reload();
-                } else {
-                    alert('❌ Erro: ' + (response.data.message || 'Erro desconhecido'));
-                    $btn.prop('disabled', false).text(originalText);
-                }
-            },
-            error: function() {
-                alert('❌ Erro de conexão ao resetar plugin');
-                $btn.prop('disabled', false).text(originalText);
-            }
-        });
-    });
+
 
     // Auto-focus no primeiro campo
     $('#wpwevo-name').focus();

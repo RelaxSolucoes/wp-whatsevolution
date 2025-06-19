@@ -1,5 +1,0 @@
-[33m31d8e86[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m  v1.2.0: Sistema de Onboarding 1-Click Completo - Sistema de teste grátis integrado - QR Code dinâmico com detecção automática - Interface moderna e polling otimizado (3s) - Arquitetura cross-project robusta
-[33meca6a8e[m fix: implementa modo demo para casos de validacao WhatsApp + logs detalhados - resolve problema de numeros teste nao validados pela Evolution API - adiciona fallback automatico para demonstracao - melhora error handling no JavaScript
-[33mc7d06a0[m feat: implementa sistema de onboarding 1-click completo - nova classe Quick_Signup, aba Teste Gratis, interface com progresso em tempo real, integracao Supabase Edge Functions, sistema trial 7 dias automatico
-[33m328145a[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: Logs limpos - apenas criticos
-[33m9e2d635[m style: Melhora visual da mensagem de sucesso no bulk-send com melhor espaçamento e formatação

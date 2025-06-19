@@ -20,7 +20,6 @@ class Quick_Signup {
 		add_action('wp_ajax_wpwevo_save_quick_config', [$this, 'handle_save_config']);
 		add_action('wp_ajax_wpwevo_check_plugin_status', [$this, 'handle_check_status']);
 		add_action('wp_ajax_wpwevo_get_qr_code', [$this, 'handle_get_qr_code']);
-		add_action('wp_ajax_wpwevo_reset_plugin', [$this, 'handle_reset_plugin']);
 		
 		// Enqueue scripts específicos para quick signup
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_quick_signup_assets']);
@@ -289,58 +288,7 @@ class Quick_Signup {
 		}
 	}
 
-	/**
-	 * Handler AJAX para resetar o plugin (debug)
-	 */
-	public function handle_reset_plugin() {
-		try {
-			check_ajax_referer('wpwevo_quick_signup', 'nonce');
 
-			if (!current_user_can('manage_options')) {
-				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
-			}
-
-			error_log('WP WhatsApp Evolution - Resetando plugin para debug...');
-
-			// Lista de todas as configurações do plugin
-			$options_to_reset = [
-				'wpwevo_api_url',
-				'wpwevo_api_key', 
-				'wpwevo_instance',
-				'wpwevo_auto_configured',
-				'wpwevo_trial_started_at',
-				'wpwevo_trial_expires_at',
-				'wpwevo_instance_status',
-				'wpwevo_whatsapp_connected',
-				'wpwevo_last_status_check',
-				'wpwevo_qr_code_url',
-				'wpwevo_instance_id',
-				'wpwevo_server_url',
-				'wpwevo_settings'
-			];
-
-			$removed_count = 0;
-			foreach ($options_to_reset as $option) {
-				if (delete_option($option)) {
-					$removed_count++;
-					error_log("WP WhatsApp Evolution - Reset: Removido {$option}");
-				}
-			}
-
-			error_log("WP WhatsApp Evolution - Reset concluído: {$removed_count} configurações removidas");
-
-			wp_send_json_success([
-				'message' => sprintf(__('Plugin resetado com sucesso! %d configurações removidas.', 'wp-whatsapp-evolution'), $removed_count),
-				'removed_count' => $removed_count
-			]);
-
-		} catch (\Exception $e) {
-			error_log('WP WhatsApp Evolution - Erro ao resetar plugin: ' . $e->getMessage());
-			wp_send_json_error([
-				'message' => $e->getMessage()
-			]);
-		}
-	}
 
 	/**
 	 * Chama uma Edge Function do Supabase

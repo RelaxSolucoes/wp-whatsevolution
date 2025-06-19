@@ -141,7 +141,7 @@ class Settings_Page {
 			'wpwevo-admin',
 			WPWEVO_URL . 'assets/css/admin.css',
 			[],
-			WPWEVO_VERSION . '.' . time() . '.FORCECACHE'
+			WPWEVO_VERSION
 		);
 
 		wp_enqueue_script(
@@ -193,8 +193,7 @@ class Settings_Page {
 						<span class="wpwevo-cta-emoji">💡</span> <strong>Dica:</strong> Use a aba "🚀 Teste Grátis" para configuração automática em 1-click!
 					</p>
 				</div>
-				<a href="https://whats-evolution.vercel.app/" 
-				   target="_blank" 
+				<a href="<?php echo esc_url(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup')); ?>" 
 				   class="wpwevo-cta-button">
 					<span class="wpwevo-cta-emoji">🚀</span> Teste Grátis Agora Mesmo!
 				</a>
@@ -740,11 +739,6 @@ Finalize agora:
 							   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
 								🚀 Fazer Upgrade Agora
 							</a>
-							
-							<button id="wpwevo-reset-plugin-btn" 
-							        style="background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);">
-								🔄 Reset Plugin (Debug)
-							</button>
 						</div>
 					</div>
 				</div>
