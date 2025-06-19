@@ -13,3 +13,28 @@ status-*.php
 
 # Logs
 *.log 
+
+# WordPress
+wp-config.php
+.htaccess
+
+# Database dumps
+*.sql
+
+# Debug logs
+debug.log
+error_log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backend sensitive files - Do not commit
+supabase/
+edge-functions/
+functions/
+
+# API keys and config files
+config.json
+.env
+.env.local 
