@@ -7,14 +7,12 @@ class Cart_Abandonment {
 
     public static function init() {
         if (self::$instance === null) {
-            error_log("[WPWEVO] 🔧 Cart_Abandonment::init() chamado");
             self::$instance = new self();
         }
         return self::$instance;
     }
 
     private function __construct() {
-        error_log("[WPWEVO] 🚀 Cart_Abandonment construtor chamado - registrando hooks");
         
         add_action('admin_menu', [$this, 'add_admin_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
@@ -32,8 +30,6 @@ class Cart_Abandonment {
 
         // Hook interno do Cart Abandonment Recovery - ESTA É A MÁGICA!
         add_action('wcf_ca_before_trigger_webhook', [$this, 'intercept_internal_webhook'], 10, 3);
-        
-        error_log("[WPWEVO] ✅ Hooks AJAX registrados: wp_ajax_wpwevo_cart_abandonment_webhook");
     }
 
     /**

@@ -397,7 +397,8 @@ class Checkout_Validator {
 			'modal_message' => $this->settings['modal_message'],
 			'modal_button_text' => $this->settings['modal_button_text'],
 			'validation_success' => $this->settings['validation_success_message'],
-			'validation_error' => $this->settings['validation_error_message']
+			'validation_error' => $this->settings['validation_error_message'],
+			'debug' => true // ATIVA DEBUG TEMPORÁRIO
 		]);
 	}
 } 

@@ -34,8 +34,20 @@ jQuery(document).ready(function($) {
     }
 
     function performInitialization() {
-        // Cache fields - incluindo campos do WooCommerce Blocks
-        var $phoneFields = $('.wc-block-checkout__billing-fields input[type="tel"], input[name="billing-phone"], input[name="billing_phone"], input[name="billing_cellphone"]');
+        // Cache fields - incluindo campos do WooCommerce Blocks E SHIPPING
+        var $phoneFields = $(
+            '.wc-block-checkout__billing-fields input[type="tel"], ' +
+            '.wc-block-checkout__shipping-fields input[type="tel"], ' +
+            'input[name="billing-phone"], ' +
+            'input[name="billing_phone"], ' +
+            'input[name="billing_cellphone"], ' +
+            'input[name="shipping-phone"], ' +
+            'input[name="shipping_phone"], ' +
+            'input[id*="phone"], ' +
+            'input[id*="telefone"], ' +
+            'input[class*="phone"], ' +
+            'input[type="tel"]'
+        );
         
         // Debug field detection
         if (wpwevoCheckout.debug) {
@@ -45,7 +57,8 @@ jQuery(document).ready(function($) {
                     id: $(this).attr('id'),
                     name: $(this).attr('name'),
                     type: $(this).attr('type'),
-                    classes: $(this).attr('class')
+                    classes: $(this).attr('class'),
+                    value: $(this).val()
                 });
             });
         }
