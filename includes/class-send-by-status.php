@@ -11,6 +11,7 @@ class Send_By_Status {
 	private $menu_title;
 	private $page_title;
 	private $i18n;
+	private $js_messages;
 
 	public static function init() {
 		if (self::$instance === null) {
@@ -20,38 +21,68 @@ class Send_By_Status {
 	}
 
 	private function __construct() {
-		// Verifica se o WooCommerce está ativo e compatível
+		add_action('admin_menu', [$this, 'add_admin_menu']);
+		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+		
+		// AJAX handlers
+		add_action('wp_ajax_wpwevo_save_status_settings', [$this, 'save_settings_ajax']);
+		add_action('wp_ajax_wpwevo_preview_status_message', [$this, 'preview_message_ajax']);
+		add_action('wp_ajax_wpwevo_test_status_send', [$this, 'test_send_ajax']);
+		
+		// Defer initialization to avoid early translation loading
+		add_action('admin_init', [$this, 'init_admin_properties']);
+		
+		// Only initialize WooCommerce hooks after WordPress is fully loaded
+		add_action('init', [$this, 'init_woocommerce_hooks'], 15);
+	}
+
+	public function init_admin_properties() {
+		// Initialize translation-dependent properties only when in admin context
+		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		
+		$this->js_messages = [
+			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
+			'saved' => __('Configurações salvas!', 'wp-whatsapp-evolution'),
+			'error' => __('Erro ao salvar: ', 'wp-whatsapp-evolution'),
+			'preview' => __('Visualizando...', 'wp-whatsapp-evolution'),
+			'emptyMessage' => __('Por favor, digite uma mensagem.', 'wp-whatsapp-evolution'),
+			'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsapp-evolution'),
+			'confirmReset' => __('Deseja restaurar a mensagem padrão?', 'wp-whatsapp-evolution')
+		];
+		
+		// Carrega os status do WooCommerce de forma segura
+		$this->available_statuses = [];
+		if (function_exists('wc_get_order_statuses')) {
+			$wc_statuses = wc_get_order_statuses();
+			foreach ($wc_statuses as $status => $label) {
+				$status = str_replace('wc-', '', $status);
+				$this->available_statuses[$status] = $label;
+			}
+		}
+	}
+
+	public function init_woocommerce_hooks() {
+		// Only add WooCommerce hooks if WooCommerce is active
 		if (!class_exists('WooCommerce')) {
 			return;
 		}
-
-		// Evita inicialização múltipla dos hooks
-		if (self::$hooks_initialized) {
-			return;
+		
+		// Log initialization
+		$this->add_log('info', '🔄 Inicializando hooks do WooCommerce para Send_By_Status...');
+		
+		try {
+			// Hook para mudanças de status
+			add_action('woocommerce_order_status_changed', [$this, 'handle_status_change'], 10, 4);
+			
+			// Hook para novos pedidos
+			add_action('woocommerce_new_order', [$this, 'handle_new_order'], 10, 1);
+			
+			$this->add_log('info', '✅ Hooks do WooCommerce registrados com sucesso');
+			
+		} catch (Exception $e) {
+			$this->add_log('error', '❌ Erro ao registrar hooks do WooCommerce: ' . $e->getMessage());
 		}
-		self::$hooks_initialized = true;
-
-		// Declara compatibilidade com HPOS
-		add_action('before_woocommerce_init', function() {
-			if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
-				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
-			}
-		});
-
-		add_action('init', [$this, 'setup']);
-		add_action('admin_menu', [$this, 'add_menu']);
-		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-		add_action('wp_ajax_wpwevo_save_status_messages', [$this, 'handle_save_messages']);
-		add_action('wp_ajax_wpwevo_preview_message', [$this, 'handle_preview_message']);
-		
-		// Hook para novos pedidos - prioridade mais alta para garantir que seja executado antes da mudança de status
-		add_action('woocommerce_new_order', [$this, 'handle_new_order'], 5, 1);
-		
-		// Hook para mudança de status
-		add_action('woocommerce_order_status_changed', [$this, 'handle_status_change'], 10, 4);
-
-		// Log para debug apenas uma vez
-		wpwevo_log('info', 'Send_By_Status initialized successfully');
 	}
 
 	/**
@@ -138,32 +169,7 @@ class Send_By_Status {
 		return $message;
 	}
 
-	public function setup() {
-		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		
-		// Carrega os status do WooCommerce de forma segura
-		$this->available_statuses = [];
-		if (function_exists('wc_get_order_statuses')) {
-			$wc_statuses = wc_get_order_statuses();
-			foreach ($wc_statuses as $status => $label) {
-				$status = str_replace('wc-', '', $status);
-				$this->available_statuses[$status] = $label;
-			}
-		}
-
-		$this->i18n = [
-			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
-			'saved' => __('Configurações salvas!', 'wp-whatsapp-evolution'),
-			'error' => __('Erro ao salvar: ', 'wp-whatsapp-evolution'),
-			'preview' => __('Visualizando...', 'wp-whatsapp-evolution'),
-			'emptyMessage' => __('Por favor, digite uma mensagem.', 'wp-whatsapp-evolution'),
-			'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsapp-evolution'),
-			'confirmReset' => __('Deseja restaurar a mensagem padrão?', 'wp-whatsapp-evolution')
-		];
-	}
-
-	public function add_menu() {
+	public function add_admin_menu() {
 		add_submenu_page(
 			'wpwevo-settings',
 			$this->page_title,
@@ -191,11 +197,18 @@ class Send_By_Status {
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_status_messages'),
 			'previewNonce' => wp_create_nonce('wpwevo_preview_message'),
-			'i18n' => $this->i18n
+			'i18n' => $this->js_messages
 		]);
 	}
 
 	public function render_page() {
+		// Processa ação de ativar configurações padrão
+		if (isset($_POST['wpwevo_activate_defaults']) && wp_verify_nonce($_POST['_wpnonce'], 'wpwevo_activate_defaults')) {
+			$default_messages = $this->get_default_messages();
+			update_option('wpwevo_status_messages', $default_messages);
+			echo '<div class="notice notice-success is-dismissible"><p><strong>✅ Configurações padrão ativadas com sucesso!</strong> Todas as mensagens automáticas estão agora habilitadas.</p></div>';
+		}
+
 		// Carrega as configurações salvas ou usa as padrões
 		$saved_settings = get_option('wpwevo_status_messages', []);
 		$default_messages = $this->get_default_messages();
@@ -218,14 +231,25 @@ class Send_By_Status {
 		<div class="wrap">
 			<!-- Header com Gradiente -->
 			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin: 20px 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-				<div style="display: flex; align-items: center; color: white;">
-					<div style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 20px;">
-						📊
+				<div style="display: flex; align-items: center; justify-content: space-between; color: white;">
+					<div style="display: flex; align-items: center;">
+						<div style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 20px;">
+							📊
+						</div>
+						<div>
+							<h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;"><?php echo esc_html($this->page_title); ?></h1>
+							<p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Configure mensagens automáticas por status do pedido</p>
+						</div>
 					</div>
-					<div>
-						<h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;"><?php echo esc_html($this->page_title); ?></h1>
-						<p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Configure mensagens automáticas por status do pedido</p>
-					</div>
+					<?php if (empty(get_option('wpwevo_status_messages', []))): ?>
+					<form method="post" style="margin: 0;">
+						<?php wp_nonce_field('wpwevo_activate_defaults'); ?>
+						<input type="hidden" name="wpwevo_activate_defaults" value="1">
+						<button type="submit" style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+							🚀 Ativar Configurações Padrão
+						</button>
+					</form>
+					<?php endif; ?>
 				</div>
 			</div>
 
@@ -436,6 +460,44 @@ Valor: {order_total}
 		}
 	}
 
+	/**
+	 * Função de teste para verificar se o envio por status está funcionando
+	 * Pode ser chamada via URL: /wp-admin/admin-ajax.php?action=wpwevo_test_status_send&order_id=123&status=processing
+	 */
+	public function test_status_send() {
+		// Só permite para administradores
+		if (!current_user_can('manage_options')) {
+			wp_die('Acesso negado');
+		}
+
+		$order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
+		$test_status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : 'processing';
+
+		if (!$order_id) {
+			wp_die('ID do pedido é obrigatório. Use: ?order_id=123&status=processing');
+		}
+
+		$order = wc_get_order($order_id);
+		if (!$order) {
+			wp_die("Pedido #{$order_id} não encontrado");
+		}
+
+		echo "<h2>🧪 Teste de Envio por Status</h2>";
+		echo "<p><strong>Pedido:</strong> #{$order_id}</p>";
+		echo "<p><strong>Status de teste:</strong> {$test_status}</p>";
+		echo "<p><strong>Cliente:</strong> {$order->get_billing_first_name()} {$order->get_billing_last_name()}</p>";
+		
+		$phone = wpwevo_get_order_phone($order);
+		echo "<p><strong>Telefone:</strong> {$phone}</p>";
+
+		// Simula a mudança de status
+		$this->handle_status_change($order_id, 'pending', $test_status, $order);
+
+		echo "<p>✅ Teste executado! Verifique os logs em WooCommerce > Status > Logs</p>";
+		
+		wp_die();
+	}
+
 	public function handle_preview_message() {
 		check_ajax_referer('wpwevo_preview_message', 'nonce');
 
@@ -490,82 +552,174 @@ Valor: {order_total}
 	 * Manipula a criação de novos pedidos
 	 */
 	public function handle_new_order($order_id) {
-		if (!function_exists('wc_get_order')) {
-			return;
+		try {
+			// Log inicial para debug
+			wpwevo_log('info', "Send_By_Status: Novo pedido detectado #{$order_id}");
+
+			if (!function_exists('wc_get_order')) {
+				wpwevo_log('error', "Send_By_Status: Função wc_get_order não encontrada");
+				return;
+			}
+
+			$order = wc_get_order($order_id);
+			if (!$order) {
+				wpwevo_log('error', "Send_By_Status: Pedido #{$order_id} não encontrado");
+				return;
+			}
+
+			$status = $order->get_status();
+			$settings = get_option('wpwevo_status_messages', []);
+			wpwevo_log('debug', "Send_By_Status: Novo pedido #{$order_id} com status '{$status}'");
+
+			// Verifica se o status está ativo e tem mensagem
+			if (!isset($settings[$status])) {
+				wpwevo_log('info', "Send_By_Status: Status '{$status}' não configurado para novo pedido #{$order_id}");
+				return;
+			}
+
+			if (empty($settings[$status]['enabled'])) {
+				wpwevo_log('info', "Send_By_Status: Status '{$status}' desabilitado para novo pedido #{$order_id}");
+				return;
+			}
+
+			$message = $settings[$status]['message'];
+			if (empty($message)) {
+				wpwevo_log('warning', "Send_By_Status: Mensagem vazia para status '{$status}' no novo pedido #{$order_id}");
+				return;
+			}
+
+			$billing_phone = wpwevo_get_order_phone($order);
+			if (empty($billing_phone)) {
+				wpwevo_log('warning', "Send_By_Status: Telefone não encontrado para novo pedido #{$order_id}");
+				return;
+			}
+
+			// Valida o telefone
+			$validated_phone = wpwevo_validate_phone($billing_phone);
+			if (!$validated_phone) {
+				wpwevo_log('error', "Send_By_Status: Telefone inválido para novo pedido #{$order_id}: {$billing_phone}");
+				return;
+			}
+
+			// Formata a mensagem com os dados do pedido
+			$formatted_message = $this->replace_variables($message, $order);
+			wpwevo_log('debug', "Send_By_Status: Mensagem formatada para novo pedido #{$order_id}");
+
+			// Verifica se a API está configurada
+			$api = Api_Connection::get_instance();
+			if (!$api->is_configured()) {
+				wpwevo_log('error', "Send_By_Status: API não configurada - não é possível enviar mensagem para novo pedido");
+				return;
+			}
+
+			// Envia a mensagem
+			$result = $api->send_message($validated_phone, $formatted_message);
+			
+			if ($result['success']) {
+				wpwevo_log('info', "Send_By_Status: Mensagem enviada com sucesso para novo pedido #{$order_id}", [
+					'phone' => $validated_phone,
+					'status' => $status
+				]);
+			} else {
+				wpwevo_log('error', "Send_By_Status: Erro ao enviar mensagem para novo pedido #{$order_id}", [
+					'phone' => $validated_phone,
+					'error' => $result['message'] ?? 'Erro desconhecido'
+				]);
+			}
+
+		} catch (\Exception $e) {
+			wpwevo_log('error', "Send_By_Status: Exceção capturada no novo pedido", [
+				'order_id' => $order_id,
+				'error' => $e->getMessage(),
+				'trace' => $e->getTraceAsString()
+			]);
 		}
-
-		$order = wc_get_order($order_id);
-		if (!$order) {
-			return;
-		}
-
-		$status = $order->get_status();
-		$settings = get_option('wpwevo_status_messages', []);
-
-		// Verifica se o status está ativo e tem mensagem
-		if (!isset($settings[$status]) || empty($settings[$status]['enabled'])) {
-			return;
-		}
-
-		$message = $settings[$status]['message'];
-		if (empty($message)) {
-			return;
-		}
-
-		$billing_phone = wpwevo_get_order_phone($order);
-		if (empty($billing_phone)) {
-			return;
-		}
-
-		// Formata a mensagem com os dados do pedido
-		$message = $this->replace_variables($message, $order);
-
-		// Envia a mensagem
-		$api = Api_Connection::get_instance();
-		if (!$api->is_configured()) {
-			return;
-		}
-
-		$api->send_message($billing_phone, $message);
 	}
 
 	/**
 	 * Manipula a mudança de status dos pedidos
 	 */
 	public function handle_status_change($order_id, $old_status, $new_status, $order) {
-		if (!$order instanceof \WC_Order) {
-			$order = wc_get_order($order_id);
-			if (!$order) {
+		try {
+			// Log inicial para debug
+			wpwevo_log('info', "Send_By_Status: Mudança de status detectada - Pedido #{$order_id}: {$old_status} -> {$new_status}");
+
+			if (!$order instanceof \WC_Order) {
+				$order = wc_get_order($order_id);
+				if (!$order) {
+					wpwevo_log('error', "Send_By_Status: Pedido #{$order_id} não encontrado");
+					return;
+				}
+			}
+
+			$settings = get_option('wpwevo_status_messages', []);
+			wpwevo_log('debug', "Send_By_Status: Configurações carregadas", ['settings_count' => count($settings)]);
+
+			// Verifica se o novo status está ativo e tem mensagem
+			if (!isset($settings[$new_status])) {
+				wpwevo_log('info', "Send_By_Status: Status '{$new_status}' não configurado - ignorando");
 				return;
 			}
+
+			if (empty($settings[$new_status]['enabled'])) {
+				wpwevo_log('info', "Send_By_Status: Status '{$new_status}' desabilitado - ignorando");
+				return;
+			}
+
+			$message = $settings[$new_status]['message'];
+			if (empty($message)) {
+				wpwevo_log('warning', "Send_By_Status: Mensagem vazia para status '{$new_status}' - ignorando");
+				return;
+			}
+
+			$billing_phone = wpwevo_get_order_phone($order);
+			if (empty($billing_phone)) {
+				wpwevo_log('warning', "Send_By_Status: Telefone não encontrado para pedido #{$order_id}");
+				return;
+			}
+
+			// Valida o telefone
+			$validated_phone = wpwevo_validate_phone($billing_phone);
+			if (!$validated_phone) {
+				wpwevo_log('error', "Send_By_Status: Telefone inválido para pedido #{$order_id}: {$billing_phone}");
+				return;
+			}
+
+			// Formata a mensagem com os dados do pedido
+			$formatted_message = $this->replace_variables($message, $order);
+			wpwevo_log('debug', "Send_By_Status: Mensagem formatada para pedido #{$order_id}", [
+				'phone' => $validated_phone,
+				'message_length' => strlen($formatted_message)
+			]);
+
+			// Verifica se a API está configurada
+			$api = Api_Connection::get_instance();
+			if (!$api->is_configured()) {
+				wpwevo_log('error', "Send_By_Status: API não configurada - não é possível enviar mensagem");
+				return;
+			}
+
+			// Envia a mensagem
+			$result = $api->send_message($validated_phone, $formatted_message);
+			
+			if ($result['success']) {
+				wpwevo_log('info', "Send_By_Status: Mensagem enviada com sucesso para pedido #{$order_id}", [
+					'phone' => $validated_phone,
+					'status' => $new_status
+				]);
+			} else {
+				wpwevo_log('error', "Send_By_Status: Erro ao enviar mensagem para pedido #{$order_id}", [
+					'phone' => $validated_phone,
+					'error' => $result['message'] ?? 'Erro desconhecido'
+				]);
+			}
+
+		} catch (\Exception $e) {
+			wpwevo_log('error', "Send_By_Status: Exceção capturada", [
+				'order_id' => $order_id,
+				'error' => $e->getMessage(),
+				'trace' => $e->getTraceAsString()
+			]);
 		}
-
-		$settings = get_option('wpwevo_status_messages', []);
-
-		// Verifica se o novo status está ativo e tem mensagem
-		if (!isset($settings[$new_status]) || empty($settings[$new_status]['enabled'])) {
-			return;
-		}
-
-		$message = $settings[$new_status]['message'];
-		if (empty($message)) {
-			return;
-		}
-
-		$billing_phone = wpwevo_get_order_phone($order);
-		if (empty($billing_phone)) {
-			return;
-		}
-
-		// Formata a mensagem com os dados do pedido
-		$message = $this->replace_variables($message, $order);
-
-		// Envia a mensagem
-		$api = Api_Connection::get_instance();
-		if (!$api->is_configured()) {
-			return;
-		}
-
-		$api->send_message($billing_phone, $message);
 	}
 } 

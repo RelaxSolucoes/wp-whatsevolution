@@ -28,7 +28,10 @@ class Cart_Abandonment {
         add_action('wp_ajax_wpwevo_preview_template', [$this, 'preview_template_ajax']);
 
         // Hook interno do Cart Abandonment Recovery - ESTA É A MÁGICA!
-        add_action('wcf_ca_before_trigger_webhook', [$this, 'intercept_internal_webhook'], 10, 3);
+        // Só adiciona o hook se estivermos após o init para evitar carregamento prematuro de traduções
+        add_action('admin_init', function() {
+            add_action('wcf_ca_before_trigger_webhook', [$this, 'intercept_internal_webhook'], 10, 3);
+        });
     }
 
     /**
@@ -362,7 +365,15 @@ class Cart_Abandonment {
     }
 
     public function render_admin_page() {
-        $wcar_active = is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php');
+        // Só verifica se o plugin está ativo quando estamos realmente no admin e após o init
+        $wcar_active = false;
+        if (is_admin() && function_exists('is_plugin_active')) {
+            // Inclui o arquivo necessário se não estiver disponível
+            if (!function_exists('is_plugin_active')) {
+                include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+            }
+            $wcar_active = is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php');
+        }
         
         if (isset($_POST['save_settings'])) {
             check_admin_referer('wpwevo_cart_abandonment_settings');
