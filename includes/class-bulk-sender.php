@@ -27,6 +27,7 @@ class Bulk_Sender {
 		
 		// Ajax handlers
 		add_action('wp_ajax_wpwevo_get_customers', [$this, 'get_customers_ajax']);
+		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
 		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'bulk_send_ajax']);
 		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history_ajax']);
 		
@@ -131,8 +132,8 @@ class Bulk_Sender {
 			true
 		);
 
-		wp_localize_script('wpwevo-bulk-send', 'wpwevoBulkSend', [
-			'ajaxurl' => admin_url('admin-ajax.php'),
+		wp_localize_script('wpwevo-bulk-send', 'wpwevo_bulk_ajax', [
+			'ajax_url' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_bulk_send'),
 			'i18n' => [
 				'sending' => $this->messages['sending'],

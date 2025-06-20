@@ -235,7 +235,7 @@ jQuery(document).ready(function($) {
         $(document).on('click', '#wpwevo-clear-history', function(e) {
             e.preventDefault();
             
-            if (!confirm(wpwevoBulkSend.i18n.confirmClearHistory)) {
+            if (!confirm(wpwevo_bulk_ajax.i18n.confirmClearHistory)) {
                 return;
             }
             
@@ -243,11 +243,11 @@ jQuery(document).ready(function($) {
             $button.prop('disabled', true);
             
             $.ajax({
-                url: wpwevoBulkSend.ajaxurl,
+                url: wpwevo_bulk_ajax.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'wpwevo_clear_history',
-                    nonce: wpwevoBulkSend.nonce
+                    nonce: wpwevo_bulk_ajax.nonce
                 },
                 success: function(response) {
                     if (response.success) {
@@ -255,9 +255,9 @@ jQuery(document).ready(function($) {
                         $('#wpwevo-history-container').html(`
                             <div class="wpwevo-bulk-history">
                                 <div class="wpwevo-history-header">
-                                    <h3>${wpwevoBulkSend.i18n.historyTitle}</h3>
+                                    <h3>${wpwevo_bulk_ajax.i18n.historyTitle}</h3>
                                 </div>
-                                <p>${wpwevoBulkSend.i18n.noHistory}</p>
+                                <p>${wpwevo_bulk_ajax.i18n.noHistory}</p>
                             </div>
                         `);
                     } else {
@@ -265,7 +265,7 @@ jQuery(document).ready(function($) {
                     }
                 },
                 error: function() {
-                    alert(wpwevoBulkSend.i18n.error);
+                    alert(wpwevo_bulk_ajax.i18n.error);
                     $button.prop('disabled', false);
                 }
             });
