@@ -61,31 +61,101 @@ class Send_By_Status {
 		return [
 			'pending' => [
 				'enabled' => true,
-				'message' => __('Olá {customer_name}, recebemos seu pedido #{order_id} no valor de {order_total}. Estamos aguardando a confirmação do pagamento via {payment_method} para dar continuidade. Você pode acompanhar seu pedido em: {order_url}. Obrigado por comprar conosco!', 'wp-whatsapp-evolution')
+				'message' => __('🛒 *Pedido Recebido!*
+
+Olá {customer_name}!
+
+Recebemos seu pedido #{order_id} no valor de *{order_total}*.
+
+💳 *Pagamento:* {payment_method}
+📋 Estamos aguardando a confirmação do pagamento para dar continuidade.
+
+🔗 Acompanhe seu pedido em:
+{order_url}
+
+Obrigado por comprar conosco! 😊', 'wp-whatsapp-evolution')
 			],
 			'on-hold' => [
 				'enabled' => true,
-				'message' => __('Olá {customer_name}, seu pedido #{order_id} está aguardando confirmação. Assim que confirmado, iniciaremos o processamento. Para mais informações, acesse: {order_url}', 'wp-whatsapp-evolution')
+				'message' => __('🛒 *Pedido Recebido!*
+
+Olá {customer_name}!
+
+Recebemos seu pedido #{order_id} no valor de *{order_total}*.
+
+💳 *Pagamento:* {payment_method}
+📋 Estamos aguardando a confirmação do pagamento para dar continuidade.
+
+🔗 Acompanhe seu pedido em:
+{order_url}
+
+Obrigado por comprar conosco! 😊', 'wp-whatsapp-evolution')
 			],
 			'processing' => [
 				'enabled' => true,
-				'message' => __('Olá {customer_name}, seu pedido #{order_id} foi aprovado e já estamos preparando tudo para o envio via {shipping_method}. Endereço de entrega: {shipping_address_line_1}, {shipping_city}-{shipping_state}. Em breve você receberá atualizações sobre o envio. Obrigado pela confiança!', 'wp-whatsapp-evolution')
+				'message' => __('✅ *Pedido Aprovado!*
+
+Olá {customer_name}!
+
+Seu pedido #{order_id} foi aprovado e já estamos preparando tudo! 📦
+
+🚚 *Envio:* {shipping_method}
+📍 *Endereço:* {shipping_address_full}
+
+Obrigado pela confiança! 🙏', 'wp-whatsapp-evolution')
 			],
 			'completed' => [
 				'enabled' => true,
-				'message' => __('Olá {customer_name}, seu pedido #{order_id} foi concluído com sucesso! Esperamos que tenha gostado dos produtos. Para acompanhar outros pedidos, acesse: {order_url}. Agradecemos a preferência!', 'wp-whatsapp-evolution')
+				'message' => __('🎉 *Pedido Concluído!*
+
+Olá {customer_name}!
+
+Seu pedido #{order_id} foi concluído com sucesso!
+
+Esperamos que tenha gostado dos produtos! ⭐
+
+🔗 Acompanhe outros pedidos em:
+{order_url}
+
+Agradecemos a preferência! 💚', 'wp-whatsapp-evolution')
 			],
 			'cancelled' => [
 				'enabled' => true,
-				'message' => __('Olá {customer_name}, seu pedido #{order_id} foi cancelado. Se houver alguma dúvida, acesse {order_url} ou entre em contato conosco.', 'wp-whatsapp-evolution')
+				'message' => __('❌ *Pedido Cancelado*
+
+Olá {customer_name},
+
+Seu pedido #{order_id} foi cancelado.
+
+❓ Se houver alguma dúvida, acesse:
+{order_url}
+
+Ou entre em contato conosco! 📞', 'wp-whatsapp-evolution')
 			],
 			'refunded' => [
 				'enabled' => true,
-				'message' => __('Olá {customer_name}, o reembolso do seu pedido #{order_id} no valor de {order_total} foi processado. O valor será creditado via {payment_method}.', 'wp-whatsapp-evolution')
+				'message' => __('💰 *Reembolso Processado*
+
+Olá {customer_name},
+
+O reembolso do seu pedido #{order_id} no valor de *{order_total}* foi processado! ✅
+
+💳 O valor será creditado via {payment_method}.
+
+Em breve aparecerá na sua conta! ⏰', 'wp-whatsapp-evolution')
 			],
 			'failed' => [
 				'enabled' => true,
-				'message' => __('Olá {customer_name}, infelizmente houve um problema com seu pedido #{order_id}. Por favor, acesse {order_url} para mais detalhes ou entre em contato conosco.', 'wp-whatsapp-evolution')
+				'message' => __('⚠️ *Problema no Pedido*
+
+Olá {customer_name},
+
+Infelizmente houve um problema com seu pedido #{order_id}.
+
+🔗 Acesse para mais detalhes:
+{order_url}
+
+📞 Ou entre em contato conosco para resolvermos juntos!', 'wp-whatsapp-evolution')
 			]
 		];
 	}
@@ -113,6 +183,26 @@ class Send_By_Status {
 			$all_products[] = $item->get_name();
 		}
 
+		// Monta endereço completo de envio
+		$shipping_address_parts = [];
+		if ($order->get_shipping_address_1()) {
+			$shipping_address_parts[] = $order->get_shipping_address_1();
+		}
+		if ($order->get_shipping_address_2()) {
+			$shipping_address_parts[] = $order->get_shipping_address_2();
+		}
+		$shipping_address_full = implode(', ', $shipping_address_parts);
+		
+		// Endereço de cobrança completo
+		$billing_address_parts = [];
+		if ($order->get_billing_address_1()) {
+			$billing_address_parts[] = $order->get_billing_address_1();
+		}
+		if ($order->get_billing_address_2()) {
+			$billing_address_parts[] = $order->get_billing_address_2();
+		}
+		$billing_address_full = implode(', ', $billing_address_parts);
+
 		$variables = [
 			'{customer_name}' => $order->get_billing_first_name(),
 			'{order_id}' => $order->get_order_number(),
@@ -126,9 +216,16 @@ class Send_By_Status {
 			'{shipping_name}' => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
 			'{shipping_address_line_1}' => $order->get_shipping_address_1(),
 			'{shipping_address_line_2}' => $order->get_shipping_address_2(),
+			'{shipping_address_full}' => $shipping_address_full,
 			'{shipping_city}' => $order->get_shipping_city(),
 			'{shipping_state}' => $order->get_shipping_state(),
-			'{shipping_postcode}' => $order->get_shipping_postcode()
+			'{shipping_postcode}' => $order->get_shipping_postcode(),
+			'{billing_address_line_1}' => $order->get_billing_address_1(),
+			'{billing_address_line_2}' => $order->get_billing_address_2(),
+			'{billing_address_full}' => $billing_address_full,
+			'{billing_city}' => $order->get_billing_city(),
+			'{billing_state}' => $order->get_billing_state(),
+			'{billing_postcode}' => $order->get_billing_postcode()
 		];
 
 		foreach ($variables as $key => $value) {
@@ -187,12 +284,18 @@ class Send_By_Status {
 			true
 		);
 
-		wp_localize_script('wpwevo-send-by-status', 'wpwevoSendByStatus', [
+		$localize_data = [
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_status_messages'),
 			'previewNonce' => wp_create_nonce('wpwevo_preview_message'),
 			'i18n' => $this->i18n
-		]);
+		];
+
+		// Debug: Log dos dados de localização
+		wpwevo_log('debug', 'Enqueue scripts - Hook: ' . $hook);
+		wpwevo_log('debug', 'Localize data: ' . print_r($localize_data, true));
+
+		wp_localize_script('wpwevo-send-by-status', 'wpwevoSendByStatus', $localize_data);
 	}
 
 	public function render_page() {
@@ -249,7 +352,8 @@ class Send_By_Status {
 							$color_index = 0;
 							
 							foreach ($this->available_statuses as $status => $label) : 
-								$default_message = isset($default_messages[$status]) ? $default_messages[$status]['message'] : '';
+								$real_default_messages = $this->get_default_messages();
+								$default_message = isset($real_default_messages[$status]) ? $real_default_messages[$status]['message'] : '';
 								$enabled = isset($settings[$status]['enabled']) ? $settings[$status]['enabled'] : false;
 								$message = isset($settings[$status]['message']) ? $settings[$status]['message'] : $default_message;
 								$color = $colors[$color_index % count($colors)];
@@ -268,14 +372,16 @@ class Send_By_Status {
 										<button type="button" 
 												class="wpwevo-reset-message" 
 												data-default="<?php echo esc_attr($default_message); ?>"
+												data-status="<?php echo esc_attr($status); ?>"
 												style="background: <?php echo $color; ?>; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px;">
 											🔄 Restaurar Padrão
 										</button>
 									</div>
 
 									<textarea name="status[<?php echo esc_attr($status); ?>][message]" 
-											  rows="4"
-											  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
+											  class="wpwevo-auto-resize-textarea"
+											  rows="1"
+											  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical; min-height: 50px; overflow: hidden;"
 											  placeholder="Digite a mensagem para este status..."><?php echo esc_textarea($message); ?></textarea>
 								</div>
 							<?php endforeach; ?>
@@ -300,7 +406,7 @@ class Send_By_Status {
 							<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Variáveis Disponíveis</h3>
 						</div>
 						
-						<p style="color: #4a5568; font-size: 14px; margin-bottom: 15px;">Clique nas variáveis para copiá-las:</p>
+						<p style="color: #4a5568; font-size: 14px; margin-bottom: 15px;">📝 Clique nas variáveis para adicioná-las na mensagem:</p>
 						
 						<div style="display: grid; gap: 8px;">
 							<?php 
@@ -315,18 +421,27 @@ class Send_By_Status {
 								'{first_product}' => 'Primeiro produto',
 								'{all_products}' => 'Todos os produtos',
 								'{shipping_name}' => 'Nome destinatário',
-								'{shipping_address_line_1}' => 'Endereço linha 1',
-								'{shipping_city}' => 'Cidade',
-								'{shipping_state}' => 'Estado',
-								'{shipping_postcode}' => 'CEP'
+								'{shipping_address_line_1}' => 'Endereço linha 1 (com número)',
+								'{shipping_address_line_2}' => 'Endereço linha 2',
+								'{shipping_address_full}' => 'Endereço completo de entrega',
+								'{shipping_city}' => 'Cidade de entrega',
+								'{shipping_state}' => 'Estado de entrega',
+								'{shipping_postcode}' => 'CEP de entrega',
+								'{billing_address_line_1}' => 'Endereço cobrança linha 1',
+								'{billing_address_line_2}' => 'Endereço cobrança linha 2',
+								'{billing_address_full}' => 'Endereço completo de cobrança',
+								'{billing_city}' => 'Cidade de cobrança',
+								'{billing_state}' => 'Estado de cobrança',
+								'{billing_postcode}' => 'CEP de cobrança'
 							];
 							
 							foreach ($variables as $var => $desc) : ?>
-								<div onclick="copyVariable('<?php echo esc_js($var); ?>')" 
+								<div class="wpwevo-variable" 
+									 data-variable="<?php echo esc_attr($var); ?>"
 									 style="background: #e6fffa; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #b2f5ea; transition: all 0.2s;" 
 									 onmouseover="this.style.background='#b2f5ea'; this.style.transform='translateY(-1px)'" 
 									 onmouseout="this.style.background='#e6fffa'; this.style.transform='translateY(0)'">
-									<code style="background: #319795; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; margin-right: 8px;"><?php echo esc_html($var); ?></code>
+									<code class="wpwevo-variable-code" style="background: #319795; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; margin-right: 8px;"><?php echo esc_html($var); ?></code>
 									<span style="color: #2d3748; font-size: 12px;"><?php echo esc_html($desc); ?></span>
 								</div>
 							<?php endforeach; ?>
@@ -359,7 +474,7 @@ class Send_By_Status {
 							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px;">📝 Template</h4>
 							<pre style="background: #2d3748; color: #e2e8f0; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; line-height: 1.4; margin: 0; white-space: pre-wrap;">Olá {customer_name}, seu pedido #{order_id} foi aprovado e já estamos preparando tudo para o envio via {shipping_method}. 
 
-Endereço: {shipping_address_line_1}, {shipping_city}-{shipping_state}
+Endereço: {shipping_address_full}
 
 Valor: {order_total}
 🎯 {order_url}</pre>
@@ -370,7 +485,7 @@ Valor: {order_total}
 								Olá João Silva, seu pedido #12345 foi aprovado e já estamos preparando tudo para o envio via PAC.<br><br>
 								Endereço: Rua das Flores, 123, São Paulo-SP<br><br>
 								Valor: R$ 150,00<br>
-								🎯 https://relaxsolucoes.online/pedido/12345
+								🎯 https://seusite.com.br/pedido/12345
 							</div>
 						</div>
 					</div>
@@ -378,21 +493,7 @@ Valor: {order_total}
 			</div>
 		</div>
 
-		<script>
-		function copyVariable(variable) {
-			navigator.clipboard.writeText(variable).then(function() {
-				// Feedback visual
-				var notification = document.createElement('div');
-				notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #48bb78; color: white; padding: 12px 20px; border-radius: 6px; z-index: 9999; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);';
-				notification.textContent = 'Variável ' + variable + ' copiada!';
-				document.body.appendChild(notification);
-				
-				setTimeout(function() {
-					notification.remove();
-				}, 2000);
-			});
-		}
-		</script>
+		<!-- Todo JavaScript agora está no arquivo send-by-status.js -->
 		<?php
 	}
 
@@ -472,7 +573,7 @@ Valor: {order_total}
 				'R$ 150,00',
 				'Cartão de Crédito',
 				'PAC',
-				'https://relaxsolucoes.online/pedido/12345',
+				'https://seusite.com.br/pedido/12345',
 				'João Silva',
 				'Rua das Flores, 123',
 				'Apto 45',
@@ -533,39 +634,63 @@ Valor: {order_total}
 	 * Manipula a mudança de status dos pedidos
 	 */
 	public function handle_status_change($order_id, $old_status, $new_status, $order) {
+		wpwevo_log('info', "Send_By_Status: Mudança de status detectada - Pedido #$order_id: $old_status -> $new_status");
+		
 		if (!$order instanceof \WC_Order) {
 			$order = wc_get_order($order_id);
 			if (!$order) {
+				wpwevo_log('error', "Send_By_Status: Pedido #$order_id não encontrado");
 				return;
 			}
 		}
 
 		$settings = get_option('wpwevo_status_messages', []);
+		wpwevo_log('info', "Send_By_Status: Configurações carregadas - " . count($settings) . " status disponíveis");
 
 		// Verifica se o novo status está ativo e tem mensagem
-		if (!isset($settings[$new_status]) || empty($settings[$new_status]['enabled'])) {
+		if (!isset($settings[$new_status])) {
+			wpwevo_log('warning', "Send_By_Status: Status '$new_status' não configurado");
+			return;
+		}
+		
+		if (empty($settings[$new_status]['enabled'])) {
+			wpwevo_log('info', "Send_By_Status: Status '$new_status' está desabilitado");
 			return;
 		}
 
 		$message = $settings[$new_status]['message'];
 		if (empty($message)) {
+			wpwevo_log('warning', "Send_By_Status: Mensagem para status '$new_status' está vazia");
 			return;
 		}
 
 		$billing_phone = wpwevo_get_order_phone($order);
 		if (empty($billing_phone)) {
+			wpwevo_log('warning', "Send_By_Status: Telefone não encontrado para pedido #$order_id");
 			return;
 		}
+		
+		wpwevo_log('info', "Send_By_Status: Telefone encontrado - $billing_phone");
 
 		// Formata a mensagem com os dados do pedido
 		$message = $this->replace_variables($message, $order);
+		wpwevo_log('info', "Send_By_Status: Mensagem formatada - " . substr($message, 0, 100) . "...");
 
 		// Envia a mensagem
 		$api = Api_Connection::get_instance();
 		if (!$api->is_configured()) {
+			wpwevo_log('error', "Send_By_Status: API não configurada");
 			return;
 		}
 
-		$api->send_message($billing_phone, $message);
+		wpwevo_log('info', "Send_By_Status: Tentando enviar mensagem via API...");
+		$result = $api->send_message($billing_phone, $message);
+		
+		if ($result && isset($result['success']) && $result['success']) {
+			wpwevo_log('success', "Send_By_Status: Mensagem enviada com sucesso para pedido #$order_id");
+		} else {
+			$error_msg = isset($result['message']) ? $result['message'] : 'Erro desconhecido';
+			wpwevo_log('error', "Send_By_Status: Falha ao enviar mensagem para pedido #$order_id - $error_msg");
+		}
 	}
 } 
