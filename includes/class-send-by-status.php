@@ -278,7 +278,9 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 	}
 
 	public function enqueue_scripts($hook) {
-		if (strpos($hook, 'wpwevo') === false) {
+		if (strpos($hook, 'wpwevo') !== false) {
+			// CSS e JS só carregam nas páginas do plugin
+		} else {
 			return;
 		}
 

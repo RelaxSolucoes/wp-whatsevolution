@@ -1,19 +1,26 @@
 /* Estilos do painel WP WhatsApp Evolution */
 
-/* CORREÇÃO: Força cor correta dos submenus do WP WhatsEvolution */
+/* CORREÇÃO AGRESSIVA: Força cor correta dos submenus do WP WhatsEvolution */
+#adminmenu .wp-submenu a[href*="wpwevo"],
+#adminmenu .wp-submenu li a[href*="wpwevo"],
 #adminmenu .wp-submenu li.wp-first-item a[href*="wpwevo"],
-#adminmenu .wp-submenu a[href*="wpwevo"] {
+#adminmenu .wp-submenu-wrap .wp-submenu a[href*="wpwevo"] {
     color: #a7aaad !important;
+    opacity: 1 !important;
 }
 
 #adminmenu .wp-submenu a[href*="wpwevo"]:hover,
-#adminmenu .wp-submenu a[href*="wpwevo"]:focus {
+#adminmenu .wp-submenu a[href*="wpwevo"]:focus,
+#adminmenu .wp-submenu li a[href*="wpwevo"]:hover {
     color: #00a32a !important;
+    background-color: rgba(255,255,255,.1) !important;
 }
 
-#adminmenu .wp-submenu .current a[href*="wpwevo"] {
+#adminmenu .wp-submenu .current a[href*="wpwevo"],
+#adminmenu .wp-submenu li.current a[href*="wpwevo"] {
     color: #fff !important;
     font-weight: 600 !important;
+    background-color: rgba(255,255,255,.2) !important;
 }
 
 .wpwevo-panel {

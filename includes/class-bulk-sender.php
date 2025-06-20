@@ -109,7 +109,9 @@ class Bulk_Sender {
 
 	public function enqueue_scripts($hook) {
 		// Aplica scripts em qualquer página admin que contenha 'wpwevo'
-		if (strpos($hook, 'wpwevo') === false) {
+		if (strpos($hook, 'wpwevo') !== false) {
+			// CSS e JS só carregam nas páginas do plugin
+		} else {
 			return;
 		}
 

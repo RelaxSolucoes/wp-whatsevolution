@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('WPWEVO_VERSION', '1.2.3');
+define('WPWEVO_VERSION', '1.2.5');
 define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));

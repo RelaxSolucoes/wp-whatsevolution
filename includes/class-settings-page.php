@@ -134,7 +134,9 @@ class Settings_Page {
 	}
 
 	public function enqueue_admin_assets($hook) {
-		if (strpos($hook, 'wpwevo') === false) {
+		if (strpos($hook, 'wpwevo') !== false) {
+			// CSS e JS só carregam nas páginas do plugin
+		} else {
 			return;
 		}
 
