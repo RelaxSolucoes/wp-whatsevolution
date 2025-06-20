@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.2.7
+Stable tag: 1.2.8
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -109,6 +109,13 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.2.8 =
+* 🚨 CORREÇÃO CRÍTICA: Botão "Visualizar Clientes" no envio em massa não funcionava
+* ✅ HANDLER AJAX FALTANDO: Adicionado wp_ajax_wpwevo_preview_customers que estava ausente
+* 🔧 COMPATIBILIDADE JAVASCRIPT: Corrigidas referências wpwevoBulkSend → wpwevo_bulk_ajax
+* 💡 FUNCIONALIDADE RESTAURADA: Preview de clientes WooCommerce agora funciona perfeitamente
+* 🎯 ZERO CONFIGURAÇÃO: Correção automática sem necessidade de reconfiguração
 
 = 1.2.7 =
 * 🎯 CORREÇÃO CRÍTICA: Sistema de Fallback Inteligente para Endereços

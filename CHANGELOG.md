@@ -1,5 +1,19 @@
 # Changelog - WP WhatsEvolution
 
+## [1.2.8] - 2025-01-XX
+
+### 🚨 CORREÇÃO CRÍTICA - BOTÃO "VISUALIZAR CLIENTES" NÃO FUNCIONAVA
+- **🚨 PROBLEMA RESOLVIDO**: Botão "Visualizar Clientes" no envio em massa estava completamente inativo
+- **✅ HANDLER AJAX FALTANDO**: Adicionado `wp_ajax_wpwevo_preview_customers` que estava ausente no código
+- **🔧 COMPATIBILIDADE JAVASCRIPT**: Corrigidas referências `wpwevoBulkSend` → `wpwevo_bulk_ajax`
+- **💡 FUNCIONALIDADE RESTAURADA**: Preview de clientes WooCommerce agora funciona perfeitamente
+
+### 🛠️ MELHORIAS TÉCNICAS
+- **Handler AJAX registrado**: `add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers'])`
+- **Variável JavaScript corrigida**: `wpwevo_bulk_ajax` com propriedades `ajax_url` e `nonce`
+- **Consistência de código**: Todas as referências JavaScript agora usam a mesma variável
+- **Zero configuração**: Correção automática sem necessidade de reconfiguração
+
 ## [1.2.7] - 2025-01-XX
 
 ### 🎯 CORREÇÃO CRÍTICA - SISTEMA DE ENDEREÇOS INTELIGENTE
