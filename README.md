@@ -1,8 +1,8 @@
-# WP WhatsEvolution v1.2.1
+# WP WhatsEvolution v1.2.6
 
 🚀 **Integração completa com WooCommerce usando Evolution API**
 
-## 🆕 **NOVO na v1.2.1: Quick Signup + Correções Importantes!**
+## 🆕 **NOVO na v1.2.6: Correções Críticas + Interface Completa!**
 
 ### 🚀 **Quick Signup - Teste Grátis em 1 Click**
 - **⚡ Teste 7 dias grátis** - Sem cartão de crédito
@@ -10,10 +10,12 @@
 - **🛠️ Sem VPS, sem Docker** - Zero complicação técnica
 - **📞 Suporte incluído** - Ajuda durante todo o período de teste
 
-### 🔧 **Correções Críticas**
-- **✅ Instalação via GitHub** - Funciona perfeitamente mesmo com pasta `wp-whatsevolution-main`
+### 🔧 **Correções Críticas v1.2.6**
+- **🎯 SUBMENUS CORRIGIDOS** - Todos os 6 submenus agora aparecem corretamente no admin
+- **🎨 CSS FUNCIONANDO** - Estilos carregam corretamente em todas as páginas do plugin  
+- **⚡ HOOKS OTIMIZADOS** - Ordem de inicialização corrigida (menu_title antes de admin_menu)
+- **✅ INTERFACE COMPLETA** - Envio Individual, Envio por Status e Envio em Massa 100% funcionais
 - **🔧 Auto-updater corrigido** - Sistema de atualização automática agora 100% funcional
-- **🏷️ Constantes otimizadas** - Caminhos de arquivos consistentes
 
 ### 🛒 **Carrinho Abandonado Aprimorado**
 - **⚡ Zero Configuração de Webhook** - Ativação com 1 clique

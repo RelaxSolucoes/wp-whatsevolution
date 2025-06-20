@@ -1,5 +1,31 @@
 # Changelog - WP WhatsEvolution
 
+## [1.2.6] - 2025-01-XX
+
+### 🎯 CORREÇÃO CRÍTICA - SUBMENUS PRINCIPAIS
+- **🚨 PROBLEMA RESOLVIDO**: Todos os 6 submenus agora aparecem corretamente no admin
+- **✅ SUBMENUS FUNCIONAIS**: Envio Individual, Envio por Status e Envio em Massa 100% visíveis
+- **🔧 HOOKS OTIMIZADOS**: Ordem de inicialização corrigida (menu_title definido antes de admin_menu)
+- **⚡ PERFORMANCE**: Propriedades movidas de setup() para __construct() em 3 classes
+
+### 🎨 CSS FUNCIONANDO CORRETAMENTE
+- **🐛 BUGFIX CRÍTICO**: Condição invertida `strpos() === false` corrigida para `!== false`
+- **✅ ESTILOS CARREGANDO**: CSS agora carrega em todas as páginas do plugin
+- **🎯 ARQUIVOS CORRIGIDOS**: 6 arquivos com condição de carregamento CSS corrigida
+- **🛠️ COMPATIBILIDADE**: Estilos funcionam independente do nome da pasta do plugin
+
+### 📋 DETALHES TÉCNICOS
+- **Classes corrigidas**: Send_Single, Send_By_Status, Bulk_Sender
+- **Propriedades movidas**: menu_title e page_title para __construct()
+- **Ordem de hooks**: admin_menu executa ANTES de init, dados devem estar prontos
+- **CSS loading**: Condição `strpos($hook, 'wpwevo') !== false` corrigida
+
+### 🎯 IMPACTO
+- **Interface completa**: Todos os submenus visíveis e funcionais
+- **UX melhorada**: Navegação completa pelo plugin
+- **Zero quebras**: Funcionalidades existentes preservadas
+- **Regra WordPress**: Dados para hooks devem estar disponíveis ANTES da execução
+
 ## [1.0.10] - 2025-01-XX
 
 ### 🔧 CORREÇÃO CRÍTICA - WEBHOOK CARRINHO ABANDONADO
