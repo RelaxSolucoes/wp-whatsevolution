@@ -1,5 +1,21 @@
 /* Estilos do painel WP WhatsApp Evolution */
 
+/* CORREÇÃO: Força cor correta dos submenus do WP WhatsEvolution */
+#adminmenu .wp-submenu li.wp-first-item a[href*="wpwevo"],
+#adminmenu .wp-submenu a[href*="wpwevo"] {
+    color: #a7aaad !important;
+}
+
+#adminmenu .wp-submenu a[href*="wpwevo"]:hover,
+#adminmenu .wp-submenu a[href*="wpwevo"]:focus {
+    color: #00a32a !important;
+}
+
+#adminmenu .wp-submenu .current a[href*="wpwevo"] {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
 .wpwevo-panel {
     max-width: 1200px;
     margin: 20px 0;
