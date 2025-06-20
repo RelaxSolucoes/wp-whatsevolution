@@ -554,9 +554,7 @@ Maria Santos,5511988888888</pre>
 			// Prepara os argumentos da query
 			$query_args = [
 				'limit' => -1,
-				'status' => array_map(function($s) {
-					return str_replace('wc-', '', $s);
-				}, $statuses),
+				'status' => $status, // Passa o array de status original (sem 'wc-')
 				'return' => 'ids'
 			];
 
