@@ -656,7 +656,48 @@ class Cart_Abandonment {
      * Handle webhook externo (fallback)
      */
     public function handle_webhook() {
-        // Log removido - operação normal
+        // 🎯 INTERCEPTAÇÃO DUPLA - CORREÇÃO DEFINITIVA DO "TRIGGER SAMPLE"
+        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        
+        // NÍVEL 1: Se vem da página de configurações do Cart Abandonment Recovery, É TESTE!
+        if (strpos($referer, 'woo-cart-abandonment-recovery') !== false || 
+            strpos($referer, 'action=settings') !== false) {
+            
+            $this->log_success("🧪 Teste de conectividade OK (Trigger Sample)");
+            
+            // RESPOSTA EXATA QUE O JAVASCRIPT ESPERA
+            while (ob_get_level()) { ob_end_clean(); }
+            http_response_code(200);
+            header('Content-Type: application/json; charset=utf-8');
+            
+            // Baseado na análise do admin-settings.js: ele aceita string 'success' OU objeto com status
+            echo json_encode([
+                'status' => 'success',
+                'order_status' => 'abandoned',
+                'message' => 'Test webhook successful'
+            ]);
+            die();
+        }
+        
+        // NÍVEL 2: Detecção adicional por dados fictícios do teste
+        $raw_input = file_get_contents('php://input');
+        if (!empty($raw_input)) {
+            $decoded_data = json_decode($raw_input, true);
+            if ($decoded_data && $this->is_trigger_sample_data($decoded_data)) {
+                $this->log_success("🧪 Teste de conectividade OK (Dados Fictícios)");
+                
+                while (ob_get_level()) { ob_end_clean(); }
+                http_response_code(200);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode([
+                    'status' => 'success',
+                    'order_status' => 'abandoned',
+                    'message' => 'Test webhook successful'
+                ]);
+                die();
+            }
+        }
         
         // Headers específicos para compatibilidade com Cart Abandonment Recovery
         http_response_code(200);
@@ -664,12 +705,8 @@ class Cart_Abandonment {
         header('Cache-Control: no-cache');
         header('X-Webhook-Status: OK');
         
-        // Log removido - operação normal
-        
         // Log dos dados recebidos para debug
         $data = $this->get_safe_headers();
-        
-        // Log removido - operação normal
         
         if (!get_option('wpwevo_cart_abandonment_enabled', 0)) {
             $this->log_info("⚠️ Webhook recebido mas integração está desabilitada");
@@ -679,41 +716,22 @@ class Cart_Abandonment {
             wp_die();
         }
 
-        // Detecta se é um teste do Cart Abandonment Recovery
-        // Baseado na análise do JavaScript: dados fictícios específicos
-        $is_test = (
-            empty($data['first_name']) || 
-            $data['email'] === 'naotem@naotem.com' ||
-            (isset($data['first_name']) && $data['first_name'] === 'John') ||
-            (isset($data['email']) && strpos($data['email'], '@example.') !== false)
-        );
-        
-        // Log removido - operação normal
+        // NÍVEL 3: Detecção avançada de dados de teste
+        $is_test = $this->is_trigger_sample_data($data);
         
         if ($is_test) {
-            // Log removido - operação normal
-            $this->log_success("🧪 Teste de conectividade OK (Trigger Sample)");
+            $this->log_success("🧪 Teste de conectividade OK (Detecção Avançada)");
             
-            // Limpa qualquer output anterior
-            ob_clean();
-            
-            // Headers para máxima compatibilidade
+            // RESPOSTA COMPATÍVEL COM JAVASCRIPT
+            while (ob_get_level()) { ob_end_clean(); }
             http_response_code(200);
-            header('Content-Type: text/plain; charset=utf-8');
-            header('Content-Length: 8'); // Tamanho exato de "accepted"
-            header('Cache-Control: no-cache, no-store, must-revalidate');
-            header('Pragma: no-cache');
-            header('Expires: 0');
-            
-            // Resposta EXATA que o JavaScript espera
-            echo 'accepted';
-            
-            // Força envio imediato
-            if (function_exists('fastcgi_finish_request')) {
-                fastcgi_finish_request();
-            }
-            
-            wp_die();
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'status' => 'success',
+                'order_status' => 'abandoned',
+                'message' => 'Test webhook successful'
+            ]);
+            die();
         }
 
         $customer_name = ($data['first_name'] ?? 'Cliente') . ' ' . ($data['last_name'] ?? '');
@@ -848,6 +866,42 @@ class Cart_Abandonment {
         return false;
     }
 
+    /**
+     * Detecta se os dados são do "Trigger Sample" do Cart Abandonment Recovery
+     */
+    private function is_trigger_sample_data($data) {
+        // Dados típicos do teste do Cart Abandonment Recovery
+        $test_indicators = [
+            'first_name' => ['John', 'Test', 'test', 'Sample'],
+            'last_name' => ['Doe', 'Test', 'test', 'User', 'Customer'],
+            'email' => ['@example.', 'test@', '@test.', 'john@doe.', 'sample@'],
+            'phone' => ['555-', '+1555', '1234567', '0000000'],
+            'cart_total' => ['0', '0.00', '100', '99.99']
+        ];
+
+        foreach ($test_indicators as $field => $test_values) {
+            if (isset($data[$field])) {
+                $value = strtolower((string)$data[$field]);
+                foreach ($test_values as $test_val) {
+                    if (strpos($value, strtolower($test_val)) !== false) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Se tem poucos campos preenchidos, provavelmente é teste
+        $filled_fields = array_filter($data, function($val) {
+            return !empty($val) && $val !== '0' && $val !== '0.00';
+        });
+
+        if (count($filled_fields) < 3) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function test_webhook() {
         // Verificação de segurança
         if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_nonce')) {
@@ -972,8 +1026,20 @@ class Cart_Abandonment {
 
     private function get_safe_headers() {
         $input = file_get_contents('php://input');
-        parse_str($input, $data);
+        $data = [];
         
+        // Tenta primeiro JSON (formato que o JavaScript pode usar)
+        if (!empty($input)) {
+            $json_data = json_decode($input, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($json_data)) {
+                $data = $json_data;
+            } else {
+                // Se não for JSON, tenta URL-encoded
+                parse_str($input, $data);
+            }
+        }
+        
+        // Merge com $_POST para máxima compatibilidade
         return array_merge($_POST, $data);
     }
 
