@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.2.6
+Stable tag: 1.2.7
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -109,6 +109,16 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.2.7 =
+* 🎯 CORREÇÃO CRÍTICA: Sistema de Fallback Inteligente para Endereços
+* ✅ VARIÁVEIS SEMPRE FUNCIONAM: {shipping_address_full} e {shipping_method} nunca mais ficam vazias
+* 🔧 FALLBACK AUTOMÁTICO: Sistema detecta quando endereço de entrega está vazio e usa cobrança automaticamente
+* 💡 COMPATIBILIDADE TOTAL: Funciona com "Default to customer billing address" E "Default to customer shipping address"
+* 📋 INTERFACE MELHORADA: Aviso explicativo sobre comportamento inteligente de endereços
+* 🛠️ DETECÇÃO AUTOMÁTICA: !empty($order->get_shipping_address_1()) identifica endereços vazios
+* ✨ DOCUMENTAÇÃO ATUALIZADA: Tooltips explicam comportamento de fallback nas variáveis
+* 🎯 ZERO CONFIGURAÇÃO: Sistema automático funciona independente da configuração WooCommerce
 
 = 1.2.6 =
 * 🎯 CORREÇÃO CRÍTICA: Submenus principais agora aparecem corretamente
