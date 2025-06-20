@@ -128,7 +128,7 @@ class Bulk_Sender {
 			'wpwevo-bulk-send',
 			WPWEVO_URL . 'assets/js/bulk-send.js',
 			['jquery'],
-			WPWEVO_VERSION,
+			WPWEVO_VERSION . '.' . time(),
 			true
 		);
 
@@ -518,7 +518,7 @@ Maria Santos,5511988888888</pre>
 				$status = array_values($_POST['status']); // Força reindexação do array
 			} elseif (isset($_POST['status'])) {
 				$status = [$_POST['status']];
-					}
+			}
 					
 			// Remove valores vazios e sanitiza
 			$status = array_filter($status, function($s) {
@@ -599,19 +599,19 @@ Maria Santos,5511988888888</pre>
 				$order = wc_get_order($order_id);
 				if (!$order) continue;
 
-							// Filtro por valor mínimo
-			if ($min_total > 0 && $order->get_total() < $min_total) {
-				continue;
-			}
+				// Filtro por valor mínimo
+				if ($min_total > 0 && $order->get_total() < $min_total) {
+					continue;
+				}
 
-			$phone = wpwevo_get_order_phone($order);
-			if (empty($phone)) continue;
+				$phone = wpwevo_get_order_phone($order);
+				if (empty($phone)) continue;
 
 				// Normaliza o número para comparação
 				$normalized_phone = $this->normalize_phone_for_comparison($phone);
 				if (!$normalized_phone) {
 					continue;
-					}
+				}
 
 				// Usa o número normalizado como chave para evitar duplicatas
 				if (!isset($processed_phones[$normalized_phone])) {
@@ -631,9 +631,9 @@ Maria Santos,5511988888888</pre>
 				}
 			}
 
-		if (empty($customers)) {
+			if (empty($customers)) {
 				throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsapp-evolution'));
-		}
+			}
 
 			// Ordena os clientes pelo nome
 			usort($customers, function($a, $b) {

@@ -48,31 +48,26 @@ jQuery(document).ready(function($) {
                 return;
             }
 
-            var statusArray = [];
+            var data = {
+                action: 'wpwevo_preview_customers',
+                nonce: wpwevo_bulk_ajax.nonce,
+                status: []
+            };
+            
             $checkboxes.each(function() {
-                statusArray.push($(this).val());
-            });
-
-            var formData = new FormData();
-            formData.append('action', 'wpwevo_preview_customers');
-            formData.append('nonce', wpwevo_bulk_ajax.nonce);
-            
-            statusArray.forEach(function(status) {
-                formData.append('status[]', status);
+                data.status.push($(this).val());
             });
             
-            formData.append('date_from', $('#wpwevo_date_from').val());
-            formData.append('date_to', $('#wpwevo_date_to').val());
-            formData.append('min_total', $('#wpwevo_min_total').val());
+            data.date_from = $('#wpwevo_date_from').val() || '';
+            data.date_to = $('#wpwevo_date_to').val() || '';
+            data.min_total = $('#wpwevo_min_total').val() || '';
 
             $button.prop('disabled', true).text('Carregando...');
 
             $.ajax({
                 url: wpwevo_bulk_ajax.ajax_url,
                 type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
+                data: data,
                 success: function(response) {
                     if (response.success) {
                         $preview.html(response.data.html).show();
