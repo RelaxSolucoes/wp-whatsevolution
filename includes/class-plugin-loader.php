@@ -40,9 +40,12 @@ class Plugin_Loader {
 		register_activation_hook(WPWEVO_PATH . 'wp-whatsapp-evolution.php', [$this, 'activate']);
 		register_deactivation_hook(WPWEVO_PATH . 'wp-whatsapp-evolution.php', [$this, 'deactivate']);
 
-		// Carrega traduções e inicializa módulos
+		// Carrega traduções primeiro
 		add_action('init', [$this, 'load_textdomain'], 0);
-		add_action('init', [$this, 'init_modules'], 1);
+		
+		// Inicializa módulos após WordPress estar totalmente carregado
+		// Prioridade 10 garante que funções admin estejam disponíveis
+		add_action('init', [$this, 'init_modules'], 10);
 
 		// Adiciona intervalos de cron personalizados
 		add_filter('cron_schedules', [$this, 'add_cron_schedules']);
@@ -54,6 +57,12 @@ class Plugin_Loader {
 	}
 
 	public function init_modules() {
+		// Garante que as funções de admin estejam carregadas antes de inicializar módulos
+		// que podem usar is_plugin_active() ou outras funções admin
+		if (is_admin() && !function_exists('is_plugin_active')) {
+			include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+		}
+		
 		// Inicializa os módulos principais após carregar as traduções
 		Settings_Page::init();
 		Send_Single::init();

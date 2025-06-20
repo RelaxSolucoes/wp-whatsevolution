@@ -17,15 +17,16 @@ class Settings_Page {
 	}
 
 	private function __construct() {
-		add_action('init', [$this, 'setup']);
 		add_action('admin_menu', [$this, 'add_menu']);
+		add_action('admin_init', [$this, 'init_admin_properties']);
 		add_action('admin_init', [$this, 'register_settings']);
 		add_action('admin_post_wpwevo_test_connection', [$this, 'test_connection']);
 		add_action('wp_ajax_wpwevo_validate_settings', [$this, 'validate_settings']);
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
 	}
 
-	public function setup() {
+	public function init_admin_properties() {
+		// Initialize translation-dependent properties only when in admin context
 		self::$menu_title = __('Whats Evolution', 'wp-whatsapp-evolution');
 		self::$page_title = __('Whats Evolution', 'wp-whatsapp-evolution');
 	}

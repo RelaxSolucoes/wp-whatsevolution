@@ -8,6 +8,7 @@ class Bulk_Sender {
 	private $page_title;
 	private $i18n;
 	private $api;
+	private $messages;
 
 	public static function init() {
 		if (self::$instance === null) {
@@ -16,23 +17,31 @@ class Bulk_Sender {
 		return self::$instance;
 	}
 
-	public function __construct() {
-		add_action('init', [$this, 'setup']);
-		add_action('admin_menu', [$this, 'add_submenu']);
+	private function __construct() {
+		add_action('admin_menu', [$this, 'add_admin_menu']);
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
-		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
-		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history']);
+		
+		// Ajax handlers
+		add_action('wp_ajax_wpwevo_get_customers', [$this, 'get_customers_ajax']);
+		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'bulk_send_ajax']);
+		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history_ajax']);
+		
+		// Cron scheduler
+		add_action('wpwevo_bulk_send_cron', [$this, 'process_scheduled_send']);
+		
+		// Defer translation-dependent properties to when they're needed
+		add_action('admin_init', [$this, 'init_admin_properties']);
 
 		// Inicializa a API
 		$this->api = Api_Connection::get_instance();
 	}
 
-	public function setup() {
+	public function init_admin_properties() {
+		// Initialize translation-dependent properties only when in admin context
 		$this->menu_title = __('Envio em Massa', 'wp-whatsapp-evolution');
 		$this->page_title = __('Envio em Massa', 'wp-whatsapp-evolution');
-		
-		$this->i18n = [
+
+		$this->messages = [
 			'connection_error' => __('A conexão com o WhatsApp não está ativa. Verifique as configurações.', 'wp-whatsapp-evolution'),
 			'sending' => __('Enviando...', 'wp-whatsapp-evolution'),
 			'preview' => __('Visualizar', 'wp-whatsapp-evolution'),
@@ -43,12 +52,12 @@ class Bulk_Sender {
 				'total_orders' => __('Total de pedidos do cliente', 'wp-whatsapp-evolution'),
 				'last_order_date' => __('Data do último pedido', 'wp-whatsapp-evolution')
 			],
-			'tabs' => [
+			'sources' => [
 				'customers' => __('Clientes WooCommerce', 'wp-whatsapp-evolution'),
 				'csv' => __('Importar CSV', 'wp-whatsapp-evolution'),
 				'manual' => __('Lista Manual', 'wp-whatsapp-evolution')
 			],
-			'form' => [
+			'labels' => [
 				'order_status' => __('Filtrar por Status', 'wp-whatsapp-evolution'),
 				'status_help' => __('Selecione os status dos pedidos para filtrar os clientes.', 'wp-whatsapp-evolution'),
 				'period' => __('Período', 'wp-whatsapp-evolution'),
@@ -87,7 +96,7 @@ class Bulk_Sender {
 		];
 	}
 
-	public function add_submenu() {
+	public function add_admin_menu() {
 		add_submenu_page(
 			'wpwevo-settings',
 			$this->page_title,
@@ -123,17 +132,17 @@ class Bulk_Sender {
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_bulk_send'),
 			'i18n' => [
-				'sending' => $this->i18n['sending'],
-				'preview' => $this->i18n['preview'],
+				'sending' => $this->messages['sending'],
+				'preview' => $this->messages['preview'],
 				'messageRequired' => __('A mensagem é obrigatória.', 'wp-whatsapp-evolution'),
 				'statusRequired' => __('Selecione pelo menos um status.', 'wp-whatsapp-evolution'),
 				'csvRequired' => __('Selecione um arquivo CSV.', 'wp-whatsapp-evolution'),
 				'numbersRequired' => __('Digite pelo menos um número.', 'wp-whatsapp-evolution'),
 				'error' => __('Erro ao processar a requisição. Tente novamente.', 'wp-whatsapp-evolution'),
-				'send' => __('Iniciar Envio', 'wp-whatsapp-evolution'),
-				'historyTitle' => $this->i18n['history']['title'],
-				'noHistory' => $this->i18n['history']['no_history'],
-				'confirmClearHistory' => $this->i18n['history']['confirm_clear']
+				'send' => $this->messages['labels']['start_sending'],
+				'historyTitle' => $this->messages['history']['title'],
+				'noHistory' => $this->messages['history']['no_history'],
+				'confirmClearHistory' => $this->messages['history']['confirm_clear']
 			]
 		]);
 	}
@@ -165,20 +174,20 @@ class Bulk_Sender {
 							<!-- Abas com CSS original -->
 							<nav class="wpwevo-tabs">
 								<a href="#tab-customers" class="wpwevo-tab-button active" data-tab="customers">
-									🛒 <?php echo esc_html($this->i18n['tabs']['customers']); ?>
+									🛒 <?php echo esc_html($this->messages['sources']['customers']); ?>
 								</a>
 								<a href="#tab-csv" class="wpwevo-tab-button" data-tab="csv">
-									📄 <?php echo esc_html($this->i18n['tabs']['csv']); ?>
+									📄 <?php echo esc_html($this->messages['sources']['csv']); ?>
 								</a>
 								<a href="#tab-manual" class="wpwevo-tab-button" data-tab="manual">
-									✍️ <?php echo esc_html($this->i18n['tabs']['manual']); ?>
+									✍️ <?php echo esc_html($this->messages['sources']['manual']); ?>
 								</a>
 							</nav>
 
 					<div class="wpwevo-tab-content active" id="tab-customers">
 						<table class="form-table">
 							<tr>
-								<th scope="row"><?php echo esc_html($this->i18n['form']['order_status']); ?></th>
+								<th scope="row"><?php echo esc_html($this->messages['labels']['order_status']); ?></th>
 								<td>
 									<div class="wpwevo-status-checkboxes">
 										<?php
@@ -202,20 +211,20 @@ class Bulk_Sender {
 										?>
 									</div>
 									<p class="description">
-										<?php echo esc_html($this->i18n['form']['status_help']); ?>
+										<?php echo esc_html($this->messages['labels']['status_help']); ?>
 									</p>
 								</td>
 							</tr>
 							<tr>
-								<th scope="row"><?php echo esc_html($this->i18n['form']['period']); ?></th>
+								<th scope="row"><?php echo esc_html($this->messages['labels']['period']); ?></th>
 								<td>
 									<input type="date" name="wpwevo_date_from" class="regular-text">
-									<span class="description"><?php echo esc_html($this->i18n['form']['to']); ?></span>
+									<span class="description"><?php echo esc_html($this->messages['labels']['to']); ?></span>
 									<input type="date" name="wpwevo_date_to" class="regular-text">
 								</td>
 							</tr>
 							<tr>
-								<th scope="row"><?php echo esc_html($this->i18n['form']['min_value']); ?></th>
+								<th scope="row"><?php echo esc_html($this->messages['labels']['min_value']); ?></th>
 								<td>
 									<div class="wpwevo-currency-input">
 										<span class="wpwevo-currency-symbol">R$</span>
@@ -312,7 +321,7 @@ class Bulk_Sender {
 						</table>
 
 						<button type="button" class="button" id="wpwevo-preview-customers">
-							<?php echo esc_html($this->i18n['form']['preview_customers']); ?>
+							<?php echo esc_html($this->messages['labels']['preview_customers']); ?>
 						</button>
 
 						<div id="wpwevo-customers-preview"></div>
@@ -321,7 +330,7 @@ class Bulk_Sender {
 					<div class="wpwevo-tab-content" id="tab-csv">
 						<table class="form-table">
 							<tr>
-								<th scope="row"><?php echo esc_html($this->i18n['form']['csv_file']); ?></th>
+								<th scope="row"><?php echo esc_html($this->messages['labels']['csv_file']); ?></th>
 								<td>
 									<input type="file" name="wpwevo_csv_file" accept=".csv">
 									<div class="wpwevo-csv-help">
@@ -406,10 +415,10 @@ Maria Santos,5511988888888</pre>
 					<div class="wpwevo-tab-content" id="tab-manual">
 						<table class="form-table">
 							<tr>
-								<th scope="row"><?php echo esc_html($this->i18n['form']['number_list']); ?></th>
+								<th scope="row"><?php echo esc_html($this->messages['labels']['number_list']); ?></th>
 								<td>
 									<textarea name="wpwevo_manual_numbers" rows="5" class="large-text"
-											  placeholder="<?php echo esc_attr($this->i18n['form']['number_placeholder']); ?>"></textarea>
+											  placeholder="<?php echo esc_attr($this->messages['labels']['number_placeholder']); ?>"></textarea>
 								</td>
 							</tr>
 						</table>
@@ -418,30 +427,30 @@ Maria Santos,5511988888888</pre>
 							<!-- Seção de Mensagem e Configurações -->
 							<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4facfe;">
 								<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
-									<span style="margin-right: 10px;">💬</span> <?php echo esc_html($this->i18n['form']['message']); ?>
+									<span style="margin-right: 10px;">💬</span> <?php echo esc_html($this->messages['labels']['message']); ?>
 								</h3>
 								<textarea name="wpwevo_bulk_message" id="wpwevo-bulk-message" 
 										  rows="4" required
 										  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
-										  placeholder="<?php echo esc_attr($this->i18n['form']['message_placeholder']); ?>"></textarea>
+										  placeholder="<?php echo esc_attr($this->messages['labels']['message_placeholder']); ?>"></textarea>
 							</div>
 
 							<!-- Configurações de Envio -->
 							<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #a8edea;">
 								<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
-									<span style="margin-right: 10px;">⏱️</span> <?php echo esc_html($this->i18n['form']['interval']); ?>
+									<span style="margin-right: 10px;">⏱️</span> <?php echo esc_html($this->messages['labels']['interval']); ?>
 								</h3>
 								<div style="display: flex; align-items: center; gap: 10px;">
 									<input type="number" name="wpwevo_interval" value="5" min="1" max="60" 
 										   style="width: 80px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
-									<span style="color: #4a5568; font-size: 14px;"><?php echo esc_html($this->i18n['form']['interval_help']); ?></span>
+									<span style="color: #4a5568; font-size: 14px;"><?php echo esc_html($this->messages['labels']['interval_help']); ?></span>
 								</div>
 							</div>
 
 							<!-- Botão de Envio -->
 							<div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
 								<button type="submit" class="wpwevo-bulk-submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); font-weight: 600;">
-									🚀 <?php echo esc_html($this->i18n['form']['start_sending']); ?>
+									🚀 <?php echo esc_html($this->messages['labels']['start_sending']); ?>
 								</button>
 								<div class="wpwevo-bulk-status"></div>
 							</div>
@@ -831,7 +840,7 @@ Maria Santos,5511988888888</pre>
 
 			// Verifica conexão com a API
 			if (!$this->api->is_configured()) {
-				throw new \Exception($this->i18n['connection_error']);
+				throw new \Exception($this->messages['connection_error']);
 			}
 
 			$active_tab = isset($_POST['active_tab']) ? sanitize_text_field($_POST['active_tab']) : '';
