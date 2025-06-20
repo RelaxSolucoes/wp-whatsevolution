@@ -213,80 +213,27 @@ class Api_Connection {
     }
 
     /**
-     * Formata e valida o número de telefone
+     * Formata e valida o número de telefone usando a função ultra-robusta
      * @param string $number Número de telefone
      * @return array ['success' => bool, 'number' => string, 'message' => string]
      */
     private function format_phone_number($number) {
-        // Remove todos os caracteres não numéricos
-        $number = preg_replace('/[^0-9]/', '', $number);
+        // Usa a função centralizada ultra-robusta
+        $formatted_phone = wpwevo_validate_phone($number);
         
-        // Verifica se o número está vazio
-        if (empty($number)) {
+        if ($formatted_phone === false) {
             return [
                 'success' => false,
-                'message' => __('O número de telefone é obrigatório.', 'wp-whatsapp-evolution')
+                'message' => __('Número de telefone inválido. Use formato: DDD + número (ex: 11999999999)', 'wp-whatsapp-evolution')
             ];
         }
-
-        $country_code = $this->get_country_code();
         
-        // Para números brasileiros, verifica e padroniza o formato antes de adicionar código do país
-        if ($country_code === '55') {
-            // Se tem 10 dígitos e não começa com 55, adiciona o código (telefone fixo)
-            if (strlen($number) === 10 && !preg_match('/^55/', $number)) {
-                $number = '55' . $number;
-            }
-            // Se tem 11 dígitos e não começa com 55, adiciona o código (celular)
-            elseif (strlen($number) === 11 && !preg_match('/^55/', $number)) {
-                $number = '55' . $number;
-            }
-            // Se não começar com o código do país mas não tem 10 ou 11 dígitos, adiciona
-            elseif (!preg_match('/^' . $country_code . '/', $number)) {
-                $number = $country_code . $number;
-            }
-
-            // Valida o comprimento total após normalização (12, 13 ou 14 dígitos com o 55)
-            if (strlen($number) !== 12 && strlen($number) !== 13 && strlen($number) !== 14) {
-                return [
-                    'success' => false,
-                    'message' => __('Número inválido. Digite o DDD e o número completo (8 ou 9 dígitos).', 'wp-whatsapp-evolution')
-                ];
-            }
-
-            // Extrai o DDD para validação
-            $ddd = substr($number, 2, 2);
-            
-            // Valida o DDD (códigos de área válidos do Brasil)
-            if (!preg_match('/^[1-9][1-9]$/', $ddd)) {
-                return [
-                    'success' => false,
-                    'message' => __('DDD inválido. Use um DDD válido do Brasil.', 'wp-whatsapp-evolution')
-                ];
-            }
-
-            // Valida o formato final completo para números brasileiros
-            if (!preg_match('/^55[1-9][1-9][0-9]{7,9}$/', $number)) {
-                return [
-                    'success' => false,
-                    'message' => __('Formato de número inválido. Use: (DDD) + Número', 'wp-whatsapp-evolution')
-                ];
-            }
-
-            // Formata o número para o padrão internacional (com @c.us)
-            $number = $number . '@c.us';
-        } else {
-            // Para outros países, apenas adiciona o código do país se necessário
-            if (!preg_match('/^' . $country_code . '/', $number)) {
-                $number = $country_code . $number;
-            }
-            // Formata o número para o padrão internacional (com @c.us)
-            $number = $number . '@c.us';
-        }
-
+        // Adiciona o @c.us para WhatsApp
+        $whatsapp_number = $formatted_phone . '@c.us';
+        
         return [
             'success' => true,
-            'number' => $number
+            'number' => $whatsapp_number
         ];
     }
 
@@ -388,14 +335,12 @@ class Api_Connection {
 
         // Verifica se o status é 201 (Created) que é o esperado para esta API
         if ($status_code !== 201) {
-            $error_message = isset($data['error']) ? $data['error'] : __('Erro desconhecido da API', 'wp-whatsapp-evolution');
+            // Melhora as mensagens de erro baseadas no código HTTP
+            $user_friendly_message = $this->get_user_friendly_error_message($status_code, $data);
+            
             return [
                 'success' => false,
-                'message' => sprintf(
-                    __('Erro na API (código %d): %s', 'wp-whatsapp-evolution'),
-                    $status_code,
-                    $error_message
-                )
+                'message' => $user_friendly_message
             ];
         }
 
@@ -412,6 +357,47 @@ class Api_Connection {
             'message' => __('Mensagem enviada com sucesso!', 'wp-whatsapp-evolution'),
             'data' => $data
         ];
+    }
+
+    /**
+     * Cria mensagens de erro mais amigáveis baseadas no código HTTP
+     */
+    private function get_user_friendly_error_message($status_code, $data = null) {
+        $error_details = isset($data['error']) ? $data['error'] : '';
+        
+        switch ($status_code) {
+            case 400:
+                // Bad Request - geralmente número inválido ou não WhatsApp
+                if (strpos(strtolower($error_details), 'not found') !== false || 
+                    strpos(strtolower($error_details), 'not registered') !== false) {
+                    return '📱 Este número não possui WhatsApp ativo ou não foi encontrado';
+                }
+                return '❌ Número de telefone inválido ou não possui WhatsApp';
+                
+            case 401:
+                return '🔐 Falha na autenticação - Verifique sua API Key';
+                
+            case 403:
+                return '🚫 Acesso negado - Permissões insuficientes';
+                
+            case 404:
+                return '🔍 Instância não encontrada - Verifique o nome da instância';
+                
+            case 429:
+                return '⏰ Muitas requisições - Aguarde alguns segundos e tente novamente';
+                
+            case 500:
+                return '🔧 Erro interno do servidor - Tente novamente em alguns minutos';
+                
+            case 503:
+                return '⚠️ Serviço temporariamente indisponível';
+                
+            default:
+                if (!empty($error_details)) {
+                    return sprintf('❌ Erro na API: %s', $error_details);
+                }
+                return sprintf('❌ Erro na comunicação (código %d)', $status_code);
+        }
     }
 
     /**

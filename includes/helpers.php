@@ -160,32 +160,83 @@ function wpwevo_log($level, $message, $context = []) {
 }
 
 /**
- * Valida e formata um número de telefone
+ * Formatação ultra-robusta para números brasileiros
+ * Funciona com: 8, 9, 10, 11, 12, 13 dígitos, com ou sem 55, fixo/celular
+ * Inspirado na solução: {{ $json.body.phone_number.replace(/\D/g, '').replace(/^((?!55).{10,11})$/, '55$1') }}
  */
 function wpwevo_validate_phone($phone) {
-	// Remove tudo que não for número
+	if (empty($phone)) return false;
+	
+	// Remove TODOS os caracteres não numéricos
 	$phone = preg_replace('/[^0-9]/', '', $phone);
 	
-	// Valida o formato básico (10-13 dígitos)
-	if (strlen($phone) < 10 || strlen($phone) > 13) {
-		return false;
+	// Remove zeros à esquerda (telefones podem vir como 019998...)
+	$phone = ltrim($phone, '0');
+	
+	if (empty($phone)) return false;
+	
+	// Log de debug interno - apenas para desenvolvimento
+	// Para produção, logs são controlados pela chamada da função
+	
+	// CASOS POSSÍVEIS NO BRASIL:
+	
+	// 1. Número com DDI (55) já presente
+	if (strlen($phone) >= 12 && substr($phone, 0, 2) == '55') {
+		// Valida o DDD após o código do país
+		$ddd = substr($phone, 2, 2);
+		if ($ddd >= 11 && $ddd <= 99) {
+			return $phone;
+		}
 	}
 	
-	// Normaliza o número brasileiro
-	if (strlen($phone) == 10 && !preg_match('/^55/', $phone)) {
-		// 10 dígitos: adiciona código do país (telefone fixo)
-		$phone = '55' . $phone;
-	} elseif (strlen($phone) == 11 && !preg_match('/^55/', $phone)) {
-		// 11 dígitos: adiciona código do país (celular)
-		$phone = '55' . $phone;
+	// 2. Número com 11 dígitos (celular DDD + 9XXXX-XXXX)
+	if (strlen($phone) == 11) {
+		$ddd = substr($phone, 0, 2);
+		if ($ddd >= 11 && $ddd <= 99) {
+			return '55' . $phone;
+		}
 	}
 	
-	// Valida código do país (55) e DDD após normalização
-	if (!preg_match('/^55[1-9][1-9]/', $phone)) {
-		return false;
+	// 3. Número com 10 dígitos (fixo DDD + XXXX-XXXX)
+	if (strlen($phone) == 10) {
+		$ddd = substr($phone, 0, 2);
+		$terceiro_digito = substr($phone, 2, 1);
+		
+		if ($ddd >= 11 && $ddd <= 99) {
+			// Se o terceiro dígito é 6-8, é celular sem o 9
+			if ($terceiro_digito >= '6' && $terceiro_digito <= '8') {
+				// Adiciona o 9 para celular
+				return '55' . substr($phone, 0, 2) . '9' . substr($phone, 2);
+			} else {
+				// Telefone fixo normal
+				return '55' . $phone;
+			}
+		}
 	}
 	
-	return $phone;
+	// 4. Número com 9 dígitos (provavelmente faltou dígito do DDD)
+	if (strlen($phone) == 9) {
+		// Assume DDD 1X mais comum
+		return '551' . $phone;
+	}
+	
+	// 5. Número com 8 dígitos (XXXX-XXXX sem DDD)
+	if (strlen($phone) == 8) {
+		// Assume DDD 11 (São Paulo) como padrão
+		return '5511' . $phone;
+	}
+	
+	// 6. Casos especiais - tenta adicionar 55 se não tem
+	if (strlen($phone) >= 8 && strlen($phone) <= 13) {
+		// Não começar com 55, tenta adicionar
+		if (substr($phone, 0, 2) != '55') {
+			return '55' . $phone;
+		}
+	}
+	
+	// Log de erro controlado pela aplicação que chama
+	
+	return false;
 }
 
 /**

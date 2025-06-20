@@ -34,91 +34,57 @@ jQuery(document).ready(function($) {
         $('#wpwevo-preview-customers').on('click', function(e) {
             e.preventDefault();
             
-            console.group('Clique no botão Visualizar Clientes');
-            
             var $button = $(this);
             var $preview = $('#wpwevo-customers-preview');
             
-            // Debug dos elementos do formulário
-            console.log('Botão:', $button.length ? 'Encontrado' : 'Não encontrado');
-            console.log('Preview:', $preview.length ? 'Encontrado' : 'Não encontrado');
-            
-            // Debug dos checkboxes
-            var totalCheckboxes = $('.wpwevo-status-input').length;
-            var checkedCheckboxes = $('.wpwevo-status-input:checked').length;
-            console.log('Total de checkboxes:', totalCheckboxes);
-            console.log('Checkboxes marcados:', checkedCheckboxes);
-            
-            // Coleta os status selecionados
-            var selectedStatus = [];
-            $('.wpwevo-status-input:checked').each(function() {
-                selectedStatus.push($(this).val());
-                console.log('Checkbox marcado:', {
-                    id: $(this).attr('id'),
-                    name: $(this).attr('name'),
-                    value: $(this).val()
-                });
-            });
-            
-            console.log('Status selecionados:', selectedStatus);
-            
-            // Validação do status
-            if (!selectedStatus || selectedStatus.length === 0) {
-                console.warn('Nenhum status selecionado');
-                alert(wpwevoBulkSend.i18n.statusRequired);
-                console.groupEnd();
+            if (!$button.length || !$preview.length) {
                 return;
             }
+
+            var $checkboxes = $('input[name="status[]"]:checked');
             
-            $button.prop('disabled', true);
-            $preview.html('<div class="spinner is-active"></div>');
-
-            // Prepara os dados para envio
-            var data = new FormData();
-            data.append('action', 'wpwevo_preview_customers');
-            data.append('nonce', wpwevoBulkSend.nonce);
-
-            // Adiciona cada status como um item do array
-            selectedStatus.forEach(function(status) {
-                data.append('status[]', status);
-            });
-
-            // Adiciona os outros campos
-            data.append('date_from', $('input[name="wpwevo_date_from"]').val());
-            data.append('date_to', $('input[name="wpwevo_date_to"]').val());
-            data.append('min_total', $('input[name="wpwevo_min_total"]').val());
-
-            console.log('Dados sendo enviados (FormData):');
-            for (var pair of data.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
+            if ($checkboxes.length === 0) {
+                alert('Por favor, selecione pelo menos um status.');
+                return;
             }
 
-            // Envia a requisição
+            var statusArray = [];
+            $checkboxes.each(function() {
+                statusArray.push($(this).val());
+            });
+
+            var formData = new FormData();
+            formData.append('action', 'wpwevo_preview_customers');
+            formData.append('nonce', wpwevo_bulk_ajax.nonce);
+            
+            statusArray.forEach(function(status) {
+                formData.append('status[]', status);
+            });
+            
+            formData.append('date_from', $('#wpwevo_date_from').val());
+            formData.append('date_to', $('#wpwevo_date_to').val());
+            formData.append('min_total', $('#wpwevo_min_total').val());
+
+            $button.prop('disabled', true).text('Carregando...');
+
             $.ajax({
-                url: wpwevoBulkSend.ajaxurl,
+                url: wpwevo_bulk_ajax.ajax_url,
                 type: 'POST',
-                data: data,
+                data: formData,
                 processData: false,
                 contentType: false,
                 success: function(response) {
-                    console.log('Resposta recebida:', response);
                     if (response.success) {
-                        $preview.html(response.data);
+                        $preview.html(response.data.html).show();
                     } else {
-                        $preview.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+                        alert('Erro: ' + response.data);
                     }
                 },
-                error: function(xhr, status, error) {
-                    console.error('Erro na requisição:', {
-                        status: status,
-                        error: error,
-                        responseText: xhr.responseText
-                    });
-                    $preview.html('<div class="notice notice-error"><p>' + wpwevoBulkSend.i18n.error + '</p></div>');
+                error: function() {
+                    alert('Erro na requisição AJAX');
                 },
                 complete: function() {
-                    $button.prop('disabled', false);
-                    console.groupEnd();
+                    $button.prop('disabled', false).text('Visualizar Clientes');
                 }
             });
         });
@@ -128,157 +94,130 @@ jQuery(document).ready(function($) {
     function initBulkSend() {
         $('#wpwevo-bulk-form').on('submit', function(e) {
             e.preventDefault();
-            console.log('Envio do formulário');
-
-            var activeTab = $('.wpwevo-tab-button.active').data('tab');
-            var message = $('#wpwevo-bulk-message').val();
             
-            console.log('Aba ativa:', activeTab);
-            console.log('Mensagem:', message);
-
-            // Create FormData from the form
-            var formData = new FormData(this);
+            var $form = $(this);
+            var activeTab = $('.nav-tab-active').data('tab') || 'customers';
+            var message = $('#wpwevo_bulk_message').val().trim();
             
-            // Remove any existing status entries
-            for (var pair of formData.entries()) {
-                if (pair[0] === 'status[]') {
-                    formData.delete(pair[0]);
-                }
+            if (!message) {
+                alert('Por favor, digite uma mensagem.');
+                return;
             }
-            
-            // Add status entries only once
-            var statusArray = [];
-            $('.wpwevo-status-input:checked').each(function() {
-                statusArray.push($(this).val());
-                formData.append('status[]', $(this).val());
-            });
-            
-            console.log('Status selecionados:', statusArray);
 
-            // Add additional data
+            // Validação específica por aba
+            if (activeTab === 'customers') {
+                var $checkboxes = $('input[name="status[]"]:checked');
+                if ($checkboxes.length === 0) {
+                    alert('Por favor, selecione pelo menos um status de pedido.');
+                    return;
+                }
+                
+                var statusArray = [];
+                $checkboxes.each(function() {
+                    statusArray.push($(this).val());
+                });
+            }
+
+            var formData = new FormData(this);
             formData.append('action', 'wpwevo_bulk_send');
             formData.append('active_tab', activeTab);
-            formData.append('nonce', wpwevoBulkSend.nonce);
+            formData.append('nonce', wpwevo_bulk_ajax.nonce);
 
-            // Debug output
-            console.log('Dados sendo enviados (FormData):');
-            for (var pair of formData.entries()) {
-                console.log(pair[0] + ':', pair[1]);
-            }
-
-            // Validação básica
-            if (!message) {
-                console.warn('Mensagem vazia');
-                alert(wpwevoBulkSend.i18n.messageRequired);
-                return false;
-            }
-            
-            if (activeTab === 'customers' && (!statusArray || statusArray.length === 0)) {
-                console.warn('Nenhum status selecionado na aba de clientes');
-                alert(wpwevoBulkSend.i18n.statusRequired);
-                return false;
-            }
-            
-            if (activeTab === 'csv' && !$('input[name="wpwevo_csv_file"]').val()) {
-                console.warn('Nenhum arquivo CSV selecionado');
-                alert(wpwevoBulkSend.i18n.csvRequired);
-                return false;
-            }
-            
-            if (activeTab === 'manual' && !$('textarea[name="wpwevo_manual_numbers"]').val().trim()) {
-                console.warn('Lista de números vazia');
-                alert(wpwevoBulkSend.i18n.numbersRequired);
-                return false;
+            if (activeTab === 'customers' && statusArray) {
+                statusArray.forEach(function(status) {
+                    formData.append('status[]', status);
+                });
             }
 
-            var $form = $(this);
-            var $button = $('.wpwevo-bulk-submit');
+            // Desabilita o botão de envio
+            var $submitBtn = $form.find('input[type="submit"]');
+            var originalText = $submitBtn.val();
+            $submitBtn.prop('disabled', true).val('Enviando...');
+
+            // Encontra e prepara o elemento de status
             var $status = $('.wpwevo-bulk-status');
-            
-            // Adiciona a barra de progresso
-            $status.html(`
-                <div class="wpwevo-progress-wrapper">
-                    <div class="wpwevo-progress-bar" style="width: 0%"></div>
-                    <div class="wpwevo-progress-text">Iniciando envio...</div>
-                </div>
-                <div class="wpwevo-progress-warning">
-                    <strong>Atenção:</strong> Não feche esta página até o envio ser concluído.
-                </div>
-            `);
+            if ($status.length) {
+                // Limpa conteúdo anterior e cria estrutura DOM
+                $status.empty();
+                
+                // Cria elementos usando DOM manipulation
+                var statusContainer = document.createElement('div');
+                statusContainer.id = 'wpwevo-status-container';
+                statusContainer.setAttribute('style', 'background: #ffffff; border: 3px solid #000000; border-radius: 8px; padding: 25px; margin: 25px 0; text-align: center; min-height: 120px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);');
+                
+                var statusText = document.createElement('div');
+                statusText.id = 'wpwevo-status-text';
+                statusText.setAttribute('style', 'font-size: 18px; font-weight: bold; color: #000000; margin-bottom: 20px; padding: 10px; border: 2px solid #000000; border-radius: 5px; background: #f8f9fa;');
+                statusText.textContent = 'Iniciando envio...';
+                
+                var progressContainer = document.createElement('div');
+                progressContainer.setAttribute('style', 'background: #f0f0f0; border: 2px solid #000000; border-radius: 8px; height: 30px; overflow: hidden; margin-top: 15px; position: relative;');
+                
+                var progressBar = document.createElement('div');
+                progressBar.id = 'wpwevo-progress-bar';
+                progressBar.setAttribute('style', 'height: 100%; background: linear-gradient(90deg, #28a745, #20c997); width: 0%; transition: width 0.8s ease-in-out; position: absolute; top: 0; left: 0;');
+                
+                progressContainer.appendChild(progressBar);
+                statusContainer.appendChild(statusText);
+                statusContainer.appendChild(progressContainer);
+                $status[0].appendChild(statusContainer);
+                
+                $status.show();
+            }
 
-            // Desabilita o formulário
-            $form.find('input, textarea, select, button').prop('disabled', true);
-            $button.text(wpwevoBulkSend.i18n.sending);
-
-            // Envia a requisição
+            // Envia requisição AJAX
             $.ajax({
-                url: wpwevoBulkSend.ajaxurl,
+                url: wpwevo_bulk_ajax.ajax_url,
                 type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
                 success: function(response) {
-                    console.log('Resposta recebida:', response);
                     if (response.success) {
                         var data = response.data;
                         
-                        // Atualiza a barra de progresso
-                        $('.wpwevo-progress-bar').css('width', data.progress + '%');
-                        $('.wpwevo-progress-text').text(data.message);
-
-                        if (data.status === 'completed') {
-                            // Atualiza a barra de progresso para verde
-                            $('.wpwevo-progress-bar').css({
-                                'background-color': '#00a32a',
-                                'width': '100%'
-                            });
+                        // Atualiza progresso se disponível
+                        if (typeof data.progress !== 'undefined') {
+                            var progressBar = document.getElementById('wpwevo-progress-bar');
+                            var statusText = document.getElementById('wpwevo-status-text');
                             
-                            // Remove o aviso de não fechar a página
-                            $('.wpwevo-progress-warning').remove();
-                            
-                            // Mostra mensagem de conclusão
-                            $status.append(`
-                                <div class="notice notice-success">
-                                    <p>${data.message}</p>
-                                    ${data.errors.length > 0 ? `
-                                        <p>Erros encontrados: ${data.errors.length}</p>
-                                        <ul class="wpwevo-error-list">
-                                            ${data.errors.map(error => `<li>${error}</li>`).join('')}
-                                        </ul>
-                                    ` : ''}
-                                </div>
-                            `);
-
-                            // Atualiza o histórico
-                            if (data.historyHtml) {
-                                $('#wpwevo-history-container').html(data.historyHtml);
+                            if (progressBar) {
+                                progressBar.style.width = data.progress + '%';
                             }
-
-                            // Reativa o formulário
-                            $form.find('input, textarea, select, button').prop('disabled', false);
-                            $button.text(wpwevoBulkSend.i18n.send);
                             
-                            // Limpa o formulário
-                            $form.trigger('reset');
-                            $('#wpwevo-customers-preview').empty();
+                            if (statusText && data.message) {
+                                statusText.textContent = data.message;
+                            }
+                        }
+
+                        // Se o envio foi concluído
+                        if (data.status === 'completed') {
+                            // Pequeno delay para mostrar a barra em 100%
+                            setTimeout(function() {
+                                var completionHtml = '<div style="background: #d4edda; border: 3px solid #28a745; border-radius: 8px; padding: 25px; margin: 25px 0; text-align: center;">';
+                                completionHtml += '<h3 style="color: #155724; margin: 0 0 15px 0;">✅ ENVIO CONCLUÍDO!</h3>';
+                                completionHtml += '<p style="color: #155724; font-size: 16px; margin: 0;">' + data.message + '</p>';
+                                completionHtml += '</div>';
+                                
+                                $status.html(completionHtml);
+                                
+                                // Atualiza histórico se disponível
+                                if (data.historyHtml) {
+                                    $('#wpwevo-bulk-history').html(data.historyHtml);
+                                }
+                                
+                                // Reabilita botão
+                                $submitBtn.prop('disabled', false).val(originalText);
+                            }, 1000);
                         }
                     } else {
-                        $status.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
-                        // Reativa o formulário em caso de erro
-                        $form.find('input, textarea, select, button').prop('disabled', false);
-                        $button.text(wpwevoBulkSend.i18n.send);
+                        $status.html('<div style="background: #f8d7da; border: 3px solid #dc3545; border-radius: 8px; padding: 25px; color: #721c24;"><strong>Erro:</strong> ' + response.data + '</div>');
+                        $submitBtn.prop('disabled', false).val(originalText);
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Erro na requisição:', {
-                        status: status,
-                        error: error,
-                        responseText: xhr.responseText
-                    });
-                    $status.html('<div class="notice notice-error"><p>' + wpwevoBulkSend.i18n.error + '</p></div>');
-                    // Reativa o formulário em caso de erro
-                    $form.find('input, textarea, select, button').prop('disabled', false);
-                    $button.text(wpwevoBulkSend.i18n.send);
+                    $status.html('<div style="background: #f8d7da; border: 3px solid #dc3545; border-radius: 8px; padding: 25px; color: #721c24;"><strong>Erro AJAX:</strong> ' + error + '</div>');
+                    $submitBtn.prop('disabled', false).val(originalText);
                 }
             });
         });
