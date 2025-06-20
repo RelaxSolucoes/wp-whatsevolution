@@ -1,5 +1,30 @@
 # Changelog - WP WhatsEvolution
 
+## [1.2.7] - 2025-01-XX
+
+### 🎯 CORREÇÃO CRÍTICA - SISTEMA DE ENDEREÇOS INTELIGENTE
+- **🚨 PROBLEMA RESOLVIDO**: Variáveis `{shipping_address_full}` e `{shipping_method}` não ficam mais vazias
+- **✅ FALLBACK AUTOMÁTICO**: Sistema detecta quando endereço de entrega está vazio e usa cobrança automaticamente
+- **🔧 COMPATIBILIDADE TOTAL**: Funciona com "Default to customer billing address" E "Default to customer shipping address"
+- **💡 INTERFACE MELHORADA**: Aviso explicativo sobre comportamento inteligente de endereços
+
+### 🛠️ MELHORIAS TÉCNICAS
+- **Detecção automática**: `!empty($order->get_shipping_address_1())` identifica endereços vazios
+- **Fallback inteligente**: Todas variáveis `{shipping_*}` usam dados de cobrança quando necessário
+- **Documentação atualizada**: Tooltips explicam comportamento de fallback
+- **Preview melhorado**: Demonstra funcionamento do sistema inteligente
+
+### 📋 VARIÁVEIS COM FALLBACK
+- `{shipping_name}` - Nome destinatário (usa cobrança se entrega vazia)
+- `{shipping_address_full}` - Endereço completo (usa cobrança se entrega vazia)
+- `{shipping_city}`, `{shipping_state}`, `{shipping_postcode}` - Sempre preenchidos
+- `{billing_*}` - Continuam funcionando normalmente
+
+### 🎯 IMPACTO
+- **Zero mensagens vazias**: Templates sempre funcionam independente da configuração WooCommerce
+- **UX melhorada**: Usuários não precisam se preocupar com configurações de checkout
+- **Compatibilidade universal**: Funciona com qualquer tema/plugin de checkout
+
 ## [1.2.6] - 2025-01-XX
 
 ### 🎯 CORREÇÃO CRÍTICA - SUBMENUS PRINCIPAIS

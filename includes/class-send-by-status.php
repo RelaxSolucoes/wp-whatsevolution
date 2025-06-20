@@ -215,17 +215,37 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			$all_products[] = $item->get_name();
 		}
 
-		// Monta endereço completo de envio
+		// ===============================================
+		// SISTEMA DE FALLBACK INTELIGENTE PARA ENDEREÇOS
+		// ===============================================
+		
+		// Verifica se endereço de entrega está vazio (comportamento padrão WooCommerce)
+		$has_shipping_address = !empty($order->get_shipping_address_1());
+		
+		// ENDEREÇO DE ENTREGA com fallback para cobrança
 		$shipping_address_parts = [];
-		if ($order->get_shipping_address_1()) {
-			$shipping_address_parts[] = $order->get_shipping_address_1();
+		$shipping_line_1 = $has_shipping_address ? $order->get_shipping_address_1() : $order->get_billing_address_1();
+		$shipping_line_2 = $has_shipping_address ? $order->get_shipping_address_2() : $order->get_billing_address_2();
+		
+		if ($shipping_line_1) {
+			$shipping_address_parts[] = $shipping_line_1;
 		}
-		if ($order->get_shipping_address_2()) {
-			$shipping_address_parts[] = $order->get_shipping_address_2();
+		if ($shipping_line_2) {
+			$shipping_address_parts[] = $shipping_line_2;
 		}
 		$shipping_address_full = implode(', ', $shipping_address_parts);
 		
-		// Endereço de cobrança completo
+		// NOME DO DESTINATÁRIO com fallback
+		$shipping_first_name = $has_shipping_address ? $order->get_shipping_first_name() : $order->get_billing_first_name();
+		$shipping_last_name = $has_shipping_address ? $order->get_shipping_last_name() : $order->get_billing_last_name();
+		$shipping_name = trim($shipping_first_name . ' ' . $shipping_last_name);
+		
+		// CIDADE, ESTADO, CEP com fallback
+		$shipping_city = $has_shipping_address ? $order->get_shipping_city() : $order->get_billing_city();
+		$shipping_state = $has_shipping_address ? $order->get_shipping_state() : $order->get_billing_state();
+		$shipping_postcode = $has_shipping_address ? $order->get_shipping_postcode() : $order->get_billing_postcode();
+		
+		// Endereço de cobrança completo (sempre disponível)
 		$billing_address_parts = [];
 		if ($order->get_billing_address_1()) {
 			$billing_address_parts[] = $order->get_billing_address_1();
@@ -245,13 +265,17 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			'{payment_url}' => $order->get_checkout_payment_url(),
 			'{first_product}' => $first_product,
 			'{all_products}' => implode(', ', $all_products),
-			'{shipping_name}' => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
-			'{shipping_address_line_1}' => $order->get_shipping_address_1(),
-			'{shipping_address_line_2}' => $order->get_shipping_address_2(),
+			
+			// VARIÁVEIS DE ENTREGA (com fallback inteligente)
+			'{shipping_name}' => $shipping_name,
+			'{shipping_address_line_1}' => $shipping_line_1,
+			'{shipping_address_line_2}' => $shipping_line_2,
 			'{shipping_address_full}' => $shipping_address_full,
-			'{shipping_city}' => $order->get_shipping_city(),
-			'{shipping_state}' => $order->get_shipping_state(),
-			'{shipping_postcode}' => $order->get_shipping_postcode(),
+			'{shipping_city}' => $shipping_city,
+			'{shipping_state}' => $shipping_state,
+			'{shipping_postcode}' => $shipping_postcode,
+			
+			// VARIÁVEIS DE COBRANÇA (sempre disponíveis)
 			'{billing_address_line_1}' => $order->get_billing_address_1(),
 			'{billing_address_line_2}' => $order->get_billing_address_2(),
 			'{billing_address_full}' => $billing_address_full,
@@ -431,6 +455,17 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 						
 						<p style="color: #4a5568; font-size: 14px; margin-bottom: 15px;">📝 Clique nas variáveis para adicioná-las na mensagem:</p>
 						
+						<div style="background: #e6fffa; border: 1px solid #38b2ac; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+							<div style="display: flex; align-items: center; margin-bottom: 8px;">
+								<span style="font-size: 16px; margin-right: 8px;">💡</span>
+								<strong style="color: #2d3748; font-size: 14px;">Sistema Inteligente de Endereços</strong>
+							</div>
+							<p style="color: #4a5568; font-size: 13px; margin: 0; line-height: 1.4;">
+								As variáveis <code>{shipping_*}</code> usam automaticamente o endereço de <strong>cobrança</strong> quando o de <strong>entrega</strong> estiver vazio. 
+								Isso garante que suas mensagens sempre funcionem, independente da configuração do WooCommerce.
+							</p>
+						</div>
+						
 						<div style="display: grid; gap: 8px;">
 							<?php 
 							$variables = [
@@ -443,13 +478,13 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 								'{payment_url}' => 'URL de pagamento',
 								'{first_product}' => 'Primeiro produto',
 								'{all_products}' => 'Todos os produtos',
-								'{shipping_name}' => 'Nome destinatário',
-								'{shipping_address_line_1}' => 'Endereço linha 1 (com número)',
-								'{shipping_address_line_2}' => 'Endereço linha 2',
-								'{shipping_address_full}' => 'Endereço completo de entrega',
-								'{shipping_city}' => 'Cidade de entrega',
-								'{shipping_state}' => 'Estado de entrega',
-								'{shipping_postcode}' => 'CEP de entrega',
+								'{shipping_name}' => 'Nome destinatário (usa cobrança se entrega vazia)',
+								'{shipping_address_line_1}' => 'Endereço linha 1 (usa cobrança se entrega vazia)',
+								'{shipping_address_line_2}' => 'Endereço linha 2 (usa cobrança se entrega vazia)',
+								'{shipping_address_full}' => 'Endereço completo (usa cobrança se entrega vazia)',
+								'{shipping_city}' => 'Cidade (usa cobrança se entrega vazia)',
+								'{shipping_state}' => 'Estado (usa cobrança se entrega vazia)',
+								'{shipping_postcode}' => 'CEP (usa cobrança se entrega vazia)',
 								'{billing_address_line_1}' => 'Endereço cobrança linha 1',
 								'{billing_address_line_2}' => 'Endereço cobrança linha 2',
 								'{billing_address_full}' => 'Endereço completo de cobrança',
@@ -612,7 +647,7 @@ Valor: {order_total}
 			return;
 		}
 
-		// Usa dados de exemplo para preview
+		// Usa dados de exemplo para preview (demonstra fallback inteligente)
 		$preview = str_replace(
 			[
 				'{customer_name}',
@@ -624,9 +659,14 @@ Valor: {order_total}
 				'{shipping_name}',
 				'{shipping_address_line_1}',
 				'{shipping_address_line_2}',
+				'{shipping_address_full}',
 				'{shipping_city}',
 				'{shipping_state}',
-				'{shipping_postcode}'
+				'{shipping_postcode}',
+				'{billing_address_full}',
+				'{billing_city}',
+				'{billing_state}',
+				'{billing_postcode}'
 			],
 			[
 				'João Silva',
@@ -638,6 +678,11 @@ Valor: {order_total}
 				'João Silva',
 				'Rua das Flores, 123',
 				'Apto 45',
+				'Rua das Flores, 123, Apto 45',
+				'São Paulo',
+				'SP',
+				'01234-567',
+				'Rua das Flores, 123, Apto 45',
 				'São Paulo',
 				'SP',
 				'01234-567'
