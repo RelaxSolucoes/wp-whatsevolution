@@ -69,7 +69,7 @@ class Send_By_Status {
 		}
 		
 		// Log initialization
-		$this->add_log('info', '🔄 Inicializando hooks do WooCommerce para Send_By_Status...');
+		wpwevo_log('info', '🔄 Inicializando hooks do WooCommerce para Send_By_Status...');
 		
 		try {
 			// Hook para mudanças de status
@@ -78,10 +78,10 @@ class Send_By_Status {
 			// Hook para novos pedidos
 			add_action('woocommerce_new_order', [$this, 'handle_new_order'], 10, 1);
 			
-			$this->add_log('info', '✅ Hooks do WooCommerce registrados com sucesso');
+			wpwevo_log('info', '✅ Hooks do WooCommerce registrados com sucesso');
 			
 		} catch (Exception $e) {
-			$this->add_log('error', '❌ Erro ao registrar hooks do WooCommerce: ' . $e->getMessage());
+			wpwevo_log('error', '❌ Erro ao registrar hooks do WooCommerce: ' . $e->getMessage());
 		}
 	}
 
