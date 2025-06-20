@@ -18,6 +18,10 @@ class Bulk_Sender {
 	}
 
 	private function __construct() {
+		// Define propriedades ANTES dos hooks
+		$this->menu_title = __('Envio em Massa', 'wp-whatsapp-evolution');
+		$this->page_title = __('Envio em Massa', 'wp-whatsapp-evolution');
+		
 		add_action('admin_menu', [$this, 'add_admin_menu']);
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 		
@@ -37,10 +41,7 @@ class Bulk_Sender {
 	}
 
 	public function init_admin_properties() {
-		// Initialize translation-dependent properties only when in admin context
-		$this->menu_title = __('Envio em Massa', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio em Massa', 'wp-whatsapp-evolution');
-
+		// Propriedades já definidas no construtor
 		$this->messages = [
 			'connection_error' => __('A conexão com o WhatsApp não está ativa. Verifique as configurações.', 'wp-whatsapp-evolution'),
 			'sending' => __('Enviando...', 'wp-whatsapp-evolution'),

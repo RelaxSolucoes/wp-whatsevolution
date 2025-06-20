@@ -18,6 +18,10 @@ class Send_Single {
 	}
 
 	private function __construct() {
+		// Define propriedades ANTES dos hooks
+		$this->menu_title = __('Envio Único', 'wp-whatsapp-evolution');
+		$this->page_title = __('Envio Único', 'wp-whatsapp-evolution');
+		
 		add_action('init', [$this, 'setup']);
 		add_action('admin_menu', [$this, 'add_menu']);
 		add_action('wp_ajax_wpwevo_send_single', [$this, 'handle_ajax_send']);
@@ -26,9 +30,7 @@ class Send_Single {
 	}
 
 	public function setup() {
-		$this->menu_title = __('Envio Único', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio Único', 'wp-whatsapp-evolution');
-		
+		// Propriedades já definidas no construtor
 		$this->i18n = [
 			'sending' => __('Enviando...', 'wp-whatsapp-evolution'),
 			'validating' => __('Validando...', 'wp-whatsapp-evolution'),

@@ -21,6 +21,10 @@ class Send_By_Status {
 	}
 
 	private function __construct() {
+		// Define propriedades ANTES dos hooks
+		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		
 		add_action('admin_menu', [$this, 'add_admin_menu']);
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 		
@@ -37,10 +41,7 @@ class Send_By_Status {
 	}
 
 	public function init_admin_properties() {
-		// Initialize translation-dependent properties only when in admin context
-		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		
+		// Propriedades já definidas no construtor
 		$this->js_messages = [
 			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
 			'saved' => __('Configurações salvas!', 'wp-whatsapp-evolution'),
