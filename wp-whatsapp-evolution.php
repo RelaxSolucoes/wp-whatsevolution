@@ -213,7 +213,7 @@ function wpwevo_migrate_old_options() {
 
 
 // ===== AUTO-UPDATE GITHUB =====
-require_once plugin_dir_path(__FILE__) . 'lib/plugin-update-checker/plugin-update-checker.php';
+require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 function wp_whatsevolution_init_auto_updater() {

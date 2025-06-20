@@ -1,20 +1,25 @@
-# WP WhatsEvolution v1.0.4
+# WP WhatsEvolution v1.2.1
 
 🚀 **Integração completa com WooCommerce usando Evolution API**
 
-## 🆕 **NOVO na v1.0.4: Carrinho Abandonado Revolucionário!**
+## 🆕 **NOVO na v1.2.1: Quick Signup + Correções Importantes!**
 
-### 🎯 **Interceptação Interna 100% Automática**
+### 🚀 **Quick Signup - Teste Grátis em 1 Click**
+- **⚡ Teste 7 dias grátis** - Sem cartão de crédito
+- **🔧 Configuração automática** - Plugin configurado em 30 segundos
+- **🛠️ Sem VPS, sem Docker** - Zero complicação técnica
+- **📞 Suporte incluído** - Ajuda durante todo o período de teste
+
+### 🔧 **Correções Críticas**
+- **✅ Instalação via GitHub** - Funciona perfeitamente mesmo com pasta `wp-whatsevolution-main`
+- **🔧 Auto-updater corrigido** - Sistema de atualização automática agora 100% funcional
+- **🏷️ Constantes otimizadas** - Caminhos de arquivos consistentes
+
+### 🛒 **Carrinho Abandonado Aprimorado**
 - **⚡ Zero Configuração de Webhook** - Ativação com 1 clique
 - **🔒 100% Seguro** - Dados nunca saem do servidor WordPress
 - **⚡ Zero Latência** - Processamento instantâneo via hooks internos
 - **🎯 Interceptação Inteligente** - Captura carrinhos antes mesmo do webhook externo
-
-### 🛒 **Integração Perfeita com Cart Abandonment Recovery**
-- Funciona automaticamente com o plugin **"WooCommerce Cart Abandonment Recovery"**
-- Intercepta carrinhos abandonados em tempo real
-- Templates brasileiros com formatação de moeda (R$)
-- Shortcodes dinâmicos para personalização total
 
 ---
 
@@ -22,12 +27,33 @@
 
 O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagens + WooCommerce, oferecendo:
 
+- 🚀 **Quick Signup** com teste grátis de 7 dias
 - 🛒 **Carrinho Abandonado** com interceptação interna revolucionária
 - 📊 **Envio por Status** de pedido automatizado  
 - 📱 **Envio Individual** para clientes específicos
 - 📢 **Envio em Massa** com filtros avançados
 - ✅ **Validação no Checkout** em tempo real
 - 🎨 **Templates Personalizáveis** com shortcodes dinâmicos
+
+---
+
+## 🚀 **Quick Signup - Comece em 30 Segundos**
+
+### 🎯 **Para quem não tem Evolution API**
+
+1. **Acesse** "WhatsEvolution > 🚀 Teste Grátis"
+2. **Preencha** seus dados (nome, email, WhatsApp)
+3. **Clique** em "Criar Conta e Testar Agora"
+4. **Aguarde** a configuração automática (30 segundos)
+5. **Conecte** seu WhatsApp via QR Code
+6. **Pronto!** Teste todas as funcionalidades por 7 dias
+
+### ✨ **Vantagens do Quick Signup**
+- 🆓 **7 dias grátis** sem cartão de crédito
+- ⚡ **Configuração automática** de toda a Evolution API  
+- 🛠️ **Sem complicações técnicas** (VPS, Docker, etc.)
+- 📞 **Suporte técnico incluído** no período de teste
+- 🔄 **Fácil upgrade** quando decidir continuar
 
 ---
 
@@ -76,21 +102,22 @@ Finalize agora:
 - **PHP:** 7.4 ou superior
 - **WordPress:** 5.8 ou superior  
 - **WooCommerce:** 5.0 ou superior
-- **Evolution API:** Instância configurada
+- **Evolution API:** Instância configurada (ou use o Quick Signup!)
 
 ---
 
 ## 🚀 **Instalação e Configuração**
 
-### 1️⃣ **Instalação Básica**
+### 🎯 **Opção 1: Download do GitHub (Recomendado)**
 
 ```bash
-1. Upload do plugin para /wp-content/plugins/
-2. Ativar no painel WordPress
-3. Acessar "WhatsEvolution" no menu admin
+1. Baixe o ZIP direto do GitHub
+2. Envie para /wp-content/plugins/ (pode ficar como "wp-whatsevolution-main")  
+3. Ative no painel WordPress
+4. Use "🚀 Teste Grátis" para configuração automática
 ```
 
-### 2️⃣ **Configuração Evolution API**
+### 🎯 **Opção 2: Configuração Manual**
 
 ```bash
 1. URL da API: https://sua-api.com
@@ -111,6 +138,13 @@ Finalize agora:
 ---
 
 ## 📊 **Todas as Funcionalidades**
+
+### 🚀 **Quick Signup (NOVO!)**
+- ✅ Teste grátis por 7 dias
+- ✅ Configuração automática em 30s
+- ✅ Sem VPS/Docker necessário
+- ✅ Suporte técnico incluído
+- ✅ Upgrade simplificado
 
 ### 🛒 **Carrinho Abandonado**
 - ✅ Interceptação interna automática
@@ -180,16 +214,48 @@ add_filter('wpwevo_validate_whatsapp', function($is_valid, $number) {
 
 ---
 
+## 🚨 **Problemas Conhecidos e Soluções**
+
+### ❌ **Erro ao ativar plugin baixado do GitHub**
+```
+Failed opening required 'plugin-update-checker/plugin-update-checker.php'
+```
+
+**✅ Solução:** Atualizado na v1.2.1! Agora funciona perfeitamente mesmo com pasta `wp-whatsevolution-main`.
+
+### ❌ **Plugin não encontra Evolution API** 
+**✅ Solução:** Use o Quick Signup para configuração automática ou verifique URL/API Key.
+
+### ❌ **Carrinho abandonado não funciona**
+**✅ Solução:** Instale o plugin "WooCommerce Cart Abandonment Recovery" primeiro.
+
+---
+
 ## 📝 **Changelog**
 
-### 🆕 **v1.0.4 - 2024-12-17**
+### 🆕 **v1.2.1 - 2024-12-20**
+- **🚀 NOVO:** Sistema Quick Signup com teste grátis de 7 dias
+- **🚀 NOVO:** Configuração automática de Evolution API
+- **🚀 NOVO:** Interface de onboarding 1-click
+- **🔧 CORREÇÃO CRÍTICA:** Plugin funciona com download direto do GitHub (`wp-whatsevolution-main`)
+- **🔧 CORREÇÃO:** Auto-updater com caminhos consistentes
+- **✨ MELHORIA:** Interface de configuração redesenhada
+- **✨ MELHORIA:** Validação de dados aprimorada
+- **🛡️ SEGURANÇA:** Integração backend com Supabase Edge Functions
+
+### v1.2.0 - 2024-12-15
+- **🚀 NOVO:** Painel de administração redesenhado
+- **✨ MELHORIA:** Templates de mensagem otimizados
+- **🔧 CORREÇÃO:** Performance de logs melhorada
+- **🐛 CORREÇÃO:** Compatibilidade com WooCommerce 8.0+
+
+### v1.1.0 - 2024-12-10
 - **🚀 NOVO:** Interceptação interna de carrinho abandonado
 - **🚀 NOVO:** Integração com "WooCommerce Cart Abandonment Recovery"  
 - **🚀 NOVO:** Templates personalizáveis com shortcodes
 - **✨ MELHORIA:** Logs otimizados e mais limpos
 - **🔧 CORREÇÃO:** Formatação automática moeda brasileira (R$)
 - **🐛 CORREÇÃO:** Múltiplas correções de compatibilidade
-- **🏷️ REBRANDING:** Plugin renomeado para WP WhatsEvolution
 
 ### v1.0.3 - 2024-11-15
 - ✨ Envio por status de pedido
@@ -216,9 +282,10 @@ add_filter('wpwevo_validate_whatsapp', function($is_valid, $number) {
 
 ## 🆘 **Suporte**
 
-- 📧 **Email:** suporte@relaxsolucoes.online
+- 📧 **Email:** chatrelaxbr@gmail.com
 - 🌐 **Site:** [relaxsolucoes.online](https://relaxsolucoes.online/)
 - 💬 **GitHub:** [RelaxSolucoes/wp-whatsevolution](https://github.com/RelaxSolucoes/wp-whatsevolution)
+- 🚀 **Quick Signup:** Teste grátis em WhatsEvolution > 🚀 Teste Grátis
 
 ---
 
@@ -232,8 +299,14 @@ add_filter('wpwevo_validate_whatsapp', function($is_valid, $number) {
 
 **🏢 Relax Soluções**  
 🌐 [relaxsolucoes.online](https://relaxsolucoes.online/)  
-📧 contato@relaxsolucoes.online
+📧 chatrelaxbr@gmail.com
 
 ---
 
 **⭐ Se este plugin foi útil, deixe uma estrela no GitHub!** 
+
+### 🎯 **Links Rápidos**
+- [📦 Download Direto](https://github.com/RelaxSolucoes/wp-whatsevolution/archive/refs/heads/main.zip)
+- [🚀 Teste Grátis](https://whats-evolution.vercel.app/)
+- [📖 Documentação Completa](https://github.com/RelaxSolucoes/wp-whatsevolution/wiki)
+- [🐛 Reportar Bug](https://github.com/RelaxSolucoes/wp-whatsevolution/issues) 
