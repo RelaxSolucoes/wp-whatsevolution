@@ -295,7 +295,7 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			'nonce' => wp_create_nonce('wpwevo_status_messages'),
 			'previewNonce' => wp_create_nonce('wpwevo_preview_message'),
 			'i18n' => $this->js_messages
-		]);
+		];
 		
 		wp_localize_script('wpwevo-send-by-status', 'wpwevoSendByStatus', $localize_data);
 	}
