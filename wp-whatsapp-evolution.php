@@ -213,19 +213,34 @@ function wpwevo_migrate_old_options() {
 
 
 // ===== AUTO-UPDATE GITHUB =====
-require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
-
 function wp_whatsevolution_init_auto_updater() {
-    if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) return;
+    // Só carrega o auto-updater se o arquivo existir e o plugin estiver funcionando
+    $updater_file = WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
     
-    $updateChecker = PucFactory::buildUpdateChecker(
-        'https://github.com/RelaxSolucoes/wp-whatsevolution',
-        __FILE__,
-        'wp-whatsevolution'
-    );
+    if (!file_exists($updater_file)) {
+        return; // Sai silenciosamente se o arquivo não existir
+    }
     
-    $updateChecker->getVcsApi()->enableReleaseAssets();
+    require_once $updater_file;
+    
+    if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
+        return; // Sai se a classe não foi carregada
+    }
+    
+    try {
+        $updateChecker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+            'https://github.com/RelaxSolucoes/wp-whatsevolution',
+            __FILE__,
+            'wp-whatsevolution'
+        );
+        
+        $updateChecker->getVcsApi()->enableReleaseAssets();
+    } catch (Exception $e) {
+        // Falha silenciosamente se houver erro no auto-updater
+        error_log('WP WhatsEvolution: Auto-updater error: ' . $e->getMessage());
+    }
 }
-add_action('init', 'wp_whatsevolution_init_auto_updater');
+
+// Só inicializa o auto-updater DEPOIS que o WordPress e WooCommerce estiverem carregados
+add_action('plugins_loaded', 'wp_whatsevolution_init_auto_updater', 20);
 // ===== FIM AUTO-UPDATE ===== 
