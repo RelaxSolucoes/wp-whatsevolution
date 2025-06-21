@@ -1,5 +1,32 @@
 # Changelog - WP WhatsEvolution
 
+## [1.3.0] - 2024-06-21
+### REVOLUÇÃO NO ENVIO EM MASSA
+-   **Melhoria**: A funcionalidade de Envio em Massa foi completamente reconstruída do zero para ser mais poderosa, intuitiva e à prova de falhas.
+-   **Melhoria**: A tela de importação de CSV agora é visualmente clara, com uma tabela de exemplo que elimina a confusão entre colunas e vírgulas.
+-   **Melhoria**: O sistema agora detecta automaticamente se o separador é vírgula (`,`) ou ponto e vírgula (`;`), garantindo compatibilidade com Excel de diferentes regiões. Também corrige problemas de codificação de caracteres (acentos).
+-   **Melhoria**: Agora é possível usar `{customer_name}` e `{customer_phone}` em mensagens para contatos importados via CSV. Para clientes WooCommerce, a lista de variáveis foi expandida.
+-   **Melhoria**: A seção "Variáveis Disponíveis" agora é inteligente e mostra apenas as variáveis que se aplicam à aba selecionada (WooCommerce, CSV ou Manual).
+-   **Melhoria**: As mensagens de erro agora são específicas, informando exatamente qual número falhou e por quê (ex: "Formato inválido").
+-   **Correção**: Inúmeros bugs de lógica e validação foram corrigidos, garantindo que cada aba (WooCommerce, CSV, Manual) funcione de forma independente e correta.
+-   **Correção**: Resolvido o problema no download do arquivo de exemplo, que agora é gerado em um formato 100% compatível com Excel (incluindo o BOM para UTF-8).
+
+## [1.2.9] - 2025-06-20
+
+### Fixed
+- **Sistema de fallback para endereços de envio**: Implementado sistema inteligente que usa dados de cobrança quando endereço de entrega está vazio, garantindo que variáveis `{shipping_address_full}`, `{shipping_method}` e outras funcionem sempre
+- **Botão "Visualizar Clientes"**: Corrigido bug que impedia a visualização de clientes no envio em massa, agora captura corretamente todos os dados do formulário
+- **JavaScript AJAX**: Atualizado para usar variável correta `wpwevoBulkSend` e implementado serialização adequada do formulário
+- **Histórico de envios**: Adicionada função `ajax_get_history` para atualização dinâmica do histórico após envios
+
+### Technical
+- Refatoração da função `replace_variables` em `class-send-by-status.php` para incluir sistema de fallback
+- Correção da função `initCustomerPreview` em `bulk-send.js` para usar `serialize()` do formulário
+- Adição da ação AJAX `wp_ajax_wpwevo_get_history` no construtor da classe `Bulk_Sender`
+- Melhoria na validação e tratamento de erros no envio em massa
+
+## [1.2.8] - 2025-06-20
+
 ## [1.0.10] - 2025-01-XX
 
 ### 🔧 CORREÇÃO CRÍTICA - WEBHOOK CARRINHO ABANDONADO

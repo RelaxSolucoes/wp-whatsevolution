@@ -17,18 +17,7 @@ class Bulk_Sender {
 	}
 
 	public function __construct() {
-		add_action('init', [$this, 'setup']);
-		add_action('admin_menu', [$this, 'add_submenu']);
-		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
-		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
-		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history']);
-
-		// Inicializa a API
-		$this->api = Api_Connection::get_instance();
-	}
-
-	public function setup() {
+		// Define as propriedades ANTES dos hooks
 		$this->menu_title = __('Envio em Massa', 'wp-whatsapp-evolution');
 		$this->page_title = __('Envio em Massa', 'wp-whatsapp-evolution');
 		
@@ -41,7 +30,11 @@ class Bulk_Sender {
 				'customer_name' => __('Nome do cliente', 'wp-whatsapp-evolution'),
 				'customer_email' => __('Email do cliente', 'wp-whatsapp-evolution'),
 				'total_orders' => __('Total de pedidos do cliente', 'wp-whatsapp-evolution'),
-				'last_order_date' => __('Data do último pedido', 'wp-whatsapp-evolution')
+				'last_order_date' => __('Data do último pedido', 'wp-whatsapp-evolution'),
+				'for_all' => __('Comum a todas as fontes', 'wp-whatsapp-evolution'),
+				'for_woo' => __('Específicas para WooCommerce', 'wp-whatsapp-evolution'),
+				'for_csv' => __('Para importação CSV', 'wp-whatsapp-evolution'),
+				'for_manual' => __('Variáveis não se aplicam à Lista Manual.', 'wp-whatsapp-evolution')
 			],
 			'tabs' => [
 				'customers' => __('Clientes WooCommerce', 'wp-whatsapp-evolution'),
@@ -56,7 +49,9 @@ class Bulk_Sender {
 				'min_value' => __('Valor Mínimo', 'wp-whatsapp-evolution'),
 				'preview_customers' => __('Visualizar Clientes', 'wp-whatsapp-evolution'),
 				'csv_file' => __('Arquivo CSV', 'wp-whatsapp-evolution'),
-				'csv_help' => __('O arquivo deve ter as colunas: nome, telefone (com DDD e país)', 'wp-whatsapp-evolution'),
+				'csv_help' => __('Para melhores resultados, use um arquivo CSV com as colunas "nome" e "telefone". O sistema aceita separação por ponto e vírgula (;) ou vírgula (,).', 'wp-whatsapp-evolution'),
+				'csv_example_title' => __('Exemplo Visual da Estrutura:', 'wp-whatsapp-evolution'),
+				'csv_download' => __('Baixar Arquivo de Exemplo', 'wp-whatsapp-evolution'),
 				'number_list' => __('Lista de Números', 'wp-whatsapp-evolution'),
 				'number_placeholder' => __('Um número por linha, com DDD e país', 'wp-whatsapp-evolution'),
 				'message' => __('Mensagem', 'wp-whatsapp-evolution'),
@@ -66,7 +61,8 @@ class Bulk_Sender {
 				'schedule_help' => __('Data e hora para iniciar o envio das mensagens.', 'wp-whatsapp-evolution'),
 				'interval' => __('Intervalo', 'wp-whatsapp-evolution'),
 				'interval_help' => __('segundos entre cada envio', 'wp-whatsapp-evolution'),
-				'start_sending' => __('Iniciar Envio', 'wp-whatsapp-evolution')
+				'start_sending' => __('Iniciar Envio', 'wp-whatsapp-evolution'),
+				'send_button' => __('Iniciar Envio', 'wp-whatsapp-evolution')
 			],
 			'history' => [
 				'title' => __('Histórico de Envios', 'wp-whatsapp-evolution'),
@@ -85,6 +81,31 @@ class Bulk_Sender {
 				]
 			]
 		];
+
+		add_action('admin_menu', [$this, 'add_submenu']);
+		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
+		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
+		add_action('wp_ajax_wpwevo_get_history', [$this, 'ajax_get_history']);
+		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history']);
+		add_action('wp_ajax_wpwevo_test_ajax', [$this, 'test_ajax']);
+
+		// Hook de debug para todas as requisições AJAX
+		add_action('wp_ajax_nopriv_wpwevo_preview_customers', function() {
+			wpwevo_log('error', 'Tentativa de acesso não autorizado ao preview customers');
+			wp_send_json_error('Acesso negado');
+		});
+
+		// Inicializa a API
+		$this->api = Api_Connection::get_instance();
+	}
+
+	/**
+	 * Método de teste para verificar se o AJAX está funcionando
+	 */
+	public function test_ajax() {
+		wpwevo_log('info', 'Teste AJAX chamado');
+		wp_send_json_success(['message' => 'AJAX funcionando!', 'timestamp' => current_time('mysql')]);
 	}
 
 	public function add_submenu() {
@@ -122,6 +143,7 @@ class Bulk_Sender {
 		wp_localize_script('wpwevo-bulk-send', 'wpwevoBulkSend', [
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_bulk_send'),
+			'debug' => true, // Debug temporário
 			'i18n' => [
 				'sending' => $this->i18n['sending'],
 				'preview' => $this->i18n['preview'],
@@ -130,7 +152,7 @@ class Bulk_Sender {
 				'csvRequired' => __('Selecione um arquivo CSV.', 'wp-whatsapp-evolution'),
 				'numbersRequired' => __('Digite pelo menos um número.', 'wp-whatsapp-evolution'),
 				'error' => __('Erro ao processar a requisição. Tente novamente.', 'wp-whatsapp-evolution'),
-				'send' => __('Iniciar Envio', 'wp-whatsapp-evolution'),
+				'send' => $this->i18n['form']['send_button'],
 				'historyTitle' => $this->i18n['history']['title'],
 				'noHistory' => $this->i18n['history']['no_history'],
 				'confirmClearHistory' => $this->i18n['history']['confirm_clear']
@@ -324,77 +346,61 @@ class Bulk_Sender {
 								<th scope="row"><?php echo esc_html($this->i18n['form']['csv_file']); ?></th>
 								<td>
 									<input type="file" name="wpwevo_csv_file" accept=".csv">
-									<div class="wpwevo-csv-help">
-									<p class="description">
-											<strong>Instruções:</strong>
-										</p>
-										<ol>
-											<li>O arquivo deve estar no formato CSV (valores separados por vírgula)</li>
-											<li>Deve conter um cabeçalho com as colunas: <code>nome,telefone</code></li>
-											<li>O telefone deve estar no formato internacional: 55 + DDD + número</li>
-											<li>Exemplo de número: 5511999999999 (sem espaços ou caracteres especiais)</li>
-										</ol>
-										<p class="description">
-											<strong>Exemplo de conteúdo do arquivo:</strong>
-										</p>
-										<pre>nome,telefone
-João Silva,5511999999999
-Maria Santos,5511988888888</pre>
-										<p>
-											<a href="#" class="button" id="wpwevo-download-csv-example">
-												<?php _e('Baixar Arquivo de Exemplo', 'wp-whatsapp-evolution'); ?>
-											</a>
+									<div class="wpwevo-csv-instructions" style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
+										<p style="margin-top: 0; font-weight: 500; color: #495057;"><?php echo esc_html($this->i18n['form']['csv_help']); ?></p>
+										<p style="margin-bottom: 10px; font-size: 13px; color: #6c757d;"><?php echo esc_html($this->i18n['form']['csv_example_title']); ?></p>
+										
+										<table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #dee2e6; font-size: 13px;">
+											<thead>
+												<tr style="background: #e9ecef;">
+													<th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">nome</th>
+													<th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">telefone</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td style="padding: 8px; border: 1px solid #dee2e6;">João Silva</td>
+													<td style="padding: 8px; border: 1px solid #dee2e6;">5511987654321</td>
+												</tr>
+												<tr>
+													<td style="padding: 8px; border: 1px solid #dee2e6;">Maria Santos</td>
+													<td style="padding: 8px; border: 1px solid #dee2e6;">5521912345678</td>
+												</tr>
+											</tbody>
+										</table>
+
+										<p style="margin-top: 15px;">
+											<a href="#" class="button" id="wpwevo-download-csv-template"><?php echo esc_html($this->i18n['form']['csv_download']); ?></a>
 										</p>
 									</div>
-									<style>
-										.wpwevo-csv-help {
-											margin-top: 10px;
-											padding: 15px;
-											background: #f8f9fa;
-											border-left: 4px solid #646970;
-										}
-										.wpwevo-csv-help ol {
-											margin: 10px 0 10px 20px;
-										}
-										.wpwevo-csv-help li {
-											margin-bottom: 5px;
-										}
-										.wpwevo-csv-help code {
-											background: #fff;
-											padding: 2px 6px;
-											border-radius: 3px;
-											color: #007cba;
-										}
-										.wpwevo-csv-help pre {
-											background: #fff;
-											padding: 10px;
-											border-radius: 3px;
-											margin: 10px 0;
-											overflow: auto;
-										}
-									</style>
 									<script>
-										jQuery(document).ready(function($) {
-											$('#wpwevo-download-csv-example').on('click', function(e) {
+										document.addEventListener('DOMContentLoaded', function() {
+											document.getElementById('wpwevo-download-csv-template').addEventListener('click', function(e) {
 												e.preventDefault();
 												
-												// Cria o conteúdo do CSV
-												var csvContent = 'nome,telefone\nJoão Silva,5511999999999\nMaria Santos,5511988888888';
+												// Conteúdo do CSV em formato de array para maior robustez
+												const rows = [
+													["nome", "telefone"],
+													["João Silva", "5511987654321"],
+													["Maria Santos", "5521912345678"]
+												];
+
+												// Converte o array para uma string CSV usando PONTO E VÍRGULA
+												let csvContent = rows.map(e => e.join(";")).join("\n");
+
+												// Adiciona o BOM (Byte Order Mark) para compatibilidade com Excel
+												const bom = "\uFEFF";
+												const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+												const url = URL.createObjectURL(blob);
 												
-												// Cria um blob com o conteúdo
-												var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-												
-												// Cria um link para download
-												var link = document.createElement("a");
-												if (link.download !== undefined) {
-													var url = URL.createObjectURL(blob);
-													link.setAttribute("href", url);
-													link.setAttribute("download", "exemplo_contatos.csv");
-													link.style.visibility = 'hidden';
-													document.body.appendChild(link);
-													link.click();
-													document.body.removeChild(link);
-												}
+												// Cria um link de download e simula o clique
+												const link = document.createElement("a");
+												link.setAttribute("href", url);
+												link.setAttribute("download", "exemplo_contatos.csv");
+												link.style.visibility = 'hidden';
+												document.body.appendChild(link);
+												link.click();
+												document.body.removeChild(link);
 											});
 										});
 									</script>
@@ -424,38 +430,101 @@ Maria Santos,5511988888888</pre>
 										  rows="4" required
 										  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
 										  placeholder="<?php echo esc_attr($this->i18n['form']['message_placeholder']); ?>"></textarea>
-							</div>
-
-							<!-- Configurações de Envio -->
-							<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #a8edea;">
-								<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
-									<span style="margin-right: 10px;">⏱️</span> <?php echo esc_html($this->i18n['form']['interval']); ?>
-								</h3>
-								<div style="display: flex; align-items: center; gap: 10px;">
-									<input type="number" name="wpwevo_interval" value="5" min="1" max="60" 
-										   style="width: 80px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
-									<span style="color: #4a5568; font-size: 14px;"><?php echo esc_html($this->i18n['form']['interval_help']); ?></span>
+								
+								<details class="wpwevo-variables-details" style="margin-top: 10px; font-size: 13px; color: #4a5568;">
+									<summary style="cursor: pointer; font-weight: 500;"><?php echo esc_html($this->i18n['variables']['title']); ?></summary>
+									
+								<!-- Variáveis para Clientes WooCommerce (visível por padrão) -->
+								<div class="wpwevo-variables" data-source="customers">
+									<div style="background: #e2e8f0; padding: 10px; border-radius: 4px; margin-top: 5px; font-size: 13px;">
+										<p style="margin: 0 0 10px 0;"><strong><?php echo esc_html($this->i18n['variables']['for_all']); ?>:</strong> <code>{customer_name}</code>, <code>{customer_phone}</code></p>
+										<p style="margin: 0;"><strong><?php echo esc_html($this->i18n['variables']['for_woo']); ?>:</strong> <code>{order_id}</code>, <code>{order_total}</code>, <code>{billing_first_name}</code>, <code>{billing_last_name}</code>, <code>{shipping_method}</code></p>
+									</div>
 								</div>
-							</div>
+								
+								<!-- Variáveis para CSV (oculto por padrão) -->
+								<div class="wpwevo-variables" data-source="csv" style="display: none;">
+									<div style="background: #e2e8f0; padding: 10px; border-radius: 4px; margin-top: 5px; font-size: 13px;">
+										<p style="margin: 0;"><strong><?php echo esc_html($this->i18n['variables']['for_csv']); ?>:</strong> <code>{customer_name}</code>, <code>{customer_phone}</code></p>
+									</div>
+								</div>
 
-							<!-- Botão de Envio -->
-							<div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
-								<button type="submit" class="wpwevo-bulk-submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); font-weight: 600;">
-									🚀 <?php echo esc_html($this->i18n['form']['start_sending']); ?>
-								</button>
-								<div class="wpwevo-bulk-status"></div>
+								<!-- Mensagem para Lista Manual (oculto por padrão) -->
+								<div class="wpwevo-variables" data-source="manual" style="display: none;">
+									<div style="background: #e2e8f0; padding: 10px; border-radius: 4px; margin-top: 5px; font-size: 13px;">
+										<p style="margin: 0;"><?php echo esc_html($this->i18n['variables']['for_manual']); ?></p>
+									</div>
+								</div>
+							</details>
+						</div>
+
+						<!-- Configurações de Envio -->
+						<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #a8edea;">
+							<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
+								<span style="margin-right: 10px;">⏱️</span> <?php echo esc_html($this->i18n['form']['interval']); ?>
+							</h3>
+							<div style="display: flex; align-items: center; gap: 10px;">
+								<input type="number" name="wpwevo_interval" value="5" min="1" max="60" 
+									   style="width: 80px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
+								<span style="color: #4a5568; font-size: 14px;"><?php echo esc_html($this->i18n['form']['interval_help']); ?></span>
 							</div>
-						</form>
-					</div>
+						</div>
+
+						<!-- Botão de Envio -->
+						<div class="wpwevo-submit-wrapper">
+							<button type="submit" class="button button-primary button-hero">
+								<span class="dashicons dashicons-send" style="vertical-align: middle; margin-top: -2px;"></span>
+								<?php echo esc_html($this->i18n['form']['send_button']); ?>
+							</button>
+						</div>
+
+						<!-- Container para a barra de progresso e resultados -->
+						<div id="wpwevo-bulk-status" style="margin-top: 20px;"></div>
+
+					</form>
 				</div>
 			</div>
-
-			<!-- Histórico de Envios -->
-			<div id="wpwevo-history-container" style="margin-top: 20px;">
-				<?php echo $this->get_history_html(); ?>
-			</div>
 		</div>
-				<?php
+
+		<style>
+		/* Estilos gerais */
+		.wpwevo-tabs {
+			display: flex;
+			border-bottom: 1px solid #ddd;
+			margin-bottom: 20px;
+		}
+		.wpwevo-tab-button {
+			padding: 10px 20px;
+			text-decoration: none;
+			color: #555;
+			border: 1px solid transparent;
+			border-bottom: 0;
+			margin-bottom: -1px;
+		}
+		.wpwevo-tab-button.active {
+			border-color: #ddd;
+			border-bottom-color: white;
+			background: white;
+			border-radius: 5px 5px 0 0;
+			color: #0073aa;
+			font-weight: 600;
+		}
+		.wpwevo-tab-content {
+			display: none;
+		}
+		.wpwevo-tab-content.active {
+			display: block;
+		}
+		.wpwevo-submit-wrapper {
+			margin-top: 20px;
+		}
+		.button-hero {
+			padding: 10px 25px;
+			font-size: 16px;
+			height: auto;
+		}
+		</style>
+		<?php
 	}
 
 	/**
@@ -492,21 +561,24 @@ Maria Santos,5511988888888</pre>
 	}
 
 	public function preview_customers() {
-		check_ajax_referer('wpwevo_bulk_send', 'nonce');
-
-		if (!current_user_can('manage_options')) {
-			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
-		}
-
 		try {
+			// Verifica nonce
+			if (!wp_verify_nonce($_POST['nonce'], 'wpwevo_bulk_send')) {
+				wp_send_json_error(__('Verificação de segurança falhou.', 'wp-whatsapp-evolution'));
+			}
+
+			if (!current_user_can('manage_options')) {
+				wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+			}
+
 			// Garante que status seja um array
 			$status = [];
 			if (isset($_POST['status']) && is_array($_POST['status'])) {
 				$status = array_values($_POST['status']); // Força reindexação do array
 			} elseif (isset($_POST['status'])) {
 				$status = [$_POST['status']];
-					}
-					
+			}
+			
 			// Remove valores vazios e sanitiza
 			$status = array_filter($status, function($s) {
 				return !empty(trim($s));
@@ -533,9 +605,9 @@ Maria Santos,5511988888888</pre>
 			}
 
 			// Obtém os filtros adicionais
-			$date_from = isset($_POST['date_from']) ? sanitize_text_field($_POST['date_from']) : '';
-			$date_to = isset($_POST['date_to']) ? sanitize_text_field($_POST['date_to']) : '';
-			$min_total = isset($_POST['min_total']) ? str_replace(['.', ','], ['', '.'], sanitize_text_field($_POST['min_total'])) : 0;
+			$date_from = isset($_POST['wpwevo_date_from']) ? sanitize_text_field($_POST['wpwevo_date_from']) : '';
+			$date_to = isset($_POST['wpwevo_date_to']) ? sanitize_text_field($_POST['wpwevo_date_to']) : '';
+			$min_total = isset($_POST['wpwevo_min_total']) ? str_replace(['.', ','], ['', '.'], sanitize_text_field($_POST['wpwevo_min_total'])) : 0;
 			$min_total = floatval($min_total);
 
 			// Prepara os argumentos da query
@@ -588,19 +660,19 @@ Maria Santos,5511988888888</pre>
 				$order = wc_get_order($order_id);
 				if (!$order) continue;
 
-							// Filtro por valor mínimo
-			if ($min_total > 0 && $order->get_total() < $min_total) {
-				continue;
-			}
+				// Filtro por valor mínimo
+				if ($min_total > 0 && $order->get_total() < $min_total) {
+					continue;
+				}
 
-			$phone = wpwevo_get_order_phone($order);
-			if (empty($phone)) continue;
+				$phone = wpwevo_get_order_phone($order);
+				if (empty($phone)) continue;
 
 				// Normaliza o número para comparação
 				$normalized_phone = $this->normalize_phone_for_comparison($phone);
 				if (!$normalized_phone) {
 					continue;
-					}
+				}
 
 				// Usa o número normalizado como chave para evitar duplicatas
 				if (!isset($processed_phones[$normalized_phone])) {
@@ -620,18 +692,18 @@ Maria Santos,5511988888888</pre>
 				}
 			}
 
-		if (empty($customers)) {
+			if (empty($customers)) {
 				throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsapp-evolution'));
-		}
+			}
 
 			// Ordena os clientes pelo nome
 			usort($customers, function($a, $b) {
 				return strcmp($a['name'], $b['name']);
 			});
 
-		ob_start();
-		?>
-		<div class="wpwevo-preview-table">
+			ob_start();
+			?>
+			<div class="wpwevo-preview-table">
 				<div class="wpwevo-preview-summary">
 					<h4>
 						<?php 
@@ -682,58 +754,58 @@ Maria Santos,5511988888888</pre>
 					<tr>
 						<th><?php _e('Nome', 'wp-whatsapp-evolution'); ?></th>
 						<th><?php _e('Telefone', 'wp-whatsapp-evolution'); ?></th>
-							<th>
-								<?php _e('Total de Pedidos', 'wp-whatsapp-evolution'); ?>
-								<span class="dashicons dashicons-info-outline" title="<?php esc_attr_e('Total de pedidos do cliente em todos os status', 'wp-whatsapp-evolution'); ?>"></span>
-							</th>
+						<th>
+							<?php _e('Total de Pedidos', 'wp-whatsapp-evolution'); ?>
+							<span class="dashicons dashicons-info-outline" title="<?php esc_attr_e('Total de pedidos do cliente em todos os status', 'wp-whatsapp-evolution'); ?>"></span>
+						</th>
 						<th><?php _e('Último Pedido', 'wp-whatsapp-evolution'); ?></th>
-							<th><?php _e('Status Atual', 'wp-whatsapp-evolution'); ?></th>
-							<th><?php _e('Valor', 'wp-whatsapp-evolution'); ?></th>
+						<th><?php _e('Status Atual', 'wp-whatsapp-evolution'); ?></th>
+						<th><?php _e('Valor', 'wp-whatsapp-evolution'); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php foreach ($customers as $customer) : ?>
 						<tr>
 							<td><?php echo esc_html($customer['name']); ?></td>
-								<td>
-									<?php 
-									$formatted_phone = preg_replace('/^(\d{2})(\d{2})(\d{4,5})(\d{4})$/', '+$1 ($2) $3-$4', $customer['phone']);
-									if ($formatted_phone !== $customer['phone']) {
-										echo '<strong>' . esc_html($formatted_phone) . '</strong>';
-										echo '<br><small class="description">' . esc_html($customer['phone']) . '</small>';
-									} else {
-										echo esc_html($customer['phone']);
-									}
-									?>
-								</td>
-								<td>
-									<?php 
-									echo esc_html($customer['total_orders']);
-									printf(
-										'<br><small class="description">%s</small>',
-										sprintf(
-											__('Pedido atual: #%s', 'wp-whatsapp-evolution'),
-											$customer['order_id']
-										)
-									);
-									?>
-								</td>
+							<td>
+								<?php 
+								$formatted_phone = wpwevo_validate_phone($customer['phone']);
+								if ($formatted_phone !== $customer['phone']) {
+									echo '<strong>' . esc_html($formatted_phone) . '</strong>';
+									echo '<br><small class="description">' . esc_html($customer['phone']) . '</small>';
+								} else {
+									echo esc_html($customer['phone']);
+								}
+								?>
+							</td>
+							<td>
+								<?php 
+								echo esc_html($customer['total_orders']);
+								printf(
+									'<br><small class="description">%s</small>',
+									sprintf(
+										__('Pedido atual: #%s', 'wp-whatsapp-evolution'),
+										$customer['order_id']
+									)
+								);
+								?>
+							</td>
 							<td><?php echo esc_html($customer['last_order']); ?></td>
-								<td>
-									<?php
-									$status_class = sanitize_html_class('order-status-' . $customer['status']);
-									printf(
-										'<mark class="order-status %s"><span>%s</span></mark>',
-										esc_attr($status_class),
-										esc_html(wc_get_order_status_name($customer['status']))
-									);
-									?>
-								</td>
-								<td>
-									<?php
-									echo 'R$ ' . number_format($customer['order_total'], 2, ',', '.');
-									?>
-								</td>
+							<td>
+								<?php
+								$status_class = sanitize_html_class('order-status-' . $customer['status']);
+								printf(
+									'<mark class="order-status %s"><span>%s</span></mark>',
+									esc_attr($status_class),
+									esc_html(wc_get_order_status_name($customer['status']))
+								);
+								?>
+							</td>
+							<td>
+								<?php
+								echo 'R$ ' . number_format($customer['order_total'], 2, ',', '.');
+								?>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
@@ -814,7 +886,7 @@ Maria Santos,5511988888888</pre>
 			}
 			</style>
 		<?php
-		wp_send_json_success(ob_get_clean());
+		wp_send_json_success(['html' => ob_get_clean()]);
 
 		} catch (\Exception $e) {
 			wp_send_json_error($e->getMessage());
@@ -823,15 +895,23 @@ Maria Santos,5511988888888</pre>
 
 	public function handle_bulk_send() {
 		try {
-		check_ajax_referer('wpwevo_bulk_send', 'nonce');
+			// Verifica nonce com o nome correto do campo
+			if (!isset($_POST['wpwevo_bulk_send_nonce']) || !wp_verify_nonce($_POST['wpwevo_bulk_send_nonce'], 'wpwevo_bulk_send')) {
+				wp_send_json_error(__('Verificação de segurança falhou.', 'wp-whatsapp-evolution'), 403);
+			}
 
-		if (!current_user_can('manage_options')) {
+			if (!current_user_can('manage_options')) {
 				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
-		}
+			}
 
-			// Verifica conexão com a API
-			if (!$this->api->is_configured()) {
-				throw new \Exception($this->i18n['connection_error']);
+			// Verifica conexão com a API de forma segura
+			try {
+				if (!$this->api->is_configured()) {
+					throw new \Exception($this->i18n['connection_error']);
+				}
+			} catch (\Exception $e) {
+				// Se a API falhar, retorna erro mas não quebra o site
+				wp_send_json_error(__('Erro na configuração da API. Verifique as configurações.', 'wp-whatsapp-evolution'));
 			}
 
 			$active_tab = isset($_POST['active_tab']) ? sanitize_text_field($_POST['active_tab']) : '';
@@ -856,14 +936,14 @@ Maria Santos,5511988888888</pre>
 
 					$date_from = isset($_POST['wpwevo_date_from']) ? sanitize_text_field($_POST['wpwevo_date_from']) : '';
 					$date_to = isset($_POST['wpwevo_date_to']) ? sanitize_text_field($_POST['wpwevo_date_to']) : '';
-					$min_total = isset($_POST['wpwevo_min_total']) ? floatval($_POST['wpwevo_min_total']) : 0;
+					$min_total = isset($_POST['wpwevo_min_total']) ? floatval(str_replace(',', '.', $_POST['wpwevo_min_total'])) : 0;
 					
 				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total);
 				break;
 
 			case 'csv':
-					if (!isset($_FILES['wpwevo_csv_file'])) {
-						throw new \Exception(__('Arquivo CSV não enviado.', 'wp-whatsapp-evolution'));
+					if (!isset($_FILES['wpwevo_csv_file']) || empty($_FILES['wpwevo_csv_file']['tmp_name'])) {
+						throw new \Exception(__('Arquivo CSV não enviado ou está vazio.', 'wp-whatsapp-evolution'));
 				}
 					$numbers = $this->process_csv_file($_FILES['wpwevo_csv_file']);
 				break;
@@ -890,38 +970,59 @@ Maria Santos,5511988888888</pre>
 			$success = 0;
 
 			// Envia as mensagens diretamente
-			foreach ($numbers as $number) {
-				try {
-					// Prepara a mensagem com as variáveis substituídas
-					$prepared_message = $this->replace_variables($message, $number);
-					
-					// Envia a mensagem
-					$result = $this->api->send_message($number, $prepared_message);
+			foreach ($numbers as $contact) {
+				$phone_number = is_array($contact) ? $contact['phone'] : $contact;
+				$contact_name = is_array($contact) ? $contact['name'] : '';
 
-					if (!$result['success']) {
+				try {
+					// Valida o número de telefone antes de enviar
+					$validated_phone = wpwevo_validate_phone($phone_number);
+					if (!$validated_phone) {
 						$errors[] = sprintf(
-							__('Erro ao enviar para %s: %s', 'wp-whatsapp-evolution'),
-							$number,
-							$result['message']
+							__('Número com formato inválido para %s (%s)', 'wp-whatsapp-evolution'),
+							$contact_name ?: 'desconhecido',
+							$phone_number
 						);
-					} else {
-						$success++;
+						continue; // Pula para o próximo número
 					}
 
-					$sent++;
+					// Prepara a mensagem com as variáveis substituídas
+					$prepared_message = $this->replace_variables($message, $contact);
+					
+					// Envia a mensagem de forma segura
+					try {
+						$result = $this->api->send_message($validated_phone, $prepared_message);
 
-					// Aguarda o intervalo configurado
-					if ($interval > 0) {
-						sleep($interval);
+						if (!$result['success']) {
+							$errors[] = sprintf(
+								__('Erro ao enviar para %s: %s', 'wp-whatsapp-evolution'),
+								$contact_name ?: $validated_phone,
+								$result['message']
+							);
+						} else {
+							$success++;
+						}
+					} catch (\Exception $api_error) {
+						// Se a API falhar, registra o erro mas continua
+						$errors[] = sprintf(
+							__('Erro na API ao enviar para %s: %s', 'wp-whatsapp-evolution'),
+							$contact_name ?: $validated_phone,
+							$api_error->getMessage()
+						);
 					}
 
 				} catch (\Exception $e) {
 					$errors[] = sprintf(
-						__('Erro ao enviar para %s: %s', 'wp-whatsapp-evolution'),
-						$number,
+						__('Erro ao processar %s: %s', 'wp-whatsapp-evolution'),
+						$contact_name ?: $phone_number,
 						$e->getMessage()
 					);
+				} finally {
 					$sent++;
+					// Aguarda o intervalo configurado apenas se houver mais envios
+					if ($sent < $total && $interval > 0) {
+						sleep($interval);
+					}
 				}
 			}
 
@@ -977,13 +1078,33 @@ Maria Santos,5511988888888</pre>
 			]);
 
 		} catch (\Exception $e) {
-			wp_send_json_error($e->getMessage());
+			wp_send_json_error(['message' => $e->getMessage()]);
 		}
 	}
 
-	private function replace_variables($message, $number) {
-		// Retorna a mensagem sem alterações
-		return $message;
+	private function replace_variables($message, $contact_data) {
+		if (!is_array($contact_data)) {
+			return $message;
+		}
+
+		// Mapeia placeholders para chaves do array de contato
+		$replacements = [
+			'{customer_name}' => $contact_data['name'] ?? '',
+			'{customer_phone}' => $contact_data['phone'] ?? '',
+		];
+
+		// Adiciona placeholders de WooCommerce se disponíveis
+		if (isset($contact_data['order'])) {
+			/** @var \WC_Order $order */
+			$order = $contact_data['order'];
+			$replacements['{order_id}'] = $order->get_id();
+			$replacements['{order_total}'] = $order->get_formatted_order_total();
+			$replacements['{billing_first_name}'] = $order->get_billing_first_name();
+			$replacements['{billing_last_name}'] = $order->get_billing_last_name();
+			$replacements['{shipping_method}'] = $order->get_shipping_method();
+		}
+
+		return str_replace(array_keys($replacements), array_values($replacements), $message);
 	}
 
 	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total) {
@@ -1037,240 +1158,155 @@ Maria Santos,5511988888888</pre>
 		$orders_query = new \WC_Order_Query($query_args);
 		$orders = $orders_query->get_orders();
 
-		$numbers = [];
-		$processed = [];
+		$customers = [];
+		$processed_phones = [];
 
 		foreach ($orders as $order_id) {
 			$order = wc_get_order($order_id);
 			if (!$order) continue;
 			
-					// Filtro por valor mínimo
-		if ($min_total > 0 && $order->get_total() < $min_total) {
-			continue;
-		}
-
-		$phone = wpwevo_get_order_phone($order);
-		if (empty($phone)) continue;
-
-			// Normaliza o número para comparação
-			$normalized_phone = $this->normalize_phone_for_comparison($phone);
-			if (!$normalized_phone) {
-					continue;
-				}
-
-			// Evita duplicatas usando o número normalizado
-			if (!isset($processed[$normalized_phone])) {
-				$numbers[] = $phone;
-				$processed[$normalized_phone] = true;
+			// Filtro por valor mínimo
+			if ($min_total > 0 && $order->get_total() < $min_total) {
+				continue;
 			}
+
+			$phone = wpwevo_get_order_phone($order);
+			if (empty($phone)) continue;
+
+			// Normaliza o número para comparação para evitar duplicatas
+			$normalized_phone = preg_replace('/\D/', '', $phone);
+			if (isset($processed_phones[$normalized_phone])) {
+				continue;
+			}
+
+			$customers[] = [
+				'name'  => $order->get_billing_first_name(),
+				'phone' => $phone,
+				'order' => $order // Passa o objeto do pedido para mais variáveis
+			];
+			$processed_phones[$normalized_phone] = true;
 		}
 
-		return $numbers;
+		return $customers;
 	}
 
 	private function process_csv_file($file) {
-		// Verifica se houve erro no upload
 		if ($file['error'] !== UPLOAD_ERR_OK) {
-			$error_messages = [
-				UPLOAD_ERR_INI_SIZE => __('O arquivo excede o tamanho máximo permitido pelo servidor.', 'wp-whatsapp-evolution'),
-				UPLOAD_ERR_FORM_SIZE => __('O arquivo excede o tamanho máximo permitido pelo formulário.', 'wp-whatsapp-evolution'),
-				UPLOAD_ERR_PARTIAL => __('O arquivo foi apenas parcialmente carregado.', 'wp-whatsapp-evolution'),
-				UPLOAD_ERR_NO_FILE => __('Nenhum arquivo foi enviado.', 'wp-whatsapp-evolution'),
-				UPLOAD_ERR_NO_TMP_DIR => __('Pasta temporária ausente.', 'wp-whatsapp-evolution'),
-				UPLOAD_ERR_CANT_WRITE => __('Falha ao gravar arquivo em disco.', 'wp-whatsapp-evolution'),
-				UPLOAD_ERR_EXTENSION => __('Uma extensão PHP interrompeu o upload do arquivo.', 'wp-whatsapp-evolution'),
-			];
-			throw new \Exception($error_messages[$file['error']] ?? __('Erro ao enviar arquivo.', 'wp-whatsapp-evolution'));
+			throw new \Exception(__('Erro no upload do arquivo.', 'wp-whatsapp-evolution'));
 		}
 
-		// Verifica o tipo do arquivo
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mime_type = finfo_file($finfo, $file['tmp_name']);
-		finfo_close($finfo);
+		$file_path = $file['tmp_name'];
+		$file_content = file_get_contents($file_path);
 
-		$allowed_types = ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'];
-		if (!in_array($mime_type, $allowed_types)) {
-			throw new \Exception(__('O arquivo deve estar no formato CSV.', 'wp-whatsapp-evolution'));
+		// Etapa 1: Tenta detectar e converter a codificação do arquivo para UTF-8 para lidar com acentos
+		$encoding = mb_detect_encoding($file_content, ['UTF-8', 'Windows-1252', 'ISO-8859-1'], true);
+		if ($encoding && $encoding !== 'UTF-8') {
+			$file_content = mb_convert_encoding($file_content, 'UTF-8', $encoding);
 		}
 
-		// Tenta abrir o arquivo
-		$handle = fopen($file['tmp_name'], 'r');
-		if ($handle === false) {
-			throw new \Exception(__('Erro ao ler arquivo.', 'wp-whatsapp-evolution'));
+		// Etapa 2: Processa o conteúdo linha por linha para máxima robustez
+		$lines = explode("\n", $file_content);
+		$lines = array_filter(array_map('trim', $lines));
+
+		if (count($lines) < 2) {
+			throw new \Exception(__('Arquivo CSV precisa de um cabeçalho e pelo menos uma linha de dados.', 'wp-whatsapp-evolution'));
 		}
 
-		try {
-		$numbers = [];
-			$errors = [];
-			$line_number = 0;
-			$processed = [];
+		// Etapa 3: Extrai o cabeçalho, detecta o delimitador e encontra as colunas
+		$header_line = array_shift($lines);
+		
+		// Detecta o delimitador (vírgula ou ponto e vírgula)
+		$delimiter = (substr_count($header_line, ';') > substr_count($header_line, ',')) ? ';' : ',';
+		
+		$header = str_getcsv($header_line, $delimiter);
+		$header_map = array_map('strtolower', array_map('trim', $header));
 
-			// Lê o cabeçalho
-			$header = fgetcsv($handle);
-			if ($header === false) {
-				throw new \Exception(__('Arquivo CSV vazio.', 'wp-whatsapp-evolution'));
-			}
-			$line_number++;
+		$name_col_index = array_search('nome', $header_map);
+		$phone_col_index = array_search('telefone', $header_map);
 
-			// Identifica as colunas
-			$header = array_map('strtolower', array_map('trim', $header));
-			$name_col = array_search('nome', $header);
-			$phone_col = array_search('telefone', $header);
-
-			if ($phone_col === false) {
-				throw new \Exception(__('Coluna "telefone" não encontrada no CSV.', 'wp-whatsapp-evolution'));
-			}
-
-			// Processa as linhas
-		while (($data = fgetcsv($handle)) !== false) {
-				$line_number++;
-
-				// Pula linhas vazias
-				if (empty(array_filter($data))) {
-					continue;
-				}
-
-				// Verifica se tem todas as colunas
-				if (count($data) < count($header)) {
-					$errors[] = sprintf(
-						__('Linha %d: número incorreto de colunas.', 'wp-whatsapp-evolution'),
-						$line_number
-					);
-					continue;
-				}
-
-				// Processa o número
-				if (isset($data[$phone_col])) {
-					$phone = preg_replace('/[^0-9]/', '', $data[$phone_col]);
-					
-					// Validações do número
-					if (empty($phone)) {
-						$errors[] = sprintf(
-							__('Linha %d: número de telefone vazio.', 'wp-whatsapp-evolution'),
-							$line_number
-						);
-					} elseif (strlen($phone) < 10 || strlen($phone) > 13) {
-						$errors[] = sprintf(
-							__('Linha %d: formato de número inválido (%s). Use: DDD + número ou 55 + DDD + número.', 'wp-whatsapp-evolution'),
-							$line_number,
-							$data[$phone_col]
-						);
-					} else {
-						// Normaliza o número antes da validação final
-						if (strlen($phone) == 10 && !preg_match('/^55/', $phone)) {
-							$phone = '55' . $phone; // Telefone fixo
-						} elseif (strlen($phone) == 11 && !preg_match('/^55/', $phone)) {
-							$phone = '55' . $phone; // Celular
-						}
-						
-						if (!preg_match('/^55[1-9][1-9]/', $phone)) {
-							$errors[] = sprintf(
-								__('Linha %d: o número deve começar com 55 seguido de DDD válido (%s).', 'wp-whatsapp-evolution'),
-								$line_number,
-								$data[$phone_col]
-							);
-						} else {
-							// Evita duplicatas
-							if (!isset($processed[$phone])) {
-								$numbers[] = $phone;
-								$processed[$phone] = true;
-							}
-						}
-					}
-				}
-			}
-
-			// Verifica se encontrou algum número válido
-			if (empty($numbers)) {
-				if (!empty($errors)) {
-					throw new \Exception(
-						__('Nenhum número válido encontrado. Erros:', 'wp-whatsapp-evolution') . "\n" .
-						implode("\n", $errors)
-					);
-				} else {
-					throw new \Exception(__('Nenhum número encontrado no arquivo.', 'wp-whatsapp-evolution'));
+		if ($phone_col_index === false) {
+			throw new \Exception(__('A coluna "telefone" não foi encontrada no cabeçalho do arquivo CSV. Verifique a ortografia e o formato.', 'wp-whatsapp-evolution'));
 		}
+
+		// Etapa 4: Processa cada linha de dados
+		$contacts = [];
+		foreach ($lines as $line) {
+			if (empty(trim($line))) continue;
+
+			$data = str_getcsv($line, $delimiter);
+			
+			$phone = isset($data[$phone_col_index]) ? trim($data[$phone_col_index]) : null;
+			$name = ($name_col_index !== false && isset($data[$name_col_index])) ? trim($data[$name_col_index]) : '';
+
+			if (!empty($phone)) {
+				$contacts[] = [
+					'name'  => $name,
+					'phone' => $phone
+				];
 			}
-
-			// Se houver erros mas também números válidos, mostra os erros como aviso
-			if (!empty($errors)) {
-				// Armazena os erros em uma opção temporária para exibir depois
-				update_option('wpwevo_csv_import_errors', $errors, false);
-			}
-
-			return $numbers;
-
-		} finally {
-			fclose($handle);
 		}
+
+		if (empty($contacts)) {
+			throw new \Exception(__('Nenhum contato com número de telefone válido foi encontrado no arquivo CSV.', 'wp-whatsapp-evolution'));
+		}
+		
+		return $contacts;
 	}
 
 	public function clear_history() {
 		check_ajax_referer('wpwevo_bulk_send', 'nonce');
-
 		if (!current_user_can('manage_options')) {
 			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
 		}
 
 		delete_option('wpwevo_bulk_history');
-		wp_send_json_success(__('Histórico limpo com sucesso.', 'wp-whatsapp-evolution'));
+		wp_send_json_success();
+	}
+
+	public function ajax_get_history() {
+		check_ajax_referer('wpwevo_bulk_send', 'nonce');
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+		}
+
+		wp_send_json_success(['historyHtml' => $this->get_history_html()]);
 	}
 
 	private function get_history_html() {
 		$history = get_option('wpwevo_bulk_history', []);
+		
+		if (empty($history)) {
+			return '<p>' . esc_html($this->i18n['history']['no_history']) . '</p>';
+		}
+
 		ob_start();
 		?>
-		<div class="wpwevo-bulk-history">
-			<div class="wpwevo-history-header">
-				<h3><?php _e('Histórico de Envios', 'wp-whatsapp-evolution'); ?></h3>
-				<?php if (!empty($history)) : ?>
-					<button type="button" class="button button-link-delete" id="wpwevo-clear-history">
-						<span class="dashicons dashicons-trash"></span>
-						<?php _e('Limpar Histórico', 'wp-whatsapp-evolution'); ?>
-					</button>
-				<?php endif; ?>
-			</div>
-
-			<?php if (empty($history)) : ?>
-				<p><?php _e('Nenhum envio em massa realizado ainda.', 'wp-whatsapp-evolution'); ?></p>
-			<?php else : ?>
-				<table class="widefat">
-					<thead>
-						<tr>
-							<th><?php _e('Data', 'wp-whatsapp-evolution'); ?></th>
-							<th><?php _e('Origem', 'wp-whatsapp-evolution'); ?></th>
-							<th><?php _e('Total', 'wp-whatsapp-evolution'); ?></th>
-							<th><?php _e('Enviados', 'wp-whatsapp-evolution'); ?></th>
-							<th><?php _e('Status', 'wp-whatsapp-evolution'); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach (array_reverse($history) as $item) : ?>
-							<tr>
-								<td><?php echo esc_html(date_i18n('d/m/Y H:i', $item['date'])); ?></td>
-								<td>
-									<?php
-									$sources = [
-										'customers' => __('Clientes WooCommerce', 'wp-whatsapp-evolution'),
-										'csv' => __('Importação CSV', 'wp-whatsapp-evolution'),
-										'manual' => __('Lista Manual', 'wp-whatsapp-evolution')
-									];
-									echo esc_html($sources[$item['source']] ?? $item['source']);
-									?>
-								</td>
-								<td><?php echo esc_html($item['total']); ?></td>
-								<td><?php echo esc_html($item['success']); ?></td>
-								<td>
-									<mark class="<?php echo $item['errors'] > 0 ? 'error' : 'success'; ?>">
-										<?php echo esc_html($item['status']); ?>
-									</mark>
-								</td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
-			<?php endif; ?>
-		</div>
+		<table class="widefat striped">
+			<thead>
+				<tr>
+					<th><?php echo esc_html($this->i18n['history']['date']); ?></th>
+					<th><?php echo esc_html($this->i18n['history']['source']); ?></th>
+					<th><?php echo esc_html($this->i18n['history']['total']); ?></th>
+					<th><?php echo esc_html($this->i18n['history']['sent']); ?></th>
+					<th><?php echo esc_html($this->i18n['history']['status']); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach (array_reverse($history) as $item) : ?>
+					<tr>
+						<td><?php echo esc_html(date_i18n('d/m/Y H:i', $item['date'])); ?></td>
+						<td><?php echo esc_html($item['source']); ?></td>
+						<td><?php echo esc_html($item['total']); ?></td>
+						<td><?php echo esc_html($item['sent']); ?></td>
+						<td>
+							<mark class="order-status <?php echo $item['errors'] > 0 ? 'order-status-failed' : 'order-status-completed'; ?>">
+								<span><?php echo esc_html($item['status']); ?></span>
+							</mark>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
 		<?php
 		return ob_get_clean();
 	}

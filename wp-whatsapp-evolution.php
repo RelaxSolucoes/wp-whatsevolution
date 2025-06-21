@@ -3,9 +3,9 @@
  * Plugin Name: WP WhatsEvolution
  * Plugin URI: https://relaxsolucoes.online/
  * Description: Integração avançada com WooCommerce usando Evolution API para envio de mensagens
- * Version: 1.2.1
- * Author: Relax Soluções
- * Author URI: https://relaxsolucoes.online/
+ * Version:           1.3.0
+ * Author:            WhatsEvolution
+ * Author URI:        https://whatsevolution.com.br/
  * Text Domain: wp-whatsevolution
  * Domain Path: /languages
  * Requires PHP: 7.4
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('WPWEVO_VERSION', '1.2.1');
+define('WPWEVO_VERSION', '1.3.0');
 define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));
@@ -106,8 +106,20 @@ function wpwevo_check_requirements() {
 	}
 
 	// Verifica WooCommerce
-	if (!class_exists('WooCommerce') || version_compare(WC_VERSION, $requirements['wc'], '<')) {
+	if (!class_exists('WooCommerce')) {
 		$errors[] = 'wc';
+	} else {
+		// Verifica se WC_VERSION está definido
+		if (defined('WC_VERSION')) {
+			if (version_compare(WC_VERSION, $requirements['wc'], '<')) {
+				$errors[] = 'wc';
+			}
+		} else {
+			// Fallback: verifica se WooCommerce está ativo via função
+			if (!function_exists('WC') || !WC()) {
+				$errors[] = 'wc';
+			}
+		}
 	}
 
 	if (!empty($errors)) {
@@ -210,22 +222,21 @@ function wpwevo_migrate_old_options() {
 	}
 }
 
-
-
 // ===== AUTO-UPDATE GITHUB =====
-require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+// require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
+// use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 function wp_whatsevolution_init_auto_updater() {
-    if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) return;
+    // Temporariamente desabilitado até o plugin-update-checker ser restaurado
+    // if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) return;
     
-    $updateChecker = PucFactory::buildUpdateChecker(
-        'https://github.com/RelaxSolucoes/wp-whatsevolution',
-        __FILE__,
-        'wp-whatsevolution'
-    );
+    // $updateChecker = PucFactory::buildUpdateChecker(
+    //     'https://github.com/RelaxSolucoes/wp-whatsevolution',
+    //     __FILE__,
+    //     'wp-whatsevolution'
+    // );
     
-    $updateChecker->getVcsApi()->enableReleaseAssets();
+    // $updateChecker->getVcsApi()->enableReleaseAssets();
 }
-add_action('init', 'wp_whatsevolution_init_auto_updater');
+// add_action('init', 'wp_whatsevolution_init_auto_updater');
 // ===== FIM AUTO-UPDATE ===== 

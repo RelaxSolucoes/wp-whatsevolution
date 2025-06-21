@@ -31,6 +31,18 @@ class Send_By_Status {
 		}
 		self::$hooks_initialized = true;
 
+		// Define as propriedades ANTES dos hooks
+		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		
+		$this->i18n = [
+			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
+			'saved' => __('Configurações salvas com sucesso!', 'wp-whatsapp-evolution'),
+			'error' => __('Erro ao salvar: ', 'wp-whatsapp-evolution'),
+			'preview' => __('Visualizando...', 'wp-whatsapp-evolution'),
+			'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsapp-evolution'),
+		];
+
 		// Declara compatibilidade com HPOS
 		add_action('before_woocommerce_init', function() {
 			if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
@@ -183,25 +195,31 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			$all_products[] = $item->get_name();
 		}
 
-		// Monta endereço completo de envio
+		// Sistema de fallback para endereços de envio
+		// Se o endereço de envio estiver vazio, usa o de cobrança
+		$shipping_address_1 = $order->get_shipping_address_1();
+		$shipping_city = $order->get_shipping_city();
+		$shipping_state = $order->get_shipping_state();
+		$shipping_postcode = $order->get_shipping_postcode();
+		$shipping_name = $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name();
+
+		// Se o endereço de envio estiver vazio, usa o de cobrança como fallback
+		if (empty($shipping_address_1)) {
+			$shipping_address_1 = $order->get_billing_address_1();
+			$shipping_city = $order->get_billing_city();
+			$shipping_state = $order->get_billing_state();
+			$shipping_postcode = $order->get_billing_postcode();
+			$shipping_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+		}
+
+		// Monta o endereço completo
 		$shipping_address_parts = [];
-		if ($order->get_shipping_address_1()) {
-			$shipping_address_parts[] = $order->get_shipping_address_1();
-		}
-		if ($order->get_shipping_address_2()) {
-			$shipping_address_parts[] = $order->get_shipping_address_2();
-		}
-		$shipping_address_full = implode(', ', $shipping_address_parts);
+		if (!empty($shipping_address_1)) $shipping_address_parts[] = $shipping_address_1;
+		if (!empty($shipping_city)) $shipping_address_parts[] = $shipping_city;
+		if (!empty($shipping_state)) $shipping_address_parts[] = $shipping_state;
+		if (!empty($shipping_postcode)) $shipping_address_parts[] = $shipping_postcode;
 		
-		// Endereço de cobrança completo
-		$billing_address_parts = [];
-		if ($order->get_billing_address_1()) {
-			$billing_address_parts[] = $order->get_billing_address_1();
-		}
-		if ($order->get_billing_address_2()) {
-			$billing_address_parts[] = $order->get_billing_address_2();
-		}
-		$billing_address_full = implode(', ', $billing_address_parts);
+		$shipping_address_full = implode(', ', $shipping_address_parts);
 
 		$variables = [
 			'{customer_name}' => $order->get_billing_first_name(),
@@ -213,19 +231,13 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			'{payment_url}' => $order->get_checkout_payment_url(),
 			'{first_product}' => $first_product,
 			'{all_products}' => implode(', ', $all_products),
-			'{shipping_name}' => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
-			'{shipping_address_line_1}' => $order->get_shipping_address_1(),
+			'{shipping_name}' => $shipping_name,
+			'{shipping_address_line_1}' => $shipping_address_1,
 			'{shipping_address_line_2}' => $order->get_shipping_address_2(),
-			'{shipping_address_full}' => $shipping_address_full,
-			'{shipping_city}' => $order->get_shipping_city(),
-			'{shipping_state}' => $order->get_shipping_state(),
-			'{shipping_postcode}' => $order->get_shipping_postcode(),
-			'{billing_address_line_1}' => $order->get_billing_address_1(),
-			'{billing_address_line_2}' => $order->get_billing_address_2(),
-			'{billing_address_full}' => $billing_address_full,
-			'{billing_city}' => $order->get_billing_city(),
-			'{billing_state}' => $order->get_billing_state(),
-			'{billing_postcode}' => $order->get_billing_postcode()
+			'{shipping_city}' => $shipping_city,
+			'{shipping_state}' => $shipping_state,
+			'{shipping_postcode}' => $shipping_postcode,
+			'{shipping_address_full}' => $shipping_address_full
 		];
 
 		foreach ($variables as $key => $value) {
@@ -236,9 +248,6 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 	}
 
 	public function setup() {
-		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		
 		// Carrega os status do WooCommerce de forma segura
 		$this->available_statuses = [];
 		if (function_exists('wc_get_order_statuses')) {
@@ -248,16 +257,6 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 				$this->available_statuses[$status] = $label;
 			}
 		}
-
-		$this->i18n = [
-			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
-			'saved' => __('Configurações salvas!', 'wp-whatsapp-evolution'),
-			'error' => __('Erro ao salvar: ', 'wp-whatsapp-evolution'),
-			'preview' => __('Visualizando...', 'wp-whatsapp-evolution'),
-			'emptyMessage' => __('Por favor, digite uma mensagem.', 'wp-whatsapp-evolution'),
-			'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsapp-evolution'),
-			'confirmReset' => __('Deseja restaurar a mensagem padrão?', 'wp-whatsapp-evolution')
-		];
 	}
 
 	public function add_menu() {

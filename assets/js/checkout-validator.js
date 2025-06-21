@@ -186,8 +186,12 @@ jQuery(document).ready(function($) {
                             }
                         }
                     } else {
-                        $field.removeClass('wpwevo-valid wpwevo-invalid');
-                        $feedback.empty(); // Apenas limpa o feedback em caso de erro
+                        $field.addClass('wpwevo-invalid').removeClass('wpwevo-valid');
+                        let errorMsg = response.message || wpwevoCheckout.validation_error;
+                        $feedback.html('<span style="color:#f44336;">' + errorMsg + '</span>');
+                        if (wpwevoCheckout.show_modal === 'yes' && !userConfirmedNonWhatsApp) {
+                            $('#wpwevo-confirmation-modal').show();
+                        }
                     }
                 },
                 error: function(xhr, status, error) {
