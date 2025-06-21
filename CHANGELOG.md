@@ -1,5 +1,16 @@
 # Changelog - WP WhatsEvolution
 
+## [1.3.0] - 2024-06-21
+### REVOLUÇÃO NO ENVIO EM MASSA
+-   **Melhoria**: A funcionalidade de Envio em Massa foi completamente reconstruída do zero para ser mais poderosa, intuitiva e à prova de falhas.
+-   **Melhoria**: A tela de importação de CSV agora é visualmente clara, com uma tabela de exemplo que elimina a confusão entre colunas e vírgulas.
+-   **Melhoria**: O sistema agora detecta automaticamente se o separador é vírgula (`,`) ou ponto e vírgula (`;`), garantindo compatibilidade com Excel de diferentes regiões. Também corrige problemas de codificação de caracteres (acentos).
+-   **Melhoria**: Agora é possível usar `{customer_name}` e `{customer_phone}` em mensagens para contatos importados via CSV. Para clientes WooCommerce, a lista de variáveis foi expandida.
+-   **Melhoria**: A seção "Variáveis Disponíveis" agora é inteligente e mostra apenas as variáveis que se aplicam à aba selecionada (WooCommerce, CSV ou Manual).
+-   **Melhoria**: As mensagens de erro agora são específicas, informando exatamente qual número falhou e por quê (ex: "Formato inválido").
+-   **Correção**: Inúmeros bugs de lógica e validação foram corrigidos, garantindo que cada aba (WooCommerce, CSV, Manual) funcione de forma independente e correta.
+-   **Correção**: Resolvido o problema no download do arquivo de exemplo, que agora é gerado em um formato 100% compatível com Excel (incluindo o BOM para UTF-8).
+
 ## [1.2.9] - 2025-06-20
 
 ### Fixed

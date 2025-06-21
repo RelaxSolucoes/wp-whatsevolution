@@ -110,57 +110,49 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
+= 1.3.0 - 2024-06-21 =
+*   **REVOLUÇÃO NO ENVIO EM MASSA**: A funcionalidade de Envio em Massa foi completamente reconstruída do zero para ser mais poderosa, intuitiva e à prova de falhas.
+*   **Melhoria - Interface de Importação CSV Inteligente:** A tela de importação de CSV agora é visualmente clara, com uma tabela de exemplo que elimina a confusão entre colunas e vírgulas.
+*   **Melhoria - Robustez do CSV:** O sistema agora detecta automaticamente se o separador é vírgula (,) ou ponto e vírgula (;), garantindo compatibilidade com Excel de diferentes regiões. Também corrige problemas de codificação de caracteres (acentos).
+*   **Melhoria - Personalização com Variáveis:** Agora é possível usar `{customer_name}` e `{customer_phone}` em mensagens para contatos importados via CSV. Para clientes WooCommerce, a lista de variáveis foi expandida.
+*   **Melhoria - UI Dinâmica:** A seção "Variáveis Disponíveis" agora é inteligente e mostra apenas as variáveis que se aplicam à aba selecionada (WooCommerce, CSV ou Manual).
+*   **Melhoria - Relatórios de Erro Detalhados:** As mensagens de erro agora são específicas, informando exatamente qual número falhou e por quê (ex: "Formato inválido").
+*   **Correção:** Inúmeros bugs de lógica e validação foram corrigidos, garantindo que cada aba (WooCommerce, CSV, Manual) funcione de forma independente e correta.
+*   **Correção:** Resolvido o problema no download do arquivo de exemplo, que agora é gerado em um formato 100% compatível com Excel (incluindo o BOM para UTF-8).
+
+= 1.2.8 =
+*   Fix: Corrigido o problema do seletor de mensagem no envio em massa.
+
+= 1.2.7 =
+*   Fix: Removidos arquivos de teste e logs desnecessários.
+
+= 1.2.6 =
+*   Fix: Corrigido o problema dos submenus que não apareciam.
+
+= 1.2.5 =
+*   Fix: Corrigido o problema de fallback de endereço de entrega.
+
+= 1.2.4 =
+*   Fix: Corrigido o problema da barra de progresso no envio em massa.
+
+= 1.2.3 =
+*   Fix: Melhorias na interface do envio em massa.
+
+= 1.2.2 =
+*   Fix: Correção na validação de números de telefone.
+
 = 1.2.1 =
-* 🤖 NOVO: Auto-update via GitHub Releases
-* 🔄 Sistema de atualização automática implementado
-* 📦 Plugin Update Checker integrado
-* ✨ Atualizações automáticas sem intervenção manual
-* 🛠️ Compatibilidade com GitHub Releases API
+*   Fix: Correção no trigger de amostra do abandono de carrinho.
 
 = 1.2.0 =
-* 🚀 NOVO: Sistema de Onboarding 1-Click completo!
-* 🆕 Integração automática com sistema principal via Edge Functions
-* ✨ Criação de conta automática e configuração instantânea
-* 📱 QR Code dinâmico e detecção automática de conexão WhatsApp
-* ⚡ Polling otimizado (3 segundos) para detecção rápida
-* 🎯 Interface moderna e responsiva para teste grátis
-* 🔧 Sistema de status em tempo real sincronizado
-* 🛠️ Reset automático para facilitar testes
-* 🔌 Arquitetura cross-project otimizada
-* ✅ Compatibilidade total com Supabase Edge Functions
-
-= 1.0.4 =
-* 🆕 NOVO: Integração completa com carrinho abandonado
-* 🆕 Suporte ao plugin "WooCommerce Cart Abandonment Recovery"
-* 🆕 Templates personalizáveis para carrinho abandonado
-* 🆕 Shortcodes dinâmicos para mensagens
-* ✨ Logs otimizados e mais limpos
-* 🔧 Formatação automática de moeda brasileira (R$)
-* 🐛 Correções de compatibilidade
-* 🏷️ Renomeado para WP WhatsEvolution (questões legais)
-
-= 1.0.3 =
-* ✨ Envio por status de pedido
-* ✨ Envio em massa melhorado
-* 🔧 Validação de checkout
-* 🐛 Correções gerais
-
-= 1.0.2 =
-* ✨ Envio em massa
-* 🔧 Melhorias na interface
-* 🐛 Correções de bugs
-
-= 1.0.1 =
-* ✨ Envio individual
-* 🔧 Melhorias na conexão
-* 🐛 Correções iniciais
-
-= 1.0.0 =
-* 🚀 Versão inicial
-* ✨ Conexão com Evolution API
-* ✨ Configurações básicas
+*   Feature: Adicionado o sistema de signup rápido.
+*   Feature: Adicionado o sistema de status do plugin.
+*   Feature: Adicionado o sistema de checagem de atualizações.
+*   Fix: Melhorias gerais de performance e usabilidade.
+*   Fix: Correção de bugs menores.
+*   I18n: Adicionada a tradução para Português do Brasil.
 
 == Upgrade Notice ==
 
-= 1.0.4 =
-REBRANDING: Agora é WP WhatsEvolution! Nova funcionalidade: Carrinho Abandonado com integração automática e templates personalizáveis. Atualize agora! 
+= 1.3.0 =
+Esta versão contém uma reconstrução completa da funcionalidade de Envio em Massa. Recomendamos fortemente a atualização para ter acesso à nova interface, importação de CSV aprimorada, personalização com variáveis e relatórios de erro detalhados. 

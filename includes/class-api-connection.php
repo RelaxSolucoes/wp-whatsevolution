@@ -50,16 +50,6 @@ class Api_Connection {
 
         $is_configured = !empty($this->api_url) && !empty($this->api_key) && !empty($this->instance_name);
         
-        // Log apenas uma vez por minuto
-        if (($current_time - self::$last_config_check) > 60) {
-            wpwevo_log('info', 'Configuration check: ' . ($is_configured ? 'OK' : 'INCOMPLETE'));
-            if (!$is_configured) {
-                wpwevo_log('debug', 'Config details - URL: ' . ($this->api_url ? 'SET' : 'EMPTY') . 
-                          ', Key: ' . ($this->api_key ? 'SET' : 'EMPTY') . 
-                          ', Instance: ' . ($this->instance_name ? 'SET' : 'EMPTY'));
-            }
-        }
-        
         self::$last_config_check = $current_time;
         self::$is_configured_cache = $is_configured;
         
@@ -80,8 +70,6 @@ class Api_Connection {
         // Constrói a URL exatamente como no teste
         $url = rtrim($this->api_url, '/') . '/instance/connectionState/' . $this->instance_name;
 
-        // Log removido - operação normal
-
         $args = [
             'headers' => [
                 'apikey' => $this->api_key,
@@ -91,13 +79,9 @@ class Api_Connection {
             'sslverify' => false // Temporário para debug
         ];
 
-        // Log removido - operação normal
-
         $response = wp_remote_get($url, $args);
 
         if (is_wp_error($response)) {
-            wpwevo_log_error('Connection check error: ' . $response->get_error_message());
-            
             // Verifica se é um erro de DNS/host não encontrado
             if (strpos(strtolower($response->get_error_message()), 'could not resolve host') !== false) {
                 return [
@@ -120,8 +104,6 @@ class Api_Connection {
 
         $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-
-        // Log removido - operação normal
 
         $data = json_decode($body, true);
 
@@ -155,7 +137,6 @@ class Api_Connection {
         }
 
         if (!is_array($data) || !isset($data['instance']) || !isset($data['instance']['state'])) {
-            wpwevo_log_error('Invalid response format: ' . print_r($data, true));
             return [
                 'success' => false,
                 'message' => __('Resposta da API em formato inválido.', 'wp-whatsapp-evolution')
@@ -249,15 +230,11 @@ class Api_Connection {
             '{store_email}' => get_option('admin_email')
         ];
 
-        // Log removido - operação normal
-
         $replaced_message = str_replace(
             array_keys($variables),
             array_values($variables),
             $message
         );
-
-        // Log removido - operação normal
 
         return $replaced_message;
     }
@@ -289,8 +266,6 @@ class Api_Connection {
         // Constrói a URL do endpoint
         $url = rtrim($this->api_url, '/') . '/message/sendText/' . $this->instance_name;
 
-        // Log removido - operação normal
-
         // Prepara o corpo da requisição no formato correto
         $body = [
             'number' => $number,
@@ -311,12 +286,9 @@ class Api_Connection {
             'sslverify' => false // Temporário para debug
         ];
 
-        // Log removido - operação normal
-
         $response = wp_remote_post($url, $args);
 
         if (is_wp_error($response)) {
-            wpwevo_log_error('Send message error: ' . $response->get_error_message());
             return [
                 'success' => false,
                 'message' => sprintf(
@@ -328,8 +300,6 @@ class Api_Connection {
 
         $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-
-        // Log removido - operação normal
 
         $data = json_decode($body, true);
 
@@ -421,8 +391,6 @@ class Api_Connection {
         // Constrói a URL para validação do número
         $url = rtrim($this->api_url, '/') . '/chat/whatsappNumbers/' . $this->instance_name;
 
-        // Log removido - operação normal
-
         $response = wp_remote_post($url, [
             'headers' => [
                 'apikey' => $this->api_key,
@@ -436,7 +404,6 @@ class Api_Connection {
         ]);
 
         if (is_wp_error($response)) {
-            wpwevo_log_error('Number validation error: ' . $response->get_error_message());
             return [
                 'success' => false,
                 'message' => sprintf(
@@ -448,8 +415,6 @@ class Api_Connection {
 
         $status_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-
-        // Log removido - operação normal
 
         if ($status_code !== 200) {
             return [
