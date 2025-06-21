@@ -223,15 +223,17 @@ function wpwevo_migrate_old_options() {
 }
 
 // ===== AUTO-UPDATE GITHUB =====
-/*
 function wp_whatsevolution_init_auto_updater() {
-    require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
-    $myUpdateChecker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-        'https://github.com/' . WPWEVO_GITHUB_REPO,
-        __FILE__,
-        'wp-whatsevolution'
-    );
+	// Só carrega a biblioteca se ela ainda não foi carregada por outro plugin
+	if (!class_exists('YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory')) {
+		require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
+	}
+	
+	$myUpdateChecker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		'https://github.com/' . WPWEVO_GITHUB_REPO,
+		__FILE__,
+		'wp-whatsevolution'
+	);
 }
 add_action('init', 'wp_whatsevolution_init_auto_updater');
-*/
 // ===== FIM AUTO-UPDATE ===== 
