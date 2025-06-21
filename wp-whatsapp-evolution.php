@@ -210,22 +210,21 @@ function wpwevo_migrate_old_options() {
 	}
 }
 
-
-
 // ===== AUTO-UPDATE GITHUB =====
-require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+// require_once WPWEVO_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
+// use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 function wp_whatsevolution_init_auto_updater() {
-    if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) return;
+    // Temporariamente desabilitado até o plugin-update-checker ser restaurado
+    // if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) return;
     
-    $updateChecker = PucFactory::buildUpdateChecker(
-        'https://github.com/RelaxSolucoes/wp-whatsevolution',
-        __FILE__,
-        'wp-whatsevolution'
-    );
+    // $updateChecker = PucFactory::buildUpdateChecker(
+    //     'https://github.com/RelaxSolucoes/wp-whatsevolution',
+    //     __FILE__,
+    //     'wp-whatsevolution'
+    // );
     
-    $updateChecker->getVcsApi()->enableReleaseAssets();
+    // $updateChecker->getVcsApi()->enableReleaseAssets();
 }
-add_action('init', 'wp_whatsevolution_init_auto_updater');
+// add_action('init', 'wp_whatsevolution_init_auto_updater');
 // ===== FIM AUTO-UPDATE ===== 
