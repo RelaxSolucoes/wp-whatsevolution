@@ -40,10 +40,7 @@ config.json
 .env.local
 
 # Plugin Update Checker - Ignore development files
-lib/plugin-update-checker/.git/
-lib/plugin-update-checker/composer.*
-lib/plugin-update-checker/phpunit.xml
-lib/plugin-update-checker/tests/
+# Removido para incluir a biblioteca no repositório e garantir que ela exista.
 
 # DOCUMENTAÇÃO ESTRATÉGICA E INTERNA - NÃO EXPOR
 ONBOARDING-STRATEGY.md
@@ -68,4 +65,40 @@ h
 
 # Release notes antigas (manter apenas o CHANGELOG.md público)
 RELEASE-NOTES-*.md
-RELEASE-CHANGELOG-*.md 
+RELEASE-CHANGELOG-*.md
+
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Dependency directories
+/vendor/
+/node_modules/
+
+# Build files
+/build/
+/dist/
+composer.lock
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+/tests/
+/bin/
+
+# Misc
+.DS_Store
+Thumbs.db
+/CODE_OF_CONDUCT.md
+/CONTRIBUTING.md
+/psalm.xml
+/.php-cs-fixer.dist.php
+/.travis.yml
+/phpcs.xml.dist 
