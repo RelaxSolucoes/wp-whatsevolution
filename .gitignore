@@ -1,0 +1,71 @@
+# Ignorar plugins externos
+woo-cart-abandonment-recovery/
+wp-whatsapp-sender/
+
+# Arquivos temporários  
+debug-*.php
+test-*.php
+enable-*.php
+check-*.php
+monitor-*.php
+verificar-*.php
+status-*.php
+
+# Logs
+*.log 
+
+# WordPress
+wp-config.php
+.htaccess
+
+# Database dumps
+*.sql
+
+# Debug logs
+debug.log
+error_log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backend sensitive files - Do not commit
+supabase/
+edge-functions/
+functions/
+
+# API keys and config files
+config.json
+.env
+.env.local
+
+# Plugin Update Checker - Ignore development files
+lib/plugin-update-checker/.git/
+lib/plugin-update-checker/composer.*
+lib/plugin-update-checker/phpunit.xml
+lib/plugin-update-checker/tests/
+
+# DOCUMENTAÇÃO ESTRATÉGICA E INTERNA - NÃO EXPOR
+ONBOARDING-STRATEGY.md
+IMPLEMENTACAO-DETALHADA.md
+CROSS-PROJECT-INTEGRATION.md
+INSTRUCOES-PROXIMA-IA.md
+PROXIMOS-PASSOS.md
+RULES-DESENVOLVIMENTO.md
+REGRAS-DESENVOLVIMENTO.md
+INTEGRACAO-CARRINHO-ABANDONADO.md
+RESOLUCAO-PROBLEMA-VALIDACAO.md
+TESTE-QUICK-SIGNUP.md
+ONBOARDING-1CLICK-README.md
+AUTO-UPDATE-DOCUMENTATION.md
+GITHUB_AUTO_UPDATE_GUIDE.md
+GITHUB-RELEASE-INSTRUCTIONS.md
+
+# Arquivos de teste e desenvolvimento
+testar-evolution-api.php
+h
+"h origin main"
+
+# Release notes antigas (manter apenas o CHANGELOG.md público)
+RELEASE-NOTES-*.md
+RELEASE-CHANGELOG-*.md 
