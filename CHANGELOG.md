@@ -1,7 +1,9 @@
 # Changelog - WP WhatsEvolution
 
-## [1.3.0] - 2024-06-21
-### REVOLUÇÃO NO ENVIO EM MASSA
+## [1.3.0] - 2025-06-21
+### ✨ A Revolução do Envio em Massa ✨
+
+Esta versão representa uma reescrita completa e uma melhoria radical da funcionalidade de Envio em Massa, transformando uma ferramenta com problemas em uma solução robusta, inteligente e agradável de usar.
 -   **Melhoria**: A funcionalidade de Envio em Massa foi completamente reconstruída do zero para ser mais poderosa, intuitiva e à prova de falhas.
 -   **Melhoria**: A tela de importação de CSV agora é visualmente clara, com uma tabela de exemplo que elimina a confusão entre colunas e vírgulas.
 -   **Melhoria**: O sistema agora detecta automaticamente se o separador é vírgula (`,`) ou ponto e vírgula (`;`), garantindo compatibilidade com Excel de diferentes regiões. Também corrige problemas de codificação de caracteres (acentos).
