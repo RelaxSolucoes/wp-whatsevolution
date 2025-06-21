@@ -17,19 +17,7 @@ class Bulk_Sender {
 	}
 
 	public function __construct() {
-		add_action('init', [$this, 'setup']);
-		add_action('admin_menu', [$this, 'add_submenu']);
-		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
-		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
-		add_action('wp_ajax_wpwevo_get_history', [$this, 'ajax_get_history']);
-		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history']);
-
-		// Inicializa a API
-		$this->api = Api_Connection::get_instance();
-	}
-
-	public function setup() {
+		// Define as propriedades ANTES dos hooks
 		$this->menu_title = __('Envio em Massa', 'wp-whatsapp-evolution');
 		$this->page_title = __('Envio em Massa', 'wp-whatsapp-evolution');
 		
@@ -86,6 +74,16 @@ class Bulk_Sender {
 				]
 			]
 		];
+
+		add_action('admin_menu', [$this, 'add_submenu']);
+		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
+		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
+		add_action('wp_ajax_wpwevo_get_history', [$this, 'ajax_get_history']);
+		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history']);
+
+		// Inicializa a API
+		$this->api = Api_Connection::get_instance();
 	}
 
 	public function add_submenu() {

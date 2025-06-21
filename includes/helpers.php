@@ -102,6 +102,11 @@ function wpwevo_log_error($message, $data = [], $level = 'info') {
 		return;
 	}
 	
+	// Em produção, limita logs de info/debug
+	if (!$debug_enabled && in_array($level, ['info', 'debug']) && !is_admin()) {
+		return;
+	}
+	
 	if (!function_exists('wc_get_logger')) {
 		return;
 	}

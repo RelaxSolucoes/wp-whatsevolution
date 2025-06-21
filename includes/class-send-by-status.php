@@ -31,6 +31,18 @@ class Send_By_Status {
 		}
 		self::$hooks_initialized = true;
 
+		// Define as propriedades ANTES dos hooks
+		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
+		
+		$this->i18n = [
+			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
+			'saved' => __('Configurações salvas com sucesso!', 'wp-whatsapp-evolution'),
+			'error' => __('Erro ao salvar: ', 'wp-whatsapp-evolution'),
+			'preview' => __('Visualizando...', 'wp-whatsapp-evolution'),
+			'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsapp-evolution'),
+		];
+
 		// Declara compatibilidade com HPOS
 		add_action('before_woocommerce_init', function() {
 			if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
@@ -236,9 +248,6 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 	}
 
 	public function setup() {
-		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		
 		// Carrega os status do WooCommerce de forma segura
 		$this->available_statuses = [];
 		if (function_exists('wc_get_order_statuses')) {
@@ -248,16 +257,6 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 				$this->available_statuses[$status] = $label;
 			}
 		}
-
-		$this->i18n = [
-			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
-			'saved' => __('Configurações salvas!', 'wp-whatsapp-evolution'),
-			'error' => __('Erro ao salvar: ', 'wp-whatsapp-evolution'),
-			'preview' => __('Visualizando...', 'wp-whatsapp-evolution'),
-			'emptyMessage' => __('Por favor, digite uma mensagem.', 'wp-whatsapp-evolution'),
-			'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsapp-evolution'),
-			'confirmReset' => __('Deseja restaurar a mensagem padrão?', 'wp-whatsapp-evolution')
-		];
 	}
 
 	public function add_menu() {

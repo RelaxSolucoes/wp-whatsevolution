@@ -63,66 +63,60 @@ class Quick_Signup {
 				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
 			}
 
-			$name = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
 			$email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+			$name = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
 			$whatsapp = isset($_POST['whatsapp']) ? sanitize_text_field($_POST['whatsapp']) : '';
 
-			// Validações básicas
-			if (empty($name) || empty($email) || empty($whatsapp)) {
+			if (empty($email) || empty($name) || empty($whatsapp)) {
 				throw new \Exception(__('Todos os campos são obrigatórios.', 'wp-whatsapp-evolution'));
 			}
 
-			if (!is_email($email)) {
-				throw new \Exception(__('Email inválido.', 'wp-whatsapp-evolution'));
+			// Log apenas se debug estiver habilitado
+			if (get_option('wpwevo_debug_enabled', false)) {
+				wpwevo_log('info', 'Iniciando quick signup para: ' . $email);
 			}
 
-			error_log('WP WhatsApp Evolution - Iniciando quick signup para: ' . $email);
-
-			// **MODO DEMO TEMPORÁRIO** - Para facilitar testes, sempre usar demo por agora
-			$use_demo_mode = false; // Mude para false para tentar Edge Function real
-			
-			if ($use_demo_mode) {
-				error_log('WP WhatsApp Evolution - MODO DEMO ATIVADO - Pulando Edge Function');
+			// MODO DEMO - Remove em produção
+			if (defined('WPWEVO_DEMO_MODE') && WPWEVO_DEMO_MODE) {
+				if (get_option('wpwevo_debug_enabled', false)) {
+					wpwevo_log('info', 'MODO DEMO ATIVADO - Pulando Edge Function');
+				}
 				
-				// Simula uma resposta de sucesso para demonstração
+				// Simula resposta de sucesso
 				$demo_response = [
-					'api_url' => 'https://demo.evolution-api.com',
-					'api_key' => 'demo_' . uniqid(),
-					'instance_name' => 'demo_instance_' . uniqid(),
-					'trial_expires_at' => date('Y-m-d H:i:s', strtotime('+7 days')),
-					'trial_days_left' => 7,
-					'qr_code_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=demo_whatsapp_connection_' . time()
+					'success' => true,
+					'data' => [
+						'api_url' => 'https://demo-api.evolution.com',
+						'api_key' => 'demo_key_' . time(),
+						'instance' => 'demo_instance_' . time(),
+						'status' => 'created'
+					]
 				];
 				
-				error_log('WP WhatsApp Evolution - Retornando dados demo: ' . json_encode($demo_response));
+				if (get_option('wpwevo_debug_enabled', false)) {
+					wpwevo_log('info', 'Retornando dados demo: ' . json_encode($demo_response));
+				}
 				
-				wp_send_json_success([
-					'message' => __('Conta de demonstração criada com sucesso! 🎉', 'wp-whatsapp-evolution'),
-					'data' => $demo_response
-				]);
+				wp_send_json_success($demo_response);
 				return;
 			}
 
-			// Chama a Edge Function quick-signup (apenas se não estiver em modo demo)
+			// Chama a Edge Function para criar a conta
 			$response = $this->call_edge_function('quick-signup', [
-				'name' => $name,
 				'email' => $email,
-				'whatsapp' => $whatsapp,
-				'source' => 'wordpress_plugin'
+				'name' => $name,
+				'whatsapp' => $whatsapp
 			]);
 
-			// Se falhou, retorna o erro real
 			if (!$response['success']) {
 				throw new \Exception($response['error'] ?? __('Erro ao criar conta.', 'wp-whatsapp-evolution'));
 			}
 
-			wp_send_json_success([
-				'message' => __('Conta criada com sucesso!', 'wp-whatsapp-evolution'),
-				'data' => $response['data']
-			]);
+			wp_send_json_success($response);
 
 		} catch (\Exception $e) {
-			error_log('WP WhatsApp Evolution - Erro no quick signup: ' . $e->getMessage());
+			// Log apenas erros reais
+			wpwevo_log('error', 'Erro no quick signup: ' . $e->getMessage());
 			wp_send_json_error([
 				'message' => $e->getMessage()
 			]);
@@ -216,103 +210,110 @@ class Quick_Signup {
 	 */
 	public function handle_get_qr_code() {
 		try {
-			check_ajax_referer('wpwevo_quick_signup', 'nonce');
+			check_ajax_referer('wpwevo_get_qr', 'nonce');
 
 			if (!current_user_can('manage_options')) {
 				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
 			}
 
-			$api_url = isset($_POST['api_url']) ? esc_url_raw($_POST['api_url']) : '';
-			$api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
-			$instance_name = isset($_POST['instance_name']) ? sanitize_text_field($_POST['instance_name']) : '';
-
-			if (empty($api_url) || empty($api_key) || empty($instance_name)) {
-				throw new \Exception(__('Dados de instância incompletos.', 'wp-whatsapp-evolution'));
+			$instance_name = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : '';
+			
+			if (empty($instance_name)) {
+				throw new \Exception(__('Nome da instância é obrigatório.', 'wp-whatsapp-evolution'));
 			}
 
-			error_log('WP WhatsApp Evolution - Buscando QR Code para instância: ' . $instance_name);
+			// Log apenas se debug estiver habilitado
+			if (get_option('wpwevo_debug_enabled', false)) {
+				wpwevo_log('info', 'Buscando QR Code para instância: ' . $instance_name);
+			}
 
-			// Tenta buscar o QR code da Evolution API
-			$qr_url = $api_url . '/instance/connect/' . $instance_name;
-			
-			$response = wp_remote_get($qr_url, [
-				'timeout' => 30,
+			// Constrói a URL para buscar o QR Code
+			$api_url = get_option('wpwevo_api_url');
+			$api_key = get_option('wpwevo_api_key');
+
+			if (empty($api_url) || empty($api_key)) {
+				throw new \Exception(__('API não configurada.', 'wp-whatsapp-evolution'));
+			}
+
+			$url = rtrim($api_url, '/') . '/instance/connect/' . $instance_name;
+
+			$response = wp_remote_get($url, [
 				'headers' => [
-					'apikey' => $api_key
-				]
+					'apikey' => $api_key,
+					'Content-Type' => 'application/json'
+				],
+				'timeout' => 30,
+				'sslverify' => false
 			]);
 
 			if (is_wp_error($response)) {
-				error_log('WP WhatsApp Evolution - Erro ao buscar QR: ' . $response->get_error_message());
+				// Log apenas erros reais
+				wpwevo_log('error', 'Erro ao buscar QR: ' . $response->get_error_message());
 				throw new \Exception(__('Erro ao conectar com a API.', 'wp-whatsapp-evolution'));
 			}
 
 			$status_code = wp_remote_retrieve_response_code($response);
 			$body = wp_remote_retrieve_body($response);
-			
-			error_log('WP WhatsApp Evolution - Status QR: ' . $status_code);
-			error_log('WP WhatsApp Evolution - Resposta QR: ' . substr($body, 0, 200) . '...');
+
+			// Log apenas se debug estiver habilitado
+			if (get_option('wpwevo_debug_enabled', false)) {
+				wpwevo_log('info', 'Status QR: ' . $status_code);
+				wpwevo_log('info', 'Resposta QR: ' . substr($body, 0, 200) . '...');
+			}
+
+			$data = json_decode($body, true);
 
 			if ($status_code !== 200) {
-				throw new \Exception(__('Erro ao acessar QR Code. Status: ' . $status_code, 'wp-whatsapp-evolution'));
+				$error_message = isset($data['message']) ? $data['message'] : __('Erro desconhecido na API.', 'wp-whatsapp-evolution');
+				throw new \Exception($error_message);
 			}
 
-			$qr_data = json_decode($body, true);
-
-			if ($qr_data && isset($qr_data['base64'])) {
-				// Evolution API retorna QR code como data:image/png;base64,xxx
-				$qr_base64 = $qr_data['base64'];
-				wp_send_json_success([
-					'qr_code_url' => $qr_base64,
-					'message' => __('QR Code carregado com sucesso!', 'wp-whatsapp-evolution')
-				]);
-			} elseif ($qr_data && isset($qr_data['qrcode'])) {
-				// Fallback para outras APIs
-				wp_send_json_success([
-					'qr_code' => $qr_data['qrcode'],
-					'message' => __('QR Code carregado com sucesso!', 'wp-whatsapp-evolution')
-				]);
-			} else {
-				// Se não tem QR code, pode estar já conectado
-				wp_send_json_success([
-					'message' => __('WhatsApp pode já estar conectado.', 'wp-whatsapp-evolution'),
-					'already_connected' => true
-				]);
+			if (!isset($data['qrcode'])) {
+				throw new \Exception(__('QR Code não encontrado na resposta da API.', 'wp-whatsapp-evolution'));
 			}
+
+			wp_send_json_success([
+				'qrcode' => $data['qrcode'],
+				'status' => $data['status'] ?? 'unknown'
+			]);
 
 		} catch (\Exception $e) {
-			error_log('WP WhatsApp Evolution - Erro ao buscar QR code: ' . $e->getMessage());
+			// Log apenas erros reais
+			wpwevo_log('error', 'Erro ao buscar QR code: ' . $e->getMessage());
 			wp_send_json_error([
 				'message' => $e->getMessage()
 			]);
 		}
 	}
 
-
-
 	/**
 	 * Chama uma Edge Function do Supabase
 	 */
-	private function call_edge_function($function_name, $data) {
+	private function call_edge_function($function_name, $data = []) {
+		// Log apenas se debug estiver habilitado
+		if (get_option('wpwevo_debug_enabled', false)) {
+			wpwevo_log('info', 'Chamando Edge Function: ' . $function_name);
+		}
+
 		$url = WHATSEVOLUTION_API_BASE . '/functions/v1/' . $function_name;
 		
-		// Log da requisição
-		error_log('WP WhatsApp Evolution - Chamando Edge Function: ' . $function_name);
-		error_log('WP WhatsApp Evolution - URL: ' . $url);
-		error_log('WP WhatsApp Evolution - Dados enviados: ' . json_encode($data));
-		
+		$timeout = ($function_name === 'quick-signup') ? WHATSEVOLUTION_TIMEOUT : WHATSEVOLUTION_STATUS_TIMEOUT;
+
 		$response = wp_remote_post($url, [
-			'timeout' => ($function_name === 'quick-signup') ? WHATSEVOLUTION_TIMEOUT : WHATSEVOLUTION_STATUS_TIMEOUT,
 			'headers' => [
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
+				'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY,
+				'Content-Type' => 'application/json'
 			],
-			'body' => json_encode($data)
+			'body' => json_encode($data),
+			'timeout' => $timeout,
+			'sslverify' => false
 		]);
 
 		if (is_wp_error($response)) {
 			$error_message = $response->get_error_message();
-			error_log('WP WhatsApp Evolution - Erro WP: ' . $error_message);
+			// Log apenas erros reais
+			wpwevo_log('error', 'Erro WP: ' . $error_message);
+			
 			return [
 				'success' => false,
 				'error' => $error_message
@@ -321,29 +322,33 @@ class Quick_Signup {
 
 		$status_code = wp_remote_retrieve_response_code($response);
 		$body = wp_remote_retrieve_body($response);
-		
-		// Log da resposta
-		error_log('WP WhatsApp Evolution - Status Code: ' . $status_code);
-		error_log('WP WhatsApp Evolution - Resposta bruta: ' . $body);
-		
-		$decoded = json_decode($body, true);
 
-		if (json_last_error() !== JSON_ERROR_NONE) {
-			error_log('WP WhatsApp Evolution - Erro JSON: ' . json_last_error_msg());
+		// Log apenas se debug estiver habilitado
+		if (get_option('wpwevo_debug_enabled', false)) {
+			wpwevo_log('info', 'Status Code: ' . $status_code);
+			wpwevo_log('info', 'Resposta bruta: ' . $body);
+		}
+
+		if ($status_code !== 200) {
 			return [
 				'success' => false,
-				'error' => __('Resposta inválida da API.', 'wp-whatsapp-evolution') . ' JSON Error: ' . json_last_error_msg()
+				'error' => sprintf(__('Erro HTTP %d: %s', 'wp-whatsapp-evolution'), $status_code, $body)
 			];
 		}
 
-		// Se não é 200, mas tem resposta válida, retorna a resposta mesmo assim
-		if ($status_code !== 200) {
-			error_log('WP WhatsApp Evolution - Status não-200, mas JSON válido');
+		$data = json_decode($body, true);
+
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			return [
+				'success' => false,
+				'error' => __('Resposta inválida do servidor.', 'wp-whatsapp-evolution')
+			];
 		}
 
-		error_log('WP WhatsApp Evolution - Resposta decodificada: ' . json_encode($decoded));
-		
-		return $decoded;
+		return [
+			'success' => true,
+			'data' => $data
+		];
 	}
 
 	/**
@@ -379,5 +384,49 @@ class Quick_Signup {
 	 */
 	public static function is_trial_active() {
 		return self::get_trial_days_left() > 0;
+	}
+
+	public function check_plugin_status() {
+		try {
+			check_ajax_referer('wpwevo_check_status', 'nonce');
+
+			if (!current_user_can('manage_options')) {
+				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
+			}
+
+			$instance_name = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : '';
+			
+			if (empty($instance_name)) {
+				throw new \Exception(__('Nome da instância é obrigatório.', 'wp-whatsapp-evolution'));
+			}
+
+			// Log apenas se debug estiver habilitado
+			if (get_option('wpwevo_debug_enabled', false)) {
+				wpwevo_log('info', 'Verificando status via Edge Function plugin-status');
+			}
+
+			// Chama a Edge Function para verificar o status
+			$response = $this->call_edge_function('plugin-status', [
+				'instance_name' => $instance_name
+			]);
+
+			if (!$response['success']) {
+				throw new \Exception($response['error'] ?? __('Erro ao verificar status.', 'wp-whatsapp-evolution'));
+			}
+
+			// Log apenas se debug estiver habilitado
+			if (get_option('wpwevo_debug_enabled', false)) {
+				wpwevo_log('info', 'Resposta plugin-status: ' . json_encode($response['data']));
+			}
+
+			wp_send_json_success($response['data']);
+
+		} catch (\Exception $e) {
+			// Log apenas erros reais
+			wpwevo_log('error', 'Erro ao verificar status: ' . $e->getMessage());
+			wp_send_json_error([
+				'message' => $e->getMessage()
+			]);
+		}
 	}
 } 

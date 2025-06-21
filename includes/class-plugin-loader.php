@@ -13,26 +13,7 @@ class Plugin_Loader {
 	}
 
 	private function __construct() {
-		$this->setup_autoloader();
 		$this->setup_hooks();
-	}
-
-	private function setup_autoloader() {
-		spl_autoload_register(function ($class) {
-			// Verifica se a classe pertence ao namespace do plugin
-			if (strpos($class, 'WpWhatsAppEvolution\\') !== 0) {
-				return;
-			}
-
-			// Remove o namespace e converte para o caminho do arquivo
-			$class_path = str_replace('WpWhatsAppEvolution\\', '', $class);
-			$class_path = str_replace('_', '-', strtolower($class_path));
-			$file_path = WPWEVO_PATH . 'includes/class-' . $class_path . '.php';
-
-			if (file_exists($file_path)) {
-				require_once $file_path;
-			}
-		});
 	}
 
 	private function setup_hooks() {

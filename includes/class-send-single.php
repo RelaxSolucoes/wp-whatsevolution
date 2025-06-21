@@ -18,14 +18,7 @@ class Send_Single {
 	}
 
 	private function __construct() {
-		add_action('init', [$this, 'setup']);
-		add_action('admin_menu', [$this, 'add_menu']);
-		add_action('wp_ajax_wpwevo_send_single', [$this, 'handle_ajax_send']);
-		add_action('wp_ajax_wpwevo_validate_number', [$this, 'handle_ajax_validate']);
-		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-	}
-
-	public function setup() {
+		// Define as propriedades ANTES dos hooks
 		$this->menu_title = __('Envio Único', 'wp-whatsapp-evolution');
 		$this->page_title = __('Envio Único', 'wp-whatsapp-evolution');
 		
@@ -37,6 +30,11 @@ class Send_Single {
 			'invalidNumber' => __('Número inválido', 'wp-whatsapp-evolution'),
 			'validNumber' => __('Número válido', 'wp-whatsapp-evolution')
 		];
+
+		add_action('admin_menu', [$this, 'add_menu']);
+		add_action('wp_ajax_wpwevo_send_single', [$this, 'handle_ajax_send']);
+		add_action('wp_ajax_wpwevo_validate_number', [$this, 'handle_ajax_validate']);
+		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 	}
 
 	public function add_menu() {

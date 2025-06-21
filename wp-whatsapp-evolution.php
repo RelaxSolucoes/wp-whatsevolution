@@ -106,8 +106,20 @@ function wpwevo_check_requirements() {
 	}
 
 	// Verifica WooCommerce
-	if (!class_exists('WooCommerce') || version_compare(WC_VERSION, $requirements['wc'], '<')) {
+	if (!class_exists('WooCommerce')) {
 		$errors[] = 'wc';
+	} else {
+		// Verifica se WC_VERSION está definido
+		if (defined('WC_VERSION')) {
+			if (version_compare(WC_VERSION, $requirements['wc'], '<')) {
+				$errors[] = 'wc';
+			}
+		} else {
+			// Fallback: verifica se WooCommerce está ativo via função
+			if (!function_exists('WC') || !WC()) {
+				$errors[] = 'wc';
+			}
+		}
 	}
 
 	if (!empty($errors)) {
