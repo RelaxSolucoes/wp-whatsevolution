@@ -223,7 +223,6 @@ function wpwevo_migrate_old_options() {
 }
 
 // ===== AUTO-UPDATE GITHUB =====
-/*
 function wp_whatsevolution_init_auto_updater() {
 	// Só carrega a biblioteca se ela ainda não foi carregada por outro plugin
 	if (!class_exists('YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory')) {
@@ -237,5 +236,4 @@ function wp_whatsevolution_init_auto_updater() {
 	);
 }
 add_action('init', 'wp_whatsevolution_init_auto_updater');
-*/
 // ===== FIM AUTO-UPDATE ===== 
