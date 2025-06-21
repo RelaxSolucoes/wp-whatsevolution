@@ -688,11 +688,21 @@ Finalize agora:
 							</div>
 						</div>
 						
-						<div style="text-align: center; margin-top: 30px;">
-							<a href="#" id="upgrade-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
-								🚀 Fazer Upgrade
+						<div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
+							<a href="https://whats-evolution.vercel.app/" target="_blank" 
+							   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
+								🚀 Fazer Upgrade Agora
 							</a>
 						</div>
+						
+						<p style="margin-top: 20px; text-align: center;">
+							<a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup&wpwevo_reset_trial=true'), 'wpwevo_reset_trial_nonce')); ?>" 
+							   onclick="return confirm('<?php _e('Tem certeza que deseja resetar sua configuração de teste? Todos os dados da API serão apagados.', 'wp-whatsapp-evolution'); ?>');"
+							   style="color: #a0a5aa; font-size: 12px; text-decoration: none;">
+								<?php _e('Resetar configuração de teste', 'wp-whatsapp-evolution'); ?>
+							</a>
+						</p>
+
 					</div>
 				</div>
 			</div>
@@ -740,6 +750,15 @@ Finalize agora:
 								🚀 Fazer Upgrade Agora
 							</a>
 						</div>
+						
+						<p style="margin-top: 20px; text-align: center;">
+							<a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup&wpwevo_reset_trial=true'), 'wpwevo_reset_trial_nonce')); ?>" 
+							   onclick="return confirm('<?php _e('Tem certeza que deseja resetar sua configuração de teste? Todos os dados da API serão apagados.', 'wp-whatsapp-evolution'); ?>');"
+							   style="color: #a0a5aa; font-size: 12px; text-decoration: none;">
+								<?php _e('Resetar configuração de teste', 'wp-whatsapp-evolution'); ?>
+							</a>
+						</p>
+
 					</div>
 				</div>
 			</div>

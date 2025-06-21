@@ -59,26 +59,20 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 console.log('=== RESPOSTA QUICK SIGNUP ===');
                 console.log('Response completa:', response);
-                console.log('response.success:', response.success);
-                console.log('response.data:', response.data);
-                if (response.data) {
-                    console.log('response.data.message:', response.data.message);
-                }
-                console.log('==============================');
                 
-                if (response.success) {
-                    // Etapa 2: Conta criada
-                    updateProgress(1, wpwevo_quick_signup.messages.creating_account);
+                if (response.success && response.data) {
+                    console.log('response.data:', response.data);
                     
-                    setTimeout(function() {
-                        // Corrige estrutura de dados - pode vir como response.data.data ou response.data
-                        const configData = response.data.data || response.data;
-                        console.log('Dados de configuração:', configData);
-                        saveConfiguration(configData);
-                    }, 1000);
+                    // Ação 1: Salva a configuração em segundo plano.
+                    saveConfiguration(response.data);
+                    
+                    // Ação 2: Mostra a tela de sucesso e o QR Code IMEDIATAMENTE.
+                    // A função showSuccess já chama displayQRCode e startStatusPolling.
+                    showSuccess(response.data);
+
                 } else {
                     console.error('Erro no quick signup:', response);
-                    const errorMessage = response.data ? response.data.message : wpwevo_quick_signup.messages.error;
+                    const errorMessage = response.data ? (response.data.message || response.data.error) : wpwevo_quick_signup.messages.error;
                     console.log('Mensagem de erro final:', errorMessage);
                     showError(errorMessage);
                 }
@@ -135,18 +129,16 @@ jQuery(document).ready(function($) {
             data: configData,
             success: function(response) {
                 if (response.success) {
-                    // Etapa 4: Sucesso
+                    // Etapa 4: Sucesso no salvamento. Apenas log, sem ação na UI.
                     updateProgress(3, wpwevo_quick_signup.messages.success);
-                    
-                    setTimeout(function() {
-                        showSuccess(signupData);
-                    }, 1000);
+                    console.log('✅ Configuração salva com sucesso em segundo plano.');
                 } else {
-                    showError(response.data.message || wpwevo_quick_signup.messages.error);
+                    // Loga erro de salvamento, mas não interfere na UI principal.
+                    console.error('Falha ao salvar a configuração em segundo plano:', response.data.message);
                 }
             },
             error: function() {
-                showError(wpwevo_quick_signup.messages.error);
+                console.error('Erro AJAX ao salvar a configuração em segundo plano.');
             }
         });
     }
@@ -185,12 +177,8 @@ jQuery(document).ready(function($) {
         // Preenche dados do sucesso
         $('#trial-days-left').text(data.trial_days_left || 7);
         
-        // Configura QR Code se disponível
-        if (data.qr_code_url) {
-            // Em vez de carregar diretamente no iframe, vamos buscar o QR via AJAX
-            loadQRCode(data.api_url, data.api_key, data.instance_name);
-            $qrContainer.show();
-        }
+        // ✅ CHAMA A FUNÇÃO DEDICADA PARA MOSTRAR O QR CODE
+        displayQRCode(data);
         
         // Inicia polling para verificar conexão do WhatsApp
         startStatusPolling();
@@ -247,7 +235,7 @@ jQuery(document).ready(function($) {
                 console.log('🔍 Status check response:', response.success ? '✅' : '❌');
                 
                 if (response.success && response.data) {
-                    const status = response.data.data;
+                    const status = response.data;
                     console.log('📊 WhatsApp conectado:', status.whatsapp_connected, '| Status:', status.status);
                     
                     // Atualiza dias restantes
@@ -279,6 +267,12 @@ jQuery(document).ready(function($) {
                                 </div>
                             `);
                         }
+                        
+                        // Atualiza a página após 3 segundos para mostrar a nova interface
+                        setTimeout(function() {
+                            console.log('🔄 Atualizando página para mostrar interface completa...');
+                            window.location.reload();
+                        }, 3000);
                     } else {
                         $('#whatsapp-status').removeClass('connected').addClass('disconnected');
                         
@@ -299,47 +293,34 @@ jQuery(document).ready(function($) {
         });
     }
 
-    function loadQRCode(apiUrl, apiKey, instanceName) {
-        console.log('Carregando QR Code:', {apiUrl, apiKey, instanceName});
-        
-        // Fazer requisição via WordPress backend para evitar CORS
-        $.ajax({
-            url: wpwevo_quick_signup.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'wpwevo_get_qr_code',
-                nonce: wpwevo_quick_signup.nonce,
-                api_url: apiUrl,
-                api_key: apiKey,
-                instance_name: instanceName
-            },
-            success: function(response) {
-                console.log('Resposta QR Code:', response);
-                
-                if (response.success && response.data) {
-                    if (response.data.qr_code_url) {
-                        // Se temos o QR code como data URI completo
-                        $('#wpwevo-qr-iframe').replaceWith('<img id="wpwevo-qr-image" src="' + response.data.qr_code_url + '" style="width: 300px; height: 300px; border-radius: 8px;" />');
-                    } else if (response.data.qr_code) {
-                        // Se temos o QR code como base64, mostrar diretamente
-                        $('#wpwevo-qr-iframe').replaceWith('<img id="wpwevo-qr-image" src="data:image/png;base64,' + response.data.qr_code + '" style="width: 300px; height: 300px; border-radius: 8px;" />');
-                    } else if (response.data.qr_url) {
-                        // Se temos URL do QR, usar no iframe
-                        $('#wpwevo-qr-iframe').attr('src', response.data.qr_url);
-                    } else if (response.data.already_connected) {
-                        // WhatsApp já conectado
-                        $('#wpwevo-qr-iframe').replaceWith('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #e8f5e8; border-radius: 8px; color: #2d5a3d; flex-direction: column;"><div style="font-size: 48px; margin-bottom: 15px;">✅</div><div style="font-weight: bold;">WhatsApp Conectado!</div></div>');
-                    }
-                } else {
-                    console.error('Erro ao carregar QR Code:', response);
-                    $('#wpwevo-qr-iframe').replaceWith('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; color: #666;">❌ Erro ao carregar QR Code</div>');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Erro AJAX QR Code:', {xhr, status, error});
-                $('#wpwevo-qr-iframe').replaceWith('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; color: #666;">❌ Erro ao carregar QR Code</div>');
-            }
-        });
+    /**
+     * Mostra o QR Code na tela usando a imagem base64 da API.
+     * @param {object} apiData - O objeto 'data' da resposta da API (quick-signup).
+     */
+    function displayQRCode(apiData) {
+        // 1. Encontre o elemento no HTML onde o QR Code deve aparecer.
+        const $qrContainer = $('#wpwevo-qr-container');
+
+        // Se o container não for encontrado, não faz nada.
+        if (!$qrContainer.length) {
+            console.error('ERRO CRÍTICO: O container para o QR Code (#wpwevo-qr-container) não foi encontrado na página.');
+            return;
+        }
+
+        // 2. Pegue o QR Code base64.
+        const qrCodeBase64 = apiData.qr_code_base64;
+
+        if (!qrCodeBase64) {
+            console.error("ERRO CRÍTICO: 'qr_code_base64' não foi encontrado na resposta da API.");
+            $qrContainer.html('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 8px; text-align: center; padding: 15px;">❌ Erro:<br>O QR Code não foi recebido do servidor.</div>');
+            $qrContainer.show();
+            return;
+        }
+
+        // 3. Insira a imagem base64 diretamente.
+        $qrContainer.html(`<img src="${qrCodeBase64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">`);
+        $qrContainer.show();
+        console.log("✅ QR Code inserido na tela usando base64");
     }
 
     // Máscara para WhatsApp
@@ -406,8 +387,6 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         window.open('https://whats-evolution.vercel.app/', '_blank');
     });
-
-
 
     // Auto-focus no primeiro campo
     $('#wpwevo-name').focus();

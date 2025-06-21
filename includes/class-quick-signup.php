@@ -19,10 +19,33 @@ class Quick_Signup {
 		add_action('wp_ajax_wpwevo_quick_signup', [$this, 'handle_quick_signup']);
 		add_action('wp_ajax_wpwevo_save_quick_config', [$this, 'handle_save_config']);
 		add_action('wp_ajax_wpwevo_check_plugin_status', [$this, 'handle_check_status']);
-		add_action('wp_ajax_wpwevo_get_qr_code', [$this, 'handle_get_qr_code']);
 		
 		// Enqueue scripts específicos para quick signup
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_quick_signup_assets']);
+
+		// Adiciona hook para resetar o trial
+		add_action('admin_init', [$this, 'maybe_reset_trial']);
+	}
+
+	public function maybe_reset_trial() {
+		if (
+			isset($_GET['wpwevo_reset_trial']) && 
+			$_GET['wpwevo_reset_trial'] === 'true' && 
+			current_user_can('manage_options') &&
+			isset($_GET['_wpnonce']) && 
+			wp_verify_nonce(sanitize_key($_GET['_wpnonce']), 'wpwevo_reset_trial_nonce')
+		) {
+			delete_option('wpwevo_api_url');
+			delete_option('wpwevo_api_key');
+			delete_option('wpwevo_instance');
+			delete_option('wpwevo_auto_configured');
+			delete_option('wpwevo_trial_started_at');
+			delete_option('wpwevo_trial_expires_at');
+			delete_transient('wpwevo_connection_status');
+
+			wp_redirect(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup&reset_success=1'));
+			exit;
+		}
 	}
 
 	public function enqueue_quick_signup_assets($hook) {
@@ -108,11 +131,13 @@ class Quick_Signup {
 				'whatsapp' => $whatsapp
 			]);
 
-			if (!$response['success']) {
-				throw new \Exception($response['error'] ?? __('Erro ao criar conta.', 'wp-whatsapp-evolution'));
+			if (!$response['success'] || !isset($response['data']['success']) || !$response['data']['success']) {
+				$error_message = $response['data']['error'] ?? $response['error'] ?? __('Erro desconhecido ao criar conta.', 'wp-whatsapp-evolution');
+				throw new \Exception($error_message);
 			}
 
-			wp_send_json_success($response);
+			// Retorna apenas o payload final para o JS
+			wp_send_json_success($response['data']['data']);
 
 		} catch (\Exception $e) {
 			// Log apenas erros reais
@@ -187,99 +212,18 @@ class Quick_Signup {
 				'api_key' => $api_key
 			]);
 
-			if (!$response['success']) {
-				throw new \Exception($response['error'] ?? __('Erro ao verificar status.', 'wp-whatsapp-evolution'));
-			}
-
-			error_log('WP WhatsApp Evolution - Resposta plugin-status: ' . json_encode($response['data']));
-
-			wp_send_json_success([
-				'data' => $response['data']
-			]);
-
-		} catch (\Exception $e) {
-			error_log('WP WhatsApp Evolution - Erro ao verificar status: ' . $e->getMessage());
-			wp_send_json_error([
-				'message' => $e->getMessage()
-			]);
-		}
-	}
-
-	/**
-	 * Handler AJAX para buscar QR code
-	 */
-	public function handle_get_qr_code() {
-		try {
-			check_ajax_referer('wpwevo_get_qr', 'nonce');
-
-			if (!current_user_can('manage_options')) {
-				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
-			}
-
-			$instance_name = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : '';
-			
-			if (empty($instance_name)) {
-				throw new \Exception(__('Nome da instância é obrigatório.', 'wp-whatsapp-evolution'));
-			}
-
-			// Log apenas se debug estiver habilitado
-			if (get_option('wpwevo_debug_enabled', false)) {
-				wpwevo_log('info', 'Buscando QR Code para instância: ' . $instance_name);
-			}
-
-			// Constrói a URL para buscar o QR Code
-			$api_url = get_option('wpwevo_api_url');
-			$api_key = get_option('wpwevo_api_key');
-
-			if (empty($api_url) || empty($api_key)) {
-				throw new \Exception(__('API não configurada.', 'wp-whatsapp-evolution'));
-			}
-
-			$url = rtrim($api_url, '/') . '/instance/connect/' . $instance_name;
-
-			$response = wp_remote_get($url, [
-				'headers' => [
-					'apikey' => $api_key,
-					'Content-Type' => 'application/json'
-				],
-				'timeout' => 30,
-				'sslverify' => false
-			]);
-
-			if (is_wp_error($response)) {
-				// Log apenas erros reais
-				wpwevo_log('error', 'Erro ao buscar QR: ' . $response->get_error_message());
-				throw new \Exception(__('Erro ao conectar com a API.', 'wp-whatsapp-evolution'));
-			}
-
-			$status_code = wp_remote_retrieve_response_code($response);
-			$body = wp_remote_retrieve_body($response);
-
-			// Log apenas se debug estiver habilitado
-			if (get_option('wpwevo_debug_enabled', false)) {
-				wpwevo_log('info', 'Status QR: ' . $status_code);
-				wpwevo_log('info', 'Resposta QR: ' . substr($body, 0, 200) . '...');
-			}
-
-			$data = json_decode($body, true);
-
-			if ($status_code !== 200) {
-				$error_message = isset($data['message']) ? $data['message'] : __('Erro desconhecido na API.', 'wp-whatsapp-evolution');
+			if (!$response['success'] || !isset($response['data']['success']) || !$response['data']['success']) {
+				$error_message = $response['data']['error'] ?? $response['error'] ?? __('Erro ao verificar status.', 'wp-whatsapp-evolution');
 				throw new \Exception($error_message);
 			}
 
-			if (!isset($data['qrcode'])) {
-				throw new \Exception(__('QR Code não encontrado na resposta da API.', 'wp-whatsapp-evolution'));
-			}
+			error_log('WP WhatsApp Evolution - Resposta plugin-status: ' . json_encode($response['data']['data']));
 
-			wp_send_json_success([
-				'qrcode' => $data['qrcode'],
-				'status' => $data['status'] ?? 'unknown'
-			]);
+			// Retorna apenas o payload final para o JS
+			wp_send_json_success($response['data']['data']);
 
 		} catch (\Exception $e) {
-			// Log apenas erros reais
-			wpwevo_log('error', 'Erro ao buscar QR code: ' . $e->getMessage());
+			error_log('WP WhatsApp Evolution - Erro ao verificar status: ' . $e->getMessage());
 			wp_send_json_error([
 				'message' => $e->getMessage()
 			]);
@@ -388,16 +332,16 @@ class Quick_Signup {
 
 	public function check_plugin_status() {
 		try {
-			check_ajax_referer('wpwevo_check_status', 'nonce');
+			check_ajax_referer('wpwevo_quick_signup', 'nonce');
 
 			if (!current_user_can('manage_options')) {
 				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
 			}
 
-			$instance_name = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : '';
+			$api_key = get_option('wpwevo_api_key', '');
 			
-			if (empty($instance_name)) {
-				throw new \Exception(__('Nome da instância é obrigatório.', 'wp-whatsapp-evolution'));
+			if (empty($api_key)) {
+				throw new \Exception(__('API Key não encontrada. A configuração automática pode não ter sido concluída.', 'wp-whatsapp-evolution'));
 			}
 
 			// Log apenas se debug estiver habilitado
@@ -407,7 +351,7 @@ class Quick_Signup {
 
 			// Chama a Edge Function para verificar o status
 			$response = $this->call_edge_function('plugin-status', [
-				'instance_name' => $instance_name
+				'api_key' => $api_key
 			]);
 
 			if (!$response['success']) {

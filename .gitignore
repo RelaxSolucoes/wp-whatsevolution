@@ -102,3 +102,5 @@ Thumbs.db
 /.php-cs-fixer.dist.php
 /.travis.yml
 /phpcs.xml.dist 
+INTEGRACAO_PAGAMENTO_PLUGIN.md
+INTEGRACAO_PAGAMENTO_SUPABASE.md
