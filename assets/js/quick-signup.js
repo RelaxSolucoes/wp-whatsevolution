@@ -261,45 +261,43 @@ jQuery(document).ready(function($) {
     }
 
     function checkPluginStatus() {
+        if (!wpwevo_quick_signup.api_key) return; // Não faz nada se não tiver chave
+
         $.ajax({
-            url: wpwevo_quick_signup.ajax_url,
+            url: admin_url('admin-ajax.php'),
             type: 'POST',
             data: {
                 action: 'wpwevo_check_plugin_status',
-                nonce: wpwevo_quick_signup.nonce
+                nonce: wpwevo_quick_signup.nonce, // Reutiliza o nonce principal
+                api_key: wpwevo_quick_signup.api_key
             },
             success: function(response) {
-                if (!response.success || !response.data) {
-                    return;
-                }
+                if (response.success && response.data && response.data.instance) {
+                    const state = response.data.instance.state;
+                    updateConnectionIndicator(state);
 
-                const status = response.data;
-                
-                // ✅ USE O CAMPO whatsapp_connected PARA DECIDIR SE ESTÁ CONECTADO
-                if (status.whatsapp_connected) {
-                    // WhatsApp REALMENTE conectado
-                    updateUserInterface(status);
-                    // Para o polling quando conectado
-                    if (statusCheckInterval) {
-                        clearInterval(statusCheckInterval);
-                        statusCheckInterval = null;
+                    if (state === 'open') {
+                        // Conectado com sucesso
+                        $('#wpwevo-qr-container').hide();
+                        $('#wpwevo-connection-success').show();
+                        stopPolling(); // Para de verificar
+
+                        // 🚀 CORREÇÃO: Recarrega a página para mostrar o status do plano atualizado.
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500); // Delay para o usuário ver a mensagem de sucesso.
+                        
+                    } else {
+                        // Ainda não conectado, mostra QR code se disponível
+                        displayQRCode(response.data);
                     }
                 } else {
-                    // WhatsApp não conectado
-                    $('#trial-expired-notice').hide();
-                    $('#next-action-container').hide();
-                    
-                    // Mostra QR code se disponível
-                    if (status.qr_code) {
-                        displayQRCode(status);
-                    }
-                    
-                    // Atualiza mensagem de status
-                    $('#qr-status').text(status.display_message || 'Aguardando conexão...');
+                    // Mantém o polling ativo, pode ser um erro temporário
                 }
             },
             error: function() {
-                console.error('Erro AJAX ao verificar status.');
+                // Para o polling em caso de erro grave (ex: 500)
+                stopPolling();
             }
         });
     }
