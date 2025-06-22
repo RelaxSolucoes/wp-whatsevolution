@@ -51,9 +51,9 @@ class Checkout_Validator {
 			add_action('wp_ajax_wpwevo_validate_checkout_number', [$this, 'handle_ajax_validation']);
 			add_action('wp_ajax_nopriv_wpwevo_validate_checkout_number', [$this, 'handle_ajax_validation']);
 			
-			// Enqueue validation script
+			// Enqueue validation script with high priority to avoid conflicts
 			if ($this->settings['validation'] === 'yes') {
-				add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
+				add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts'], 999);
 			}
 		}
 	}
@@ -348,26 +348,8 @@ class Checkout_Validator {
 	 * Enqueue validation script
 	 */
 	public function enqueue_scripts() {
-		// Verifica se estamos em qualquer página de checkout do WooCommerce
-		if (!is_checkout() && !is_wc_endpoint_url('order-received') && !is_wc_endpoint_url('order-pay')) {
-			return;
-		}
-
-		// Verifica se o WooCommerce está ativo
-		if (!class_exists('WooCommerce')) {
-			return;
-		}
-
-		// Verifica se estamos na página de finalizar compra ou em páginas específicas do checkout
-		global $wp;
-		$checkout_page_id = wc_get_page_id('checkout');
-		$current_page_id = get_queried_object_id();
-		
-		if ($checkout_page_id !== $current_page_id && 
-			!isset($wp->query_vars['order-pay']) && 
-			!isset($wp->query_vars['order-received']) &&
-			!is_wc_endpoint_url('order-received') &&
-			!is_wc_endpoint_url('order-pay')) {
+		// Only run on checkout page
+		if (!is_checkout()) {
 			return;
 		}
 
@@ -381,16 +363,21 @@ class Checkout_Validator {
 		wp_enqueue_script(
 			'wpwevo-checkout-validator',
 			WPWEVO_URL . 'assets/js/checkout-validator.js',
-			['jquery', 'wc-checkout'],
+			['jquery'], // wc-checkout pode não estar sempre disponível
 			WPWEVO_VERSION,
 			true
 		);
 
-		wp_localize_script('wpwevo-checkout-validator', 'wpwevoCheckoutValidator', [
-			'ajax_url' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('wpwevo_validate_phone'),
-			'validation_url' => admin_url('admin-ajax.php'),
-			'validation_action' => 'wpwevo_validate_phone'
+		wp_localize_script('wpwevo-checkout-validator', 'wpwevoCheckout', [
+			'ajaxurl'        => admin_url('admin-ajax.php'),
+			'nonce'          => wp_create_nonce('wpwevo_validate_checkout'),
+			'show_modal'     => $this->settings['show_modal'],
+			'modal_title'    => $this->settings['modal_title'],
+			'modal_message'  => $this->settings['modal_message'],
+			'modal_button_text' => $this->settings['modal_button_text'],
+			'validation_success' => $this->settings['validation_success_message'],
+			'validation_error'   => $this->settings['validation_error_message'],
+			'debug'          => defined('WP_DEBUG') && WP_DEBUG,
 		]);
 	}
 } 

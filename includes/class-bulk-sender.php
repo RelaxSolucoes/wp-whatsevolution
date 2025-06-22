@@ -141,13 +141,17 @@ class Bulk_Sender {
 		);
 
 		wp_localize_script('wpwevo-bulk-send', 'wpwevoBulkSend', [
-			'ajax_url' => admin_url('admin-ajax.php'),
+			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_bulk_send'),
-			'messages' => [
+			'i18n' => [
 				'loading' => __('Carregando...', 'wp-whatsapp-evolution'),
 				'error' => __('Erro ao carregar dados.', 'wp-whatsapp-evolution'),
 				'success' => __('Enviado com sucesso!', 'wp-whatsapp-evolution'),
-				'confirm' => __('Tem certeza que deseja enviar mensagens para todos os clientes selecionados?', 'wp-whatsapp-evolution')
+				'confirm' => __('Tem certeza que deseja enviar mensagens para todos os clientes selecionados?', 'wp-whatsapp-evolution'),
+				'sending' => __('Enviando...', 'wp-whatsapp-evolution'),
+				'send' => __('Iniciar Envio', 'wp-whatsapp-evolution'),
+				'statusRequired' => __('Selecione pelo menos um status de pedido.', 'wp-whatsapp-evolution'),
+				'confirmClearHistory' => __('Tem certeza que deseja limpar todo o histórico de envios?', 'wp-whatsapp-evolution')
 			]
 		]);
 	}
@@ -478,6 +482,35 @@ class Bulk_Sender {
 			</div>
 		</div>
 
+		<!-- Seção do Histórico de Envios -->
+		<div id="wpwevo-history-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); overflow: hidden; margin-top: 30px;">
+			<div style="background: rgba(255,255,255,0.98); margin: 2px; border-radius: 10px; padding: 25px;">
+				<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+					<div style="display: flex; align-items: center;">
+						<div style="background: rgba(102, 126, 234, 0.1); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 15px;">
+							📊
+						</div>
+						<div>
+							<h3 style="margin: 0; color: #2d3748; font-size: 20px; font-weight: 600;"><?php echo esc_html($this->i18n['history']['title']); ?></h3>
+							<p style="margin: 5px 0 0 0; color: #718096; font-size: 14px;">Acompanhe todos os envios em massa realizados</p>
+						</div>
+					</div>
+					<button id="wpwevo-clear-history" class="button button-secondary" style="background: #e53e3e; border-color: #e53e3e; color: white;">
+						<span class="dashicons dashicons-trash" style="vertical-align: middle; margin-top: -2px;"></span>
+						<?php echo esc_html($this->i18n['history']['clear']); ?>
+					</button>
+				</div>
+				
+				<div id="wpwevo-history-container">
+					<!-- O histórico será carregado aqui via AJAX -->
+					<div style="text-align: center; padding: 40px; color: #718096;">
+						<div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+						<p><?php echo esc_html($this->i18n['history']['no_history']); ?></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<style>
 		/* Estilos gerais */
 		.wpwevo-tabs {
@@ -514,6 +547,162 @@ class Bulk_Sender {
 			padding: 10px 25px;
 			font-size: 16px;
 			height: auto;
+		}
+		
+		/* Estilos para o histórico */
+		#wpwevo-history-container table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 15px;
+			background: white;
+			border-radius: 8px;
+			overflow: hidden;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+		}
+		
+		#wpwevo-history-container th {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			padding: 12px 15px;
+			text-align: left;
+			font-weight: 600;
+			font-size: 14px;
+		}
+		
+		#wpwevo-history-container td {
+			padding: 12px 15px;
+			border-bottom: 1px solid #f1f5f9;
+			font-size: 14px;
+		}
+		
+		#wpwevo-history-container tr:hover {
+			background-color: #f8fafc;
+		}
+		
+		#wpwevo-history-container .order-status {
+			padding: 4px 8px;
+			border-radius: 4px;
+			font-size: 12px;
+			font-weight: 500;
+			text-transform: uppercase;
+		}
+		
+		#wpwevo-history-container .order-status-completed {
+			background: #d4edda;
+			color: #155724;
+			border: 1px solid #c3e6cb;
+		}
+		
+		#wpwevo-history-container .order-status-failed {
+			background: #f8d7da;
+			color: #721c24;
+			border: 1px solid #f5c6cb;
+		}
+		
+		/* Estilos para resultados de envio */
+		.wpwevo-result {
+			background: white;
+			border-radius: 8px;
+			padding: 20px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+		}
+		
+		.wpwevo-result h3 {
+			margin: 0 0 20px 0;
+			color: #2d3748;
+			font-size: 18px;
+			text-align: center;
+		}
+		
+		.wpwevo-result-stats {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 15px;
+			margin-bottom: 20px;
+		}
+		
+		.wpwevo-stat {
+			text-align: center;
+			padding: 15px;
+			border-radius: 8px;
+			background: #f7fafc;
+			border: 1px solid #e2e8f0;
+		}
+		
+		.wpwevo-stat-number {
+			display: block;
+			font-size: 24px;
+			font-weight: 700;
+			color: #2d3748;
+			margin-bottom: 5px;
+		}
+		
+		.wpwevo-stat-label {
+			display: block;
+			font-size: 12px;
+			color: #718096;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+		
+		.wpwevo-stat-success {
+			background: #d4edda;
+			border-color: #c3e6cb;
+		}
+		
+		.wpwevo-stat-success .wpwevo-stat-number {
+			color: #155724;
+		}
+		
+		.wpwevo-stat-error {
+			background: #f8d7da;
+			border-color: #f5c6cb;
+		}
+		
+		.wpwevo-stat-error .wpwevo-stat-number {
+			color: #721c24;
+		}
+		
+		.wpwevo-stat-rate {
+			background: #d1ecf1;
+			border-color: #bee5eb;
+		}
+		
+		.wpwevo-stat-rate .wpwevo-stat-number {
+			color: #0c5460;
+		}
+		
+		.wpwevo-error-details {
+			margin-top: 15px;
+			border: 1px solid #f5c6cb;
+			border-radius: 6px;
+			overflow: hidden;
+		}
+		
+		.wpwevo-error-details summary {
+			background: #f8d7da;
+			padding: 10px 15px;
+			cursor: pointer;
+			font-weight: 500;
+			color: #721c24;
+		}
+		
+		.wpwevo-error-details ul {
+			margin: 0;
+			padding: 15px;
+			background: white;
+			list-style: none;
+		}
+		
+		.wpwevo-error-details li {
+			padding: 5px 0;
+			border-bottom: 1px solid #f1f5f9;
+			font-size: 13px;
+			color: #4a5568;
+		}
+		
+		.wpwevo-error-details li:last-child {
+			border-bottom: none;
 		}
 		</style>
 		<?php
@@ -1247,11 +1436,13 @@ class Bulk_Sender {
 
 	public function clear_history() {
 		check_ajax_referer('wpwevo_bulk_send', 'nonce');
+		
 		if (!current_user_can('manage_options')) {
 			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
 		}
 
 		delete_option('wpwevo_bulk_history');
+		
 		wp_send_json_success();
 	}
 

@@ -303,7 +303,6 @@ class Settings_Page {
 		}
 		</style>
 		
-		<?php if (Quick_Signup::should_show_upgrade_modal()): ?>
 		<!-- MODAL DE UPGRADE (melhorado) -->
 		<div id="wpwevo-upgrade-modal" class="wpwevo-modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
 			<div class="wpwevo-modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 0; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;">
@@ -352,8 +351,7 @@ class Settings_Page {
 				</div>
 			</div>
 		</div>
-		<?php endif; ?>
-
+		
 		<?php
 	}
 
@@ -940,10 +938,14 @@ Finalize agora:
 							Aguarde um instante...
 						</p>
 						
+						<!-- BOTÃO DE UPGRADE DENTRO DO CARD -->
+						<button id="wpwevo-upgrade-btn-from-status" onclick="showUpgradeModal()" style="display: none; background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; margin-bottom: 15px;">
+							💳 Fazer Upgrade Agora
+						</button>
+						
 						<div id="wpwevo-trial-expired-notice" style="display: none; background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
 							<span style="color: #721c24;">⚠️ Trial expirado! Faça upgrade para continuar usando.</span>
 						</div>
-
 					</div>
 				</div>
 			</div>

@@ -7,15 +7,6 @@ jQuery(document).ready(function($) {
         return;
     }
 
-    // Debug temporário
-    console.log('=== WP WhatsEvolution - Bulk Send CARREGADO ===');
-    console.log('jQuery disponível:', typeof $ !== 'undefined');
-    console.log('wpwevoBulkSend disponível:', typeof wpwevoBulkSend !== 'undefined');
-    if (typeof wpwevoBulkSend !== 'undefined') {
-        console.log('wpwevoBulkSend.ajaxurl:', wpwevoBulkSend.ajaxurl);
-        console.log('wpwevoBulkSend.nonce:', wpwevoBulkSend.nonce);
-    }
-
     // Variáveis globais
     let isSending = false;
     let currentProgress = 0;
@@ -63,21 +54,14 @@ jQuery(document).ready(function($) {
 
     // Preview de clientes
     function initCustomerPreview() {
-        console.log('Inicializando preview de clientes');
-        
         $('#wpwevo-preview-customers').on('click', function(e) {
             e.preventDefault();
-            
-            console.log('Botão preview clicado');
             
             var $button = $(this);
             var $preview = $('#wpwevo-customers-preview');
             var $form = $button.closest('form');
             
             var $checkboxes = $form.find('input[name="status[]"]:checked');
-            
-            console.log('Checkboxes selecionados:', $checkboxes.length);
-            console.log('Checkboxes:', $checkboxes.map(function() { return this.value; }).get());
             
             if ($checkboxes.length === 0) {
                 alert(wpwevoBulkSend.i18n.statusRequired);
@@ -92,11 +76,6 @@ jQuery(document).ready(function($) {
             formData.append('action', 'wpwevo_preview_customers');
             formData.append('nonce', wpwevoBulkSend.nonce);
 
-            console.log('FormData criado');
-            console.log('Action:', formData.get('action'));
-            console.log('Nonce:', formData.get('nonce'));
-            console.log('Status:', formData.getAll('status[]'));
-
             // Faz a requisição AJAX
             $.ajax({
                 url: wpwevoBulkSend.ajaxurl,
@@ -105,19 +84,13 @@ jQuery(document).ready(function($) {
                 processData: false,
                 contentType: false,
                 success: function(response) {
-                    console.log('Resposta recebida:', response);
                     if (response.success) {
                         $preview.html(response.data.html).show();
-                        console.log('Preview atualizado com sucesso');
                     } else {
-                        console.error('Erro na resposta:', response.data);
                         alert('Erro: ' + (response.data.message || response.data));
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Erro AJAX:', {xhr: xhr, status: status, error: error});
-                    console.error('Status:', xhr.status);
-                    console.error('ResponseText:', xhr.responseText);
                     alert(wpwevoBulkSend.i18n.error);
                 },
                 complete: function() {
@@ -130,11 +103,9 @@ jQuery(document).ready(function($) {
     // Inicializa envio em massa
     function initBulkSend() {
         const sendButton = $('#wpwevo-bulk-form');
-        console.log('Formulário de envio encontrado:', sendButton.length);
         if (sendButton.length) {
             sendButton.on('submit', function(e) {
                 e.preventDefault();
-                console.log('Formulário de envio submetido');
                 startBulkSend();
             });
         }
@@ -142,8 +113,6 @@ jQuery(document).ready(function($) {
 
     // Inicia envio em massa
     function startBulkSend() {
-        console.log('Iniciando envio em massa...');
-        
         if (isSending) {
             alert('Envio já está em andamento.');
             return;
@@ -153,8 +122,6 @@ jQuery(document).ready(function($) {
         const formData = new FormData(formElement);
         
         const message = formData.get('wpwevo_bulk_message');
-        
-        console.log('Mensagem encontrada:', message ? 'SIM' : 'NÃO');
 
         if (!message || !message.trim()) {
             alert('Digite uma mensagem.');
@@ -163,14 +130,10 @@ jQuery(document).ready(function($) {
 
         // Detecta a aba ativa corretamente
         const activeTab = $('.wpwevo-tab-button.active').data('tab');
-        console.log('Aba ativa detectada:', activeTab);
-        console.log('Elemento da aba ativa:', $('.wpwevo-tab-button.active'));
-        console.log('Todas as abas:', $('.wpwevo-tab-button').map(function() { return $(this).data('tab'); }).get());
         
         // Valida status apenas se estiver na aba de clientes
         if (activeTab === 'customers') {
             const statuses = formData.getAll('status[]');
-            console.log('Status selecionados para envio:', statuses);
             
             if (statuses.length === 0) {
                 alert('Selecione pelo menos um status.');
@@ -182,8 +145,6 @@ jQuery(document).ready(function($) {
         if (!confirm('Tem certeza que deseja enviar mensagens para todos os clientes selecionados?')) {
             return;
         }
-
-        console.log('Iniciando processo de envio...');
 
         // Garante que o container de status exista antes de usá-lo
         if ($('#wpwevo-bulk-status').length === 0) {
@@ -212,12 +173,6 @@ jQuery(document).ready(function($) {
         if (!formData.has('active_tab')) {
             formData.append('active_tab', activeTab || 'customers');
         }
-        console.log('active_tab que será enviado:', formData.get('active_tab'));
-
-        console.log('Enviando requisição de envio...');
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
-        }
 
         // Envia a requisição
         $.ajax({
@@ -232,8 +187,6 @@ jQuery(document).ready(function($) {
                 $('#wpwevo-progress-bar').css('width', '50%');
             },
             success: function(response) {
-                console.log('Resposta do envio:', response);
-                
                 // Anima a barra para 100%
                 $('#wpwevo-status-text').text('Finalizando...');
                 $('#wpwevo-progress-bar').css('width', '100%');
@@ -254,7 +207,6 @@ jQuery(document).ready(function($) {
 
             },
             error: function(xhr, status, error) {
-                console.log('Erro no envio:', {xhr: xhr, status: status, error: error});
                 isSending = false;
                 updateSendButton();
                 hideProgressBar();
@@ -376,8 +328,8 @@ jQuery(document).ready(function($) {
 
     // Histórico de envios
     function initHistoryActions() {
-        // Usa delegação de eventos para o botão de limpar, pois o conteúdo é dinâmico
-        $('#wpwevo-history-container').on('click', '#wpwevo-clear-history', function(e) {
+        // Usa delegação de eventos para o botão de limpar a partir da seção principal do histórico
+        $('#wpwevo-history-section').on('click', '#wpwevo-clear-history', function(e) {
             e.preventDefault();
             if (confirm(wpwevoBulkSend.i18n.confirmClearHistory)) {
                 $.ajax({
@@ -393,6 +345,9 @@ jQuery(document).ready(function($) {
                         } else {
                             alert('Erro ao limpar histórico.');
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Erro de comunicação ao limpar histórico.');
                     }
                 });
             }

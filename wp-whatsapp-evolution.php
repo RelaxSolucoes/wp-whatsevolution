@@ -201,8 +201,14 @@ function wpwevo_create_options() {
 	add_option('wpwevo_api_key', '');
 	add_option('wpwevo_instance', '');
 
-	// Opções de mensagens por status
+	// Opções de mensagens por status - inicializa vazio para ser preenchido automaticamente
 	add_option('wpwevo_status_messages', []);
+	
+	// Inicializa mensagens padrão se o WooCommerce estiver ativo
+	if (class_exists('WooCommerce')) {
+		// Aguarda um pouco para garantir que o WooCommerce esteja totalmente carregado
+		wp_schedule_single_event(time() + 5, 'wpwevo_init_default_messages');
+	}
 }
 
 // Limpa dados
@@ -219,6 +225,15 @@ function wpwevo_migrate_old_options() {
 	if ($old_instance && !get_option('wpwevo_instance')) {
 		update_option('wpwevo_instance', $old_instance);
 		delete_option('wpwevo_instance_name');
+	}
+}
+
+// Inicializa mensagens padrão após ativação
+add_action('wpwevo_init_default_messages', 'wpwevo_init_default_messages');
+function wpwevo_init_default_messages() {
+	if (class_exists('WpWhatsAppEvolution\Send_By_Status')) {
+		$send_by_status = WpWhatsAppEvolution\Send_By_Status::init();
+		$send_by_status->setup();
 	}
 }
 

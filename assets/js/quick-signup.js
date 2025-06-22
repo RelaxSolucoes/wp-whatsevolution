@@ -400,7 +400,6 @@ jQuery(document).ready(function($) {
     $('#wpwevo-name').focus();
 
     // ===== LÓGICA DO MODAL DE UPGRADE =====
-
     const upgradeModal = document.getElementById('wpwevo-upgrade-modal');
     const paymentFeedback = document.getElementById('wpwevo-payment-feedback');
     let pollingInterval; // Variável para controlar o intervalo do polling
@@ -492,21 +491,24 @@ jQuery(document).ready(function($) {
     };
 
     // ===== LÓGICA DE POLLING DE STATUS =====
-
     function startStatusPolling(apiKey) {
+      // Para o polling anterior, se houver
       if (pollingInterval) {
         clearInterval(pollingInterval);
       }
-      pollingInterval = setInterval(() => {
-        checkInstanceStatus(apiKey || wpwevo_quick_signup.api_key);
-      }, 3000); // ✅ Polling de 3 segundos para detecção rápida
 
+      // Inicia um novo polling a cada 5 segundos (5000 ms)
+      pollingInterval = setInterval(() => {
+        checkInstanceStatus(apiKey);
+      }, 5000);
+      
+      // Defina um timeout para parar de tentar após 5 minutos
       setTimeout(() => {
           if (pollingInterval) {
               clearInterval(pollingInterval);
               // Opcional: mostrar uma mensagem para o usuário verificar mais tarde.
           }
-      }, 300000); // Para após 5 minutos
+      }, 300000); // 5 minutos
     }
 
     function stopPolling() {
@@ -524,38 +526,30 @@ jQuery(document).ready(function($) {
             'Content-Type': 'application/json',
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlkbm9icXNlcHZlZWZpZWZteGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDkwOTAsImV4cCI6MjA2NTIyNTA5MH0.PlLrBA3eauvanWT-gQoKdvpTaPRrwgtuW8gZhbrlO7o'
           },
-          body: JSON.stringify({ 
-            api_key: apiKey || wpwevo_quick_signup.api_key 
-          })
+          body: JSON.stringify({ api_key: apiKey })
         });
 
         if (!response.ok) {
-          console.error('Erro ao verificar status:', response.statusText);
-          return;
+          // Continue tentando em caso de erro de servidor
+          return; 
         }
 
         const result = await response.json();
-
-        if (result.success && result.data) {
-            const statusData = result.data;
-            
-            // ✅ USE O CAMPO whatsapp_connected PARA DECIDIR SE ESTÁ CONECTADO
-            if (statusData.whatsapp_connected) {
-                // WhatsApp REALMENTE conectado
-                updateUserInterface(statusData);
-                stopPolling(); // Para o polling quando conectado
-            } else {
-                // WhatsApp não conectado - mostra QR code se disponível
-                if (statusData.qr_code) {
-                    displayQRCode(statusData);
-                }
-                // Continua o polling
-            }
-        } else {
-            console.error('Erro na resposta da API:', result);
+        
+        // 🎯 LÓGICA EXATA DO BACKEND: Verifica se o status é 'connected'
+        if (result.success && result.data && result.data.status === 'connected') {
+          stopPolling(); // 1. Para o polling
+          closeUpgradeModal(); // 2. Fecha o modal de pagamento
+          
+          // 3. Mostra uma notificação de sucesso
+          alert('Pagamento recebido! Sua conta foi reativada com sucesso.');
+          
+          // 4. Recarrega a página para refletir o novo estado
+          window.location.reload();
         }
+
       } catch (error) {
-        console.error('Erro na requisição de status:', error);
+        // A rede pode ter falhado, o polling continuará na próxima iteração
       }
     }
 
@@ -599,6 +593,7 @@ jQuery(document).ready(function($) {
         const mainContainer = $('#wpwevo-status-container');
         const renewalModal = $('#wpwevo-upgrade-modal');
         const expiredNotice = $('#wpwevo-trial-expired-notice');
+        const upgradeButton = $('#wpwevo-upgrade-btn-from-status');
 
         // Se a conta tem dias restantes, mostre o status correto baseado no plano.
         if (apiData.trial_days_left > 0) {
@@ -621,14 +616,25 @@ jQuery(document).ready(function($) {
             mainContainer.removeClass('status-expired').addClass('status-active');
             renewalModal.hide();
             expiredNotice.hide();
+            upgradeButton.hide();
         } 
-        // Se a conta NÃO tem dias restantes, mostre o status de Expirado.
+        // Se a conta NÃO tem dias restantes, mostre o status de Expirado e ABRA o modal automaticamente.
         else {
             titleElement.text('Assinatura Expirada');
             daysLeftElement.text('Faça upgrade para reativar sua conta.');
             mainContainer.removeClass('status-active').addClass('status-expired');
-            renewalModal.show();
             expiredNotice.show();
+            // Exibe o modal de upgrade automaticamente se não estiver aberto
+            if (renewalModal.length && renewalModal.is(':hidden')) {
+                renewalModal.show();
+                if (typeof window.showUpgradeModal === 'function') {
+                    window.showUpgradeModal();
+                } else {
+                    renewalModal[0].style.display = 'block';
+                }
+            }
+            // Garante que o botão de upgrade esteja visível
+            upgradeButton.show();
         }
     }
 }); 
