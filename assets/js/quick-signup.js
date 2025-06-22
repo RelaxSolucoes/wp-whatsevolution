@@ -274,21 +274,23 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success && response.data && response.data.instance) {
                     const state = response.data.instance.state;
-                    updateConnectionIndicator(state);
 
                     if (state === 'open') {
                         // Conectado com sucesso
+                        stopPolling(); // 1. Para de verificar
+
+                        // 2. Sincroniza o status mais recente com o WordPress
+                        syncStatusWithWordPress(response.data);
+
+                        // 3. Atualiza a interface dinamicamente
+                        updateUserInterface(response.data);
+
+                        // 4. Garante que os elementos visuais corretos sejam mostrados
                         $('#wpwevo-qr-container').hide();
                         $('#wpwevo-connection-success').show();
-                        stopPolling(); // Para de verificar
-
-                        // 🚀 CORREÇÃO: Recarrega a página para mostrar o status do plano atualizado.
-                        setTimeout(function() {
-                            window.location.reload();
-                        }, 1500); // Delay para o usuário ver a mensagem de sucesso.
                         
                     } else {
-                        // Ainda não conectado, mostra QR code se disponível
+                        // Ainda não conectado, atualiza o QR code se necessário
                         displayQRCode(response.data);
                     }
                 } else {
