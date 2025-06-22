@@ -371,9 +371,6 @@ class Checkout_Validator {
 			return;
 		}
 
-		// Debug
-		// Log removido - operação normal
-
 		wp_enqueue_style(
 			'wpwevo-checkout-validator',
 			WPWEVO_URL . 'assets/css/checkout-validator.css',
@@ -389,16 +386,11 @@ class Checkout_Validator {
 			true
 		);
 
-		wp_localize_script('wpwevo-checkout-validator', 'wpwevoCheckout', [
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('wpwevo_validate_checkout'),
-			'show_modal' => $this->settings['show_modal'],
-			'modal_title' => $this->settings['modal_title'],
-			'modal_message' => $this->settings['modal_message'],
-			'modal_button_text' => $this->settings['modal_button_text'],
-			'validation_success' => $this->settings['validation_success_message'],
-			'validation_error' => $this->settings['validation_error_message'],
-			'debug' => true // ATIVA DEBUG TEMPORÁRIO
+		wp_localize_script('wpwevo-checkout-validator', 'wpwevoCheckoutValidator', [
+			'ajax_url' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('wpwevo_validate_phone'),
+			'validation_url' => admin_url('admin-ajax.php'),
+			'validation_action' => 'wpwevo_validate_phone'
 		]);
 	}
 } 

@@ -257,4 +257,108 @@
 		text-align: center;
 		margin-right: 0;
 	}
+}
+
+/* Upgrade Modal Styles */
+.wpwevo-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.wpwevo-modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.wpwevo-modal .wpwevo-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.wpwevo-modal .wpwevo-close:hover,
+.wpwevo-modal .wpwevo-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.wpwevo-modal h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.wpwevo-modal p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.wpwevo-modal .wpwevo-price {
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #2563eb;
+    margin: 20px 0;
+}
+
+.wpwevo-modal .wpwevo-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    text-align: left;
+    display: inline-block;
+}
+
+.wpwevo-modal .wpwevo-benefits li {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.wpwevo-modal .wpwevo-upgrade-btn,
+.wpwevo-modal .wpwevo-cancel-btn {
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    margin: 5px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.wpwevo-modal .wpwevo-upgrade-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.wpwevo-modal .wpwevo-upgrade-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.wpwevo-modal .wpwevo-cancel-btn {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.wpwevo-modal .wpwevo-cancel-btn:hover {
+    background: #cbd5e0;
 } 

@@ -141,21 +141,13 @@ class Bulk_Sender {
 		);
 
 		wp_localize_script('wpwevo-bulk-send', 'wpwevoBulkSend', [
-			'ajaxurl' => admin_url('admin-ajax.php'),
+			'ajax_url' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_bulk_send'),
-			'debug' => true, // Debug temporário
-			'i18n' => [
-				'sending' => $this->i18n['sending'],
-				'preview' => $this->i18n['preview'],
-				'messageRequired' => __('A mensagem é obrigatória.', 'wp-whatsapp-evolution'),
-				'statusRequired' => __('Selecione pelo menos um status.', 'wp-whatsapp-evolution'),
-				'csvRequired' => __('Selecione um arquivo CSV.', 'wp-whatsapp-evolution'),
-				'numbersRequired' => __('Digite pelo menos um número.', 'wp-whatsapp-evolution'),
-				'error' => __('Erro ao processar a requisição. Tente novamente.', 'wp-whatsapp-evolution'),
-				'send' => $this->i18n['form']['send_button'],
-				'historyTitle' => $this->i18n['history']['title'],
-				'noHistory' => $this->i18n['history']['no_history'],
-				'confirmClearHistory' => $this->i18n['history']['confirm_clear']
+			'messages' => [
+				'loading' => __('Carregando...', 'wp-whatsapp-evolution'),
+				'error' => __('Erro ao carregar dados.', 'wp-whatsapp-evolution'),
+				'success' => __('Enviado com sucesso!', 'wp-whatsapp-evolution'),
+				'confirm' => __('Tem certeza que deseja enviar mensagens para todos os clientes selecionados?', 'wp-whatsapp-evolution')
 			]
 		]);
 	}

@@ -15,8 +15,19 @@ class Api_Connection {
     public static function get_instance() {
         if (self::$instance === null) {
             self::$instance = new self();
+            self::$instance->api_url = get_option('wpwevo_api_url', '');
+            self::$instance->api_key = self::get_active_api_key(); // Usa a chave ativa
+            self::$instance->instance_name = get_option('wpwevo_instance', '');
         }
         return self::$instance;
+    }
+
+    public static function get_active_api_key() {
+        $mode = get_option('wpwevo_connection_mode', 'manual');
+        if ($mode === 'managed') {
+            return get_option('wpwevo_managed_api_key', '');
+        }
+        return get_option('wpwevo_manual_api_key', '');
     }
 
     private function __construct() {
@@ -43,10 +54,10 @@ class Api_Connection {
             return self::$is_configured_cache;
         }
         
-        // Recarrega as configurações
-        $this->api_url = get_option('wpwevo_api_url');
-        $this->api_key = get_option('wpwevo_api_key');
-        $this->instance_name = get_option('wpwevo_instance');
+        // Recarrega as configurações usando a lógica correta
+        $this->api_url = get_option('wpwevo_api_url', '');
+        $this->api_key = self::get_active_api_key(); // CORRIGIDO: Usa a função que busca a chave correta
+        $this->instance_name = get_option('wpwevo_instance', '');
 
         $is_configured = !empty($this->api_url) && !empty($this->api_key) && !empty($this->instance_name);
         
@@ -457,5 +468,13 @@ class Api_Connection {
             ],
             'message' => __('Número válido!', 'wp-whatsapp-evolution')
         ];
+    }
+
+    public function force_reload() {
+        self::$instance->api_url = get_option('wpwevo_api_url', '');
+        self::$instance->api_key = self::get_active_api_key();
+        self::$instance->instance_name = get_option('wpwevo_instance', '');
+        // Limpa o cache de configuração para forçar a revalidação
+        self::$is_configured_cache = null; 
     }
 } 

@@ -2,6 +2,11 @@
 jQuery(document).ready(function($) {
     'use strict';
 
+    // Para o script se não estiver na página de envio em massa
+    if ($('#wpwevo-bulk-form').length === 0) {
+        return;
+    }
+
     // Debug temporário
     console.log('=== WP WhatsEvolution - Bulk Send CARREGADO ===');
     console.log('jQuery disponível:', typeof $ !== 'undefined');

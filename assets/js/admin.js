@@ -26,7 +26,6 @@ jQuery(document).ready(function($) {
             processData: false,
             contentType: false,
             success: function(response) {
-                console.log('Resposta do servidor:', response);
                 
                 let message = '';
                 let isSuccess = false;
@@ -52,7 +51,6 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Erro na requisição:', {xhr, status, error});
                 
                 $result
                     .removeClass('success')

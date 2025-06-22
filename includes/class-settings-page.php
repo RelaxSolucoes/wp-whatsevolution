@@ -51,7 +51,7 @@ class Settings_Page {
 			'default' => ''
 		]);
 
-		register_setting('wpwevo_settings', 'wpwevo_api_key', [
+		register_setting('wpwevo_settings', 'wpwevo_manual_api_key', [
 			'type' => 'string',
 			'sanitize_callback' => 'sanitize_text_field',
 			'default' => ''
@@ -104,13 +104,18 @@ class Settings_Page {
 
 			// A Evolution API que valida a chave - não fazemos validação local
 
-			// Atualiza as opções
+			// Atualiza as opções para o modo manual
+			update_option('wpwevo_connection_mode', 'manual');
 			update_option('wpwevo_api_url', $api_url);
-			update_option('wpwevo_api_key', $api_key);
+			update_option('wpwevo_manual_api_key', $api_key);
 			update_option('wpwevo_instance', $instance);
+			
+			// Limpa a chave antiga para evitar confusão
+			delete_option('wpwevo_api_key');
 
 			// Testa a conexão
 			$api = Api_Connection::get_instance();
+			$api->force_reload();
 			$result = $api->check_connection();
 
 			if ($result['success']) {
@@ -152,10 +157,36 @@ class Settings_Page {
 			true
 		);
 
+		// Adiciona o script do quick-signup
+		wp_enqueue_script(
+			'wpwevo-quick-signup',
+			WPWEVO_URL . 'assets/js/quick-signup.js',
+			['jquery'],
+			WPWEVO_VERSION,
+			true
+		);
+
 		wp_localize_script('wpwevo-admin', 'wpwevo_admin', [
 			'ajax_url' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_validate_settings'),
-			'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsapp-evolution')
+			'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsapp-evolution'),
+			'saved_api_url' => get_option('wpwevo_api_url', ''),
+			'saved_api_key' => get_option('wpwevo_managed_api_key', ''),
+			'saved_instance' => get_option('wpwevo_instance', '')
+		]);
+
+		// Adiciona as variáveis para o quick-signup
+		wp_localize_script('wpwevo-quick-signup', 'wpwevo_quick_signup', [
+			'ajax_url' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('wpwevo_quick_signup'),
+			'api_key' => get_option('wpwevo_managed_api_key', ''),
+			'messages' => [
+				'validating' => __('Validando dados...', 'wp-whatsapp-evolution'),
+				'creating_account' => __('Criando conta...', 'wp-whatsapp-evolution'),
+				'configuring_plugin' => __('Configurando plugin...', 'wp-whatsapp-evolution'),
+				'success' => __('Pronto!', 'wp-whatsapp-evolution'),
+				'error' => __('Erro ao criar conta. Tente novamente.', 'wp-whatsapp-evolution')
+			]
 		]);
 	}
 
@@ -177,6 +208,16 @@ class Settings_Page {
 			$type = $_GET['connection'] === 'success' ? 'success' : 'error';
 			$message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
 			echo '<div class="notice notice-' . esc_attr($type) . '"><p>' . esc_html($message) . '</p></div>';
+		}
+
+		// 🚀 NOVO: Mensagem de sucesso para restauração de configurações manuais
+		if (isset($_GET['restored']) && $_GET['restored'] === '1') {
+			echo '<div class="notice notice-success"><p>' . esc_html__('Configurações manuais restauradas com sucesso!', 'wp-whatsapp-evolution') . '</p></div>';
+		}
+
+		// 🚀 NOVO: Mensagem para ativação do modo manual
+		if (isset($_GET['manual_activated']) && $_GET['manual_activated'] === '1') {
+			echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__('Modo de configuração manual ativado. Você pode agora inserir suas próprias credenciais da API.', 'wp-whatsapp-evolution') . '</p></div>';
 		}
 		?>
 		<div class="wrap wpwevo-panel" style="max-width: none;">
@@ -237,12 +278,126 @@ class Settings_Page {
 			}
 		}
 		</script>
+
+		<style>
+		.wpwevo-step.active {
+			background: #e6fffa !important;
+		}
+		.wpwevo-step.active > div {
+			background: #38b2ac !important;
+			color: white !important;
+		}
+		.wpwevo-step.completed > div {
+			background: #48bb78 !important;
+			color: white !important;
+		}
+		input.error {
+			border-color: #e53e3e !important;
+		}
+		#wpwevo-signup-btn:disabled {
+			background: #cbd5e0 !important;
+			cursor: not-allowed !important;
+		}
+		.wpwevo-step {
+			transition: all 0.3s ease;
+		}
+		</style>
+		
+		<?php if (Quick_Signup::should_show_upgrade_modal()): ?>
+		<!-- MODAL DE UPGRADE (melhorado) -->
+		<div id="wpwevo-upgrade-modal" class="wpwevo-modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+			<div class="wpwevo-modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 0; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;">
+				
+				<div class="wpwevo-modal-header" style="padding: 20px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-bottom: 1px solid #e5e5e5;">
+					<h2 style="margin: 0; font-size: 22px; line-height: 1.2;">🚀 Continue Automatizando!</h2>
+					<span class="wpwevo-close" onclick="closeUpgradeModal()" style="color: #fff; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; top: 10px; right: 20px;">&times;</span>
+				</div>
+
+				<div class="wpwevo-modal-body" style="padding: 25px;">
+					<p style="font-size: 16px; color: #333; margin: 0 0 15px;">Seu período de testes terminou. Continue com acesso a todos os recursos por apenas:</p>
+					<div class="wpwevo-price" style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+						<span style="font-size: 28px; font-weight: 700; color: #166534;">R$ 29,90</span>
+						<span style="font-size: 16px; color: #15803d;">/mês</span>
+					</div>
+					<ul class="wpwevo-benefits" style="list-style: none; padding: 0; margin: 0 0 25px 0;">
+						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Envios de mensagens ilimitados</li>
+						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Suporte prioritário via WhatsApp</li>
+						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Atualizações automáticas do plugin</li>
+						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Backup automático das suas configurações</li>
+					</ul>
+					<div id="wpwevo-payment-feedback" style="display: none; margin: 15px 0; padding: 12px; border-radius: 6px; text-align: center;"></div>
+				</div>
+
+				<!-- NOVA SEÇÃO PARA EXIBIR O PIX -->
+				<div id="wpwevo-pix-payment-info" class="wpwevo-modal-body" style="padding: 25px; display: none;">
+					<h3 style="text-align: center; margin-top: 0; color: #166534;">Pague com PIX para ativar sua conta</h3>
+					<p style="text-align: center; font-size: 14px; color: #333;">Abra o app do seu banco e escaneie o código abaixo:</p>
+					<div style="text-align: center; margin: 20px 0;">
+						<img id="wpwevo-pix-qr-code" src="" alt="PIX QR Code" style="max-width: 250px; height: auto; border: 1px solid #ddd; padding: 5px; border-radius: 8px;">
+					</div>
+					<p style="text-align: center; font-size: 14px; color: #333;">Ou copie o código:</p>
+					<div style="position: relative;">
+						<textarea id="wpwevo-pix-copy-paste" readonly style="width: 100%; height: 100px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; resize: none;"></textarea>
+						<button id="wpwevo-copy-pix-btn" style="position: absolute; top: 10px; right: 10px; background: #667eea; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer;">Copiar</button>
+					</div>
+				</div>
+
+				<div class="wpwevo-modal-footer" style="padding: 20px 25px; background: #f7f7f7; text-align: right; border-top: 1px solid #e5e5e5;">
+					<button onclick="closeUpgradeModal()" class="wpwevo-cancel-btn" style="background: transparent; border: 1px solid #ccc; color: #555; padding: 12px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 14px; margin: 4px 2px; cursor: pointer; border-radius: 8px; font-weight: 600;">
+						Talvez depois
+					</button>
+					<button onclick="createPayment()" class="wpwevo-upgrade-btn" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 12px 25px; border: none; text-align: center; text-decoration: none; display: inline-block; font-size: 14px; margin: 4px 2px; cursor: pointer; border-radius: 8px; font-weight: 600;">
+						💳 Assinar Agora
+					</button>
+				</div>
+			</div>
+		</div>
+		<?php endif; ?>
+
 		<?php
 	}
 
 	private function render_connection_tab() {
 		$api = Api_Connection::get_instance();
 		$connection_status = $api->is_configured() ? $api->check_connection() : null;
+		$connection_mode = get_option('wpwevo_connection_mode', 'manual');
+		$is_managed = $connection_mode === 'managed';
+		$is_trial_expired = Quick_Signup::should_show_upgrade_modal();
+		$has_previous_manual = get_option('wpwevo_previous_manual_config');
+
+		if (isset($_GET['force_manual_mode']) && check_admin_referer('wpwevo_force_manual')) {
+			// 🚀 CORREÇÃO: Apenas muda o modo de conexão para 'manual'.
+			// Não apaga mais 'wpwevo_managed_api_key' nem 'wpwevo_auto_configured'.
+			// Isso preserva a ligação com a conta 'managed' e permite ao usuário
+			// voltar para a aba de teste grátis para ver seu status ou pagar.
+			update_option('wpwevo_connection_mode', 'manual');
+
+			// Limpa os campos da API no modo manual para evitar que as credenciais do modo
+			// gerenciado sejam usadas acidentalmente no modo manual.
+			update_option('wpwevo_api_url', '');
+			update_option('wpwevo_manual_api_key', '');
+			update_option('wpwevo_instance', '');
+			
+			// Redireciona para a aba de conexão para aplicar as mudanças visualmente.
+			wp_redirect(admin_url('admin.php?page=wpwevo-settings&tab=connection&manual_activated=1'));
+			exit;
+		}
+
+		// 🚀 NOVO: Restaura configurações manuais anteriores
+		if (isset($_GET['restore_manual']) && check_admin_referer('wpwevo_restore_manual')) {
+			$previous_config = get_option('wpwevo_previous_manual_config');
+			if ($previous_config) {
+				update_option('wpwevo_connection_mode', 'manual');
+				update_option('wpwevo_api_url', $previous_config['api_url']);
+				update_option('wpwevo_manual_api_key', $previous_config['api_key']);
+				update_option('wpwevo_instance', $previous_config['instance']);
+				delete_option('wpwevo_managed_api_key');
+				delete_option('wpwevo_auto_configured');
+				wp_redirect(admin_url('admin.php?page=wpwevo-settings&restored=1'));
+				exit;
+			}
+		}
+
 		?>
 		
 		<!-- Cards de Configuração -->
@@ -255,6 +410,48 @@ class Settings_Page {
 						<div style="background: #667eea; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🔗</div>
 						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Configuração da Evolution API</h3>
 					</div>
+
+					<?php if ($is_managed): ?>
+						<?php if ($is_trial_expired): ?>
+							<!-- 🚀 NOVO: Aviso de trial expirado -->
+							<div style="padding: 15px; background: #fef3c7; border: 1px solid #f59e0b; border-left-width: 4px; border-left-color: #f59e0b; border-radius: 8px; margin-bottom: 20px;">
+								<h4 style="margin: 0 0 5px 0; color: #92400e; font-size: 16px;">⏰ Trial Expirado</h4>
+								<p style="margin: 0; color: #92400e; font-size: 14px;">
+									Seu período de teste gratuito expirou. Você pode renovar sua conta ou voltar para configuração manual.
+								</p>
+								<div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+									<a href="<?php echo esc_url(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup')); ?>" 
+									   style="color: #1d4ed8; font-size: 12px; text-decoration: underline;">
+										💳 Ativar plano pago
+									</a>
+									<?php if ($has_previous_manual): ?>
+										<a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&restore_manual=1'), 'wpwevo_restore_manual')); ?>" 
+										   style="color: #1d4ed8; font-size: 12px; text-decoration: underline;">
+											🔙 Restaurar configuração manual anterior
+										</a>
+									<?php endif; ?>
+									<a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&force_manual_mode=1'), 'wpwevo_force_manual')); ?>" 
+									   onclick="return confirm('<?php _e('Tem certeza que deseja mudar para o modo manual? Isso pode desconectar sua instância atual se não for reconfigurado corretamente.', 'wp-whatsapp-evolution'); ?>');"
+									   style="color: #1d4ed8; font-size: 12px; text-decoration: underline;">
+										⚙️ Configurar manualmente
+									</a>
+								</div>
+							</div>
+						<?php else: ?>
+							<!-- Modo managed ativo -->
+							<div style="padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-left-width: 4px; border-left-color: #4ade80; border-radius: 8px; margin-bottom: 20px;">
+								<h4 style="margin: 0 0 5px 0; color: #166534; font-size: 16px;">🚀 Modo de Configuração Automática Ativado</h4>
+								<p style="margin: 0; color: #15803d; font-size: 14px;">
+									O plugin foi configurado automaticamente através da aba "Teste Grátis". As configurações abaixo não podem ser editadas.
+								</p>
+								 <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&force_manual_mode=1'), 'wpwevo_force_manual')); ?>" 
+								   onclick="return confirm('<?php _e('Tem certeza que deseja mudar para o modo manual? Isso pode desconectar sua instância atual se não for reconfigurado corretamente.', 'wp-whatsapp-evolution'); ?>');"
+								   style="color: #1d4ed8; font-size: 12px; text-decoration: underline; margin-top: 10px; display: inline-block;">
+									<?php _e('Clique aqui para configurar manualmente', 'wp-whatsapp-evolution'); ?>
+								</a>
+							</div>
+						<?php endif; ?>
+					<?php endif; ?>
 					
 					<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="wpwevo-settings-form">
 						<?php settings_fields('wpwevo_settings'); ?>
@@ -266,7 +463,7 @@ class Settings_Page {
 								<input type="url" name="api_url" 
 									   value="<?php echo esc_attr(get_option('wpwevo_api_url', '')); ?>" 
 									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" required
-									   placeholder="https://sua-api.exemplo.com">
+									   placeholder="https://sua-api.exemplo.com" <?php disabled($is_managed, true); ?>>
 								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
 									URL completa onde a Evolution API está instalada
 								</p>
@@ -276,9 +473,9 @@ class Settings_Page {
 							<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
 								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">🔑 API KEY</label>
 								<input type="text" name="api_key" 
-									   value="<?php echo esc_attr(get_option('wpwevo_api_key', '')); ?>" 
+									   value="<?php echo esc_attr(Api_Connection::get_active_api_key()); ?>" 
 									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" required
-									   placeholder="Sua chave de API">
+									   placeholder="Sua chave de API" <?php disabled($is_managed, true); ?>>
 								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
 									Chave de API gerada nas configurações da Evolution API
 								</p>
@@ -290,7 +487,7 @@ class Settings_Page {
 								<input type="text" name="instance" 
 									   value="<?php echo esc_attr(get_option('wpwevo_instance', '')); ?>" 
 									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" required
-									   placeholder="Nome da sua instância">
+									   placeholder="Nome da sua instância" <?php disabled($is_managed, true); ?>>
 								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
 									Nome da instância criada na Evolution API
 								</p>
@@ -299,7 +496,7 @@ class Settings_Page {
 						
 						<!-- Botões de Ação -->
 						<div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
-							<button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 24px; font-size: 14px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+							<button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 24px; font-size: 14px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);" <?php disabled($is_managed, true); ?>>
 								💾 Salvar Configurações
 							</button>
 							
@@ -525,7 +722,8 @@ Finalize agora:
 
 	private function render_quick_signup_tab() {
 		$is_auto_configured = Quick_Signup::is_auto_configured();
-		$trial_days_left = Quick_Signup::get_trial_days_left();
+		$is_trial_expired = Quick_Signup::should_show_upgrade_modal();
+		$current_user_email = get_option('wpwevo_user_email', '');
 		?>
 		<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
 			
@@ -534,9 +732,15 @@ Finalize agora:
 			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2); overflow: hidden;">
 				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 28px;">🚀 Teste Grátis por 7 Dias</h2>
+						<h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 28px;">
+							<?php echo $current_user_email ? '💳 Ativar Plano Pago' : '🚀 Teste Grátis por 7 Dias'; ?>
+						</h2>
 						<p style="margin: 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
-							Não tem Evolution API? Sem problema! Teste nossa solução completa:
+							<?php if ($current_user_email): ?>
+								Detectamos que você já tem uma conta. Ative seu plano pago para continuar usando:
+							<?php else: ?>
+								Não tem Evolution API? Sem problema! Teste nossa solução completa:
+							<?php endif; ?>
 						</p>
 					</div>
 					
@@ -570,7 +774,7 @@ Finalize agora:
 								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">👤 Nome completo</label>
 								<input type="text" id="wpwevo-name" required
 									   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;"
-									   placeholder="Seu nome completo">
+									   placeholder="Seu nome completo" value="<?php echo esc_attr(get_option('wpwevo_user_name', '')); ?>">
 								<div id="name-error" style="color: #e53e3e; font-size: 12px; margin-top: 5px; display: none;"></div>
 							</div>
 							
@@ -578,7 +782,7 @@ Finalize agora:
 								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">📧 Email</label>
 								<input type="email" id="wpwevo-email" required
 									   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;"
-									   placeholder="seu@email.com">
+									   placeholder="seu@email.com" value="<?php echo esc_attr($current_user_email); ?>">
 								<div id="email-error" style="color: #e53e3e; font-size: 12px; margin-top: 5px; display: none;"></div>
 							</div>
 							
@@ -586,14 +790,14 @@ Finalize agora:
 								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">📱 WhatsApp</label>
 								<input type="tel" id="wpwevo-whatsapp" required
 									   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;"
-									   placeholder="(11) 99999-9999">
+									   placeholder="(11) 99999-9999" value="<?php echo esc_attr(get_option('wpwevo_user_whatsapp', '')); ?>">
 								<div id="whatsapp-error" style="color: #e53e3e; font-size: 12px; margin-top: 5px; display: none;"></div>
 							</div>
 						</div>
 						
 						<button type="submit" id="wpwevo-signup-btn" disabled
 								style="width: 100%; margin-top: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-							🚀 Criar Conta e Testar Agora
+							<?php echo $current_user_email ? '💳 Ativar Plano Pago' : '🚀 Criar Conta e Testar Agora'; ?>
 						</button>
 					</form>
 				</div>
@@ -689,19 +893,21 @@ Finalize agora:
 						</div>
 						
 						<div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
-							<a href="https://whats-evolution.vercel.app/" target="_blank" 
-							   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
-								🚀 Fazer Upgrade Agora
-							</a>
+							<!-- O botão de upgrade foi movido para o modal -->
 						</div>
 						
-						<p style="margin-top: 20px; text-align: center;">
-							<a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup&wpwevo_reset_trial=true'), 'wpwevo_reset_trial_nonce')); ?>" 
-							   onclick="return confirm('<?php _e('Tem certeza que deseja resetar sua configuração de teste? Todos os dados da API serão apagados.', 'wp-whatsapp-evolution'); ?>');"
-							   style="color: #a0a5aa; font-size: 12px; text-decoration: none;">
-								<?php _e('Resetar configuração de teste', 'wp-whatsapp-evolution'); ?>
-							</a>
-						</p>
+						<!-- Estados do pagamento (agora dentro do modal) -->
+						<div id="wpwevo-payment-loading" style="display: none; text-align: center; margin-top: 15px;">
+							<p style="color: #4a5568;">⏳ Criando pagamento...</p>
+						</div>
+						
+						<div id="wpwevo-payment-success" style="display: none; text-align: center; margin-top: 15px;">
+							<p style="color: #155724;">✅ Pagamento criado! Redirecionando...</p>
+						</div>
+						
+						<div id="wpwevo-payment-error" style="display: none; text-align: center; margin-top: 15px;">
+							<p style="color: #721c24;">❌ Erro no pagamento. Tente novamente.</p>
+						</div>
 
 					</div>
 				</div>
@@ -724,40 +930,19 @@ Finalize agora:
 			</div>
 
 			<?php if ($is_auto_configured): ?>
-			<!-- Status do Trial -->
-			<div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(168, 237, 234, 0.2); overflow: hidden;">
+			<!-- Status do Trial (agora renderizado dinamicamente via JS) -->
+			<div id="wpwevo-status-container" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(168, 237, 234, 0.2); overflow: hidden;">
 				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
 					<div style="text-align: center;">
 						<div style="font-size: 48px; margin-bottom: 15px;">⏰</div>
-						<h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 24px;">Trial Ativo</h2>
-						<p style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px;">
-							Restam <strong><?php echo $trial_days_left; ?> dias</strong> do seu período de teste
+						<h2 id="connection-status-message" style="margin: 0 0 10px 0; color: #2d3748; font-size: 24px;">Carregando status...</h2>
+						<p id="trial-days-left-container" style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px;">
+							Aguarde um instante...
 						</p>
 						
-						<?php if (Quick_Signup::is_trial_active()): ?>
-							<div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-								<span style="color: #155724;">✅ Plugin configurado e funcionando!</span>
-							</div>
-						<?php else: ?>
-							<div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-								<span style="color: #721c24;">⚠️ Trial expirado! Faça upgrade para continuar usando.</span>
-							</div>
-						<?php endif; ?>
-						
-						<div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
-							<a href="https://whats-evolution.vercel.app/" target="_blank" 
-							   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
-								🚀 Fazer Upgrade Agora
-							</a>
+						<div id="wpwevo-trial-expired-notice" style="display: none; background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+							<span style="color: #721c24;">⚠️ Trial expirado! Faça upgrade para continuar usando.</span>
 						</div>
-						
-						<p style="margin-top: 20px; text-align: center;">
-							<a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup&wpwevo_reset_trial=true'), 'wpwevo_reset_trial_nonce')); ?>" 
-							   onclick="return confirm('<?php _e('Tem certeza que deseja resetar sua configuração de teste? Todos os dados da API serão apagados.', 'wp-whatsapp-evolution'); ?>');"
-							   style="color: #a0a5aa; font-size: 12px; text-decoration: none;">
-								<?php _e('Resetar configuração de teste', 'wp-whatsapp-evolution'); ?>
-							</a>
-						</p>
 
 					</div>
 				</div>
@@ -765,7 +950,7 @@ Finalize agora:
 			<?php endif; ?>
 
 		</div>
-		
+
 		<style>
 		.wpwevo-step.active {
 			background: #e6fffa !important;
