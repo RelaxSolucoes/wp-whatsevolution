@@ -19,6 +19,7 @@ jQuery(document).ready(function($) {
     let currentCustomerIndex = 0;
     let sendInterval;
     let progressInterval;
+    let csvData = null; // Armazena os dados do CSV processado
 
     // Tabs
     function initTabs() {
@@ -50,6 +51,171 @@ jQuery(document).ready(function($) {
                 $('.wpwevo-tab-button[data-tab="' + lastTab + '"]').trigger('click');
             }
         }
+    }
+
+    // **NOVO: Processamento de arquivo CSV**
+    function initCsvProcessing() {
+        $('input[name="wpwevo_csv_file"]').on('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) {
+                hideCsvColumnMapping();
+                return;
+            }
+
+            // Verifica se é um arquivo CSV
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                alert('Por favor, selecione um arquivo CSV válido.');
+                $(this).val('');
+                hideCsvColumnMapping();
+                return;
+            }
+
+            // Processa o arquivo CSV
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvContent = e.target.result;
+                    processCsvContent(csvContent);
+                } catch (error) {
+                    console.error('Erro ao processar CSV:', error);
+                    alert('Erro ao processar o arquivo CSV. Verifique se o formato está correto.');
+                    hideCsvColumnMapping();
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+    }
+
+    // **NOVO: Processa o conteúdo do CSV**
+    function processCsvContent(csvContent) {
+        try {
+            // Detecta o delimitador
+            const lines = csvContent.split('\n').filter(line => line.trim());
+            if (lines.length < 2) {
+                throw new Error('CSV deve ter pelo menos um cabeçalho e uma linha de dados');
+            }
+
+            const headerLine = lines[0];
+            const delimiter = (headerLine.split(';').length > headerLine.split(',').length) ? ';' : ',';
+            
+            // Processa o cabeçalho
+            const headers = parseCsvLine(headerLine, delimiter);
+            const headerMap = headers.map(h => h.toLowerCase().trim());
+
+            // Encontra colunas de telefone
+            const phoneColumns = [];
+            const phoneKeywords = ['telefone', 'celular', 'fone', 'phone', 'mobile', 'whatsapp', 'contato'];
+            
+            headerMap.forEach((header, index) => {
+                if (phoneKeywords.some(keyword => header.includes(keyword))) {
+                    phoneColumns.push({
+                        index: index,
+                        name: headers[index],
+                        header: header
+                    });
+                }
+            });
+
+            // Se não encontrou colunas de telefone, considera todas as colunas
+            if (phoneColumns.length === 0) {
+                headerMap.forEach((header, index) => {
+                    phoneColumns.push({
+                        index: index,
+                        name: headers[index],
+                        header: header
+                    });
+                });
+            }
+
+            // Armazena os dados para uso posterior
+            csvData = {
+                headers: headers,
+                headerMap: headerMap,
+                phoneColumns: phoneColumns,
+                delimiter: delimiter,
+                content: csvContent
+            };
+
+            // Mostra interface de seleção de coluna
+            showCsvColumnMapping(phoneColumns, headers);
+
+        } catch (error) {
+            console.error('Erro ao processar CSV:', error);
+            alert('Erro ao processar o arquivo CSV: ' + error.message);
+            hideCsvColumnMapping();
+        }
+    }
+
+    // **NOVO: Parse de linha CSV**
+    function parseCsvLine(line, delimiter) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === delimiter && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        
+        result.push(current.trim());
+        return result;
+    }
+
+    // **NOVO: Mostra interface de seleção de coluna**
+    function showCsvColumnMapping(phoneColumns, headers) {
+        let html = `
+            <div class="wpwevo-csv-mapping" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; margin-top: 15px;">
+                <h4 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px;">
+                    📋 <strong>Colunas Encontradas no CSV</strong>
+                </h4>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 0 0 10px 0; color: #4a5568; font-size: 14px;">
+                        <strong>Selecione qual coluna contém os números de telefone:</strong>
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+        `;
+
+        phoneColumns.forEach((col, index) => {
+            const isPhoneColumn = col.header.includes('telefone') || col.header.includes('celular') || 
+                                 col.header.includes('phone') || col.header.includes('mobile');
+            
+            html += `
+                <label style="display: flex; align-items: center; padding: 10px; border: 2px solid ${isPhoneColumn ? '#4facfe' : '#e2e8f0'}; border-radius: 6px; cursor: pointer; background: ${isPhoneColumn ? '#f0f8ff' : 'white'};">
+                    <input type="radio" name="wpwevo_phone_column" value="${col.index}" ${index === 0 ? 'checked' : ''} style="margin-right: 8px;">
+                    <div>
+                        <div style="font-weight: 600; color: #2d3748;">${col.name}</div>
+                        <div style="font-size: 12px; color: #718096;">${isPhoneColumn ? '📱 Coluna de telefone detectada' : 'Coluna geral'}</div>
+                    </div>
+                </label>
+            `;
+        });
+
+        html += `
+                    </div>
+                </div>
+                <div style="background: #e8f5e8; padding: 12px; border-radius: 6px; border-left: 4px solid #48bb78;">
+                    <p style="margin: 0; font-size: 13px; color: #2f855a;">
+                        <strong>✅ Pronto!</strong> Selecione a coluna correta e clique em "Iniciar Envio" quando estiver pronto.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        $('#wpwevo-csv-column-mapping').html(html).show();
+    }
+
+    // **NOVO: Esconde interface de seleção de coluna**
+    function hideCsvColumnMapping() {
+        $('#wpwevo-csv-column-mapping').hide().empty();
+        csvData = null;
     }
 
     // Preview de clientes
@@ -131,18 +297,36 @@ jQuery(document).ready(function($) {
         // Detecta a aba ativa corretamente
         const activeTab = $('.wpwevo-tab-button.active').data('tab');
         
-        // Valida status apenas se estiver na aba de clientes
+        // Validações específicas por aba
         if (activeTab === 'customers') {
             const statuses = formData.getAll('status[]');
-            
             if (statuses.length === 0) {
                 alert('Selecione pelo menos um status.');
+                return;
+            }
+        } else if (activeTab === 'csv') {
+            const csvFile = formData.get('wpwevo_csv_file');
+            if (!csvFile || !csvFile.name) {
+                alert('Selecione um arquivo CSV.');
+                return;
+            }
+            
+            // Verifica se o usuário selecionou uma coluna
+            const selectedColumn = formData.get('wpwevo_phone_column');
+            if (selectedColumn === null || selectedColumn === '') {
+                alert('Selecione qual coluna contém os números de telefone.');
+                return;
+            }
+        } else if (activeTab === 'manual') {
+            const manualNumbers = formData.get('wpwevo_manual_numbers');
+            if (!manualNumbers || !manualNumbers.trim()) {
+                alert('Digite pelo menos um número de telefone.');
                 return;
             }
         }
 
         // Confirma o envio
-        if (!confirm('Tem certeza que deseja enviar mensagens para todos os clientes selecionados?')) {
+        if (!confirm('Tem certeza que deseja enviar mensagens para todos os contatos selecionados?')) {
             return;
         }
 
@@ -307,6 +491,7 @@ jQuery(document).ready(function($) {
     initTabs();
     initCustomerPreview();
     initBulkSend();
+    initCsvProcessing();
     initHistoryActions();
     updateHistory(); // Carrega o histórico inicial
 

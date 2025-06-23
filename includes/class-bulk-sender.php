@@ -342,67 +342,52 @@ class Bulk_Sender {
 					<div class="wpwevo-tab-content" id="tab-csv">
 						<table class="form-table">
 							<tr>
-								<th scope="row"><?php echo esc_html($this->i18n['form']['csv_file']); ?></th>
+								<th scope="row">Arquivo CSV</th>
 								<td>
 									<input type="file" name="wpwevo_csv_file" accept=".csv">
 									<div class="wpwevo-csv-instructions" style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
-										<p style="margin-top: 0; font-weight: 500; color: #495057;"><?php echo esc_html($this->i18n['form']['csv_help']); ?></p>
-										<p style="margin-bottom: 10px; font-size: 13px; color: #6c757d;"><?php echo esc_html($this->i18n['form']['csv_example_title']); ?></p>
-										
-										<table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #dee2e6; font-size: 13px;">
-											<thead>
-												<tr style="background: #e9ecef;">
-													<th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">nome</th>
-													<th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">telefone</th>
-												</tr>
-											</thead>
-											<tbody>
-												<tr>
-													<td style="padding: 8px; border: 1px solid #dee2e6;">João Silva</td>
-													<td style="padding: 8px; border: 1px solid #dee2e6;">5511987654321</td>
-												</tr>
-												<tr>
-													<td style="padding: 8px; border: 1px solid #dee2e6;">Maria Santos</td>
-													<td style="padding: 8px; border: 1px solid #dee2e6;">5521912345678</td>
-												</tr>
-											</tbody>
-										</table>
-
-										<p style="margin-top: 15px;">
-											<a href="#" class="button" id="wpwevo-download-csv-template"><?php echo esc_html($this->i18n['form']['csv_download']); ?></a>
-										</p>
+										<details style="margin-bottom: 15px;">
+											<summary style="cursor: pointer; font-weight: 600; font-size: 15px; color: #2d3748;">📋 Como importar sua lista (clique para ver instruções)</summary>
+											<div style="margin-top: 12px; font-size: 14px; color: #495057;">
+												<p><strong>1. Prepare seu arquivo CSV:</strong></p>
+												<ul style="margin: 8px 0; padding-left: 20px;">
+													<li>Primeira linha deve conter os nomes das colunas</li>
+													<li>Inclua uma coluna com números de telefone (ex: "Telefone", "Celular", "Phone")</li>
+													<li>Opcional: inclua uma coluna com nomes (ex: "Nome", "Name", "Cliente")</li>
+													<li>Use vírgula (,) ou ponto e vírgula (;) como separador</li>
+												</ul>
+												
+												<p><strong>2. Faça o upload:</strong></p>
+												<ul style="margin: 8px 0; padding-left: 20px;">
+													<li>Selecione seu arquivo CSV</li>
+													<li>O sistema detectará automaticamente as colunas</li>
+													<li>Escolha qual coluna contém os telefones</li>
+												</ul>
+												
+												<p><strong>3. Envie as mensagens:</strong></p>
+												<ul style="margin: 8px 0; padding-left: 20px;">
+													<li>Digite sua mensagem (use {nome} para incluir o nome)</li>
+													<li>Clique em "Iniciar Envio"</li>
+												</ul>
+												
+												<div style="background: #e8f5e8; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #48bb78;">
+													<p style="margin: 0; font-size: 13px; color: #2f855a;">
+														<strong>💡 Dica:</strong> O sistema é inteligente e detecta automaticamente colunas de telefone!
+													</p>
+												</div>
+												
+												<div style="margin-top: 15px; text-align: center;">
+													<a href="data:text/csv;charset=utf-8,Nome,Telefone,Email%0D%0AJoão Silva,+55 11 99999-9999,joao@email.com%0D%0AMaria Santos,+55 21 88888-8888,maria@email.com%0D%0APedro Costa,+55 31 77777-7777,pedro@email.com" 
+													   download="exemplo-contatos.csv" 
+													   class="button button-secondary" 
+													   style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+														📥 Baixar Arquivo de Exemplo
+													</a>
+												</div>
+											</div>
+										</details>
 									</div>
-									<script>
-										document.addEventListener('DOMContentLoaded', function() {
-											document.getElementById('wpwevo-download-csv-template').addEventListener('click', function(e) {
-												e.preventDefault();
-												
-												// Conteúdo do CSV em formato de array para maior robustez
-												const rows = [
-													["nome", "telefone"],
-													["João Silva", "5511987654321"],
-													["Maria Santos", "5521912345678"]
-												];
-
-												// Converte o array para uma string CSV usando PONTO E VÍRGULA
-												let csvContent = rows.map(e => e.join(";")).join("\n");
-
-												// Adiciona o BOM (Byte Order Mark) para compatibilidade com Excel
-												const bom = "\uFEFF";
-												const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-												const url = URL.createObjectURL(blob);
-												
-												// Cria um link de download e simula o clique
-												const link = document.createElement("a");
-												link.setAttribute("href", url);
-												link.setAttribute("download", "exemplo_contatos.csv");
-												link.style.visibility = 'hidden';
-												document.body.appendChild(link);
-												link.click();
-												document.body.removeChild(link);
-											});
-										});
-									</script>
+									<div id="wpwevo-csv-column-mapping" style="margin-top: 20px; display: none;"></div>
 								</td>
 							</tr>
 						</table>
@@ -423,39 +408,13 @@ class Bulk_Sender {
 							<!-- Seção de Mensagem e Configurações -->
 							<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4facfe;">
 								<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
-									<span style="margin-right: 10px;">💬</span> <?php echo esc_html($this->i18n['form']['message']); ?>
+									<span style="margin-right: 10px;">💬</span> Mensagem
 								</h3>
 								<textarea name="wpwevo_bulk_message" id="wpwevo-bulk-message" 
 										  rows="4" required
 										  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
-										  placeholder="<?php echo esc_attr($this->i18n['form']['message_placeholder']); ?>"></textarea>
-								
-								<details class="wpwevo-variables-details" style="margin-top: 10px; font-size: 13px; color: #4a5568;">
-									<summary style="cursor: pointer; font-weight: 500;"><?php echo esc_html($this->i18n['variables']['title']); ?></summary>
-									
-								<!-- Variáveis para Clientes WooCommerce (visível por padrão) -->
-								<div class="wpwevo-variables" data-source="customers">
-									<div style="background: #e2e8f0; padding: 10px; border-radius: 4px; margin-top: 5px; font-size: 13px;">
-										<p style="margin: 0 0 10px 0;"><strong><?php echo esc_html($this->i18n['variables']['for_all']); ?>:</strong> <code>{customer_name}</code>, <code>{customer_phone}</code></p>
-										<p style="margin: 0;"><strong><?php echo esc_html($this->i18n['variables']['for_woo']); ?>:</strong> <code>{order_id}</code>, <code>{order_total}</code>, <code>{billing_first_name}</code>, <code>{billing_last_name}</code>, <code>{shipping_method}</code></p>
-									</div>
-								</div>
-								
-								<!-- Variáveis para CSV (oculto por padrão) -->
-								<div class="wpwevo-variables" data-source="csv" style="display: none;">
-									<div style="background: #e2e8f0; padding: 10px; border-radius: 4px; margin-top: 5px; font-size: 13px;">
-										<p style="margin: 0;"><strong><?php echo esc_html($this->i18n['variables']['for_csv']); ?>:</strong> <code>{customer_name}</code>, <code>{customer_phone}</code></p>
-									</div>
-								</div>
-
-								<!-- Mensagem para Lista Manual (oculto por padrão) -->
-								<div class="wpwevo-variables" data-source="manual" style="display: none;">
-									<div style="background: #e2e8f0; padding: 10px; border-radius: 4px; margin-top: 5px; font-size: 13px;">
-										<p style="margin: 0;"><?php echo esc_html($this->i18n['variables']['for_manual']); ?></p>
-									</div>
-								</div>
-							</details>
-						</div>
+										  placeholder="Digite sua mensagem aqui..."></textarea>
+							</div>
 
 						<!-- Configurações de Envio -->
 						<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #a8edea;">
@@ -1288,6 +1247,12 @@ class Bulk_Sender {
 			$replacements['{shipping_method}'] = $order->get_shipping_method();
 		}
 
+		// **NOVO: Adiciona placeholders específicos para CSV**
+		if (isset($contact_data['name']) && !empty($contact_data['name'])) {
+			$replacements['{nome}'] = $contact_data['name'];
+			$replacements['{name}'] = $contact_data['name'];
+		}
+
 		return str_replace(array_keys($replacements), array_values($replacements), $message);
 	}
 
@@ -1398,34 +1363,82 @@ class Bulk_Sender {
 
 		// Etapa 3: Extrai o cabeçalho, detecta o delimitador e encontra as colunas
 		$header_line = array_shift($lines);
-		
-		// Detecta o delimitador (vírgula ou ponto e vírgula)
 		$delimiter = (substr_count($header_line, ';') > substr_count($header_line, ',')) ? ';' : ',';
-		
 		$header = str_getcsv($header_line, $delimiter);
 		$header_map = array_map('strtolower', array_map('trim', $header));
 
-		$name_col_index = array_search('nome', $header_map);
-		$phone_col_index = array_search('telefone', $header_map);
-
-		if ($phone_col_index === false) {
-			throw new \Exception(__('A coluna "telefone" não foi encontrada no cabeçalho do arquivo CSV. Verifique a ortografia e o formato.', 'wp-whatsapp-evolution'));
+		// **MELHORADO: Mapeamento dinâmico da coluna de telefone**
+		$phone_col_index = null;
+		
+		// Primeiro, verifica se o usuário selecionou uma coluna específica
+		if (isset($_POST['wpwevo_phone_column']) && is_numeric($_POST['wpwevo_phone_column'])) {
+			$phone_col_index = (int)$_POST['wpwevo_phone_column'];
+			
+			// Valida se o índice está dentro dos limites
+			if ($phone_col_index < 0 || $phone_col_index >= count($header)) {
+				throw new \Exception(__('Coluna selecionada não existe no arquivo CSV.', 'wp-whatsapp-evolution'));
+			}
+		} else {
+			// Se não enviado, tenta encontrar coluna chamada telefone, celular, fone, ou usa a primeira
+			$possibles = ['telefone', 'celular', 'fone', 'phone', 'mobile', 'whatsapp', 'contato'];
+			foreach ($header_map as $idx => $col) {
+				if (in_array($col, $possibles)) {
+					$phone_col_index = $idx;
+					break;
+				}
+			}
+			if ($phone_col_index === null) {
+				$phone_col_index = 0; // Usa a primeira coluna por padrão
+			}
 		}
+
+		// **NOVO: Log para debug**
+		error_log("WPWhatsEvolution CSV: Coluna selecionada: " . $phone_col_index . " - Nome: " . $header[$phone_col_index]);
 
 		// Etapa 4: Processa cada linha de dados
 		$contacts = [];
+		$line_number = 1; // Para debug
+		
 		foreach ($lines as $line) {
+			$line_number++;
 			if (empty(trim($line))) continue;
-
+			
 			$data = str_getcsv($line, $delimiter);
 			
+			// Verifica se a linha tem dados suficientes
+			if (count($data) <= $phone_col_index) {
+				error_log("WPWhatsEvolution CSV: Linha $line_number tem menos colunas que o esperado");
+				continue;
+			}
+			
 			$phone = isset($data[$phone_col_index]) ? trim($data[$phone_col_index]) : null;
-			$name = ($name_col_index !== false && isset($data[$name_col_index])) ? trim($data[$name_col_index]) : '';
-
+			
 			if (!empty($phone)) {
+				// **NOVO: Tenta extrair nome se disponível**
+				$name = '';
+				$name_keywords = ['nome', 'name', 'cliente', 'customer'];
+				
+				// Procura por coluna de nome
+				foreach ($header_map as $idx => $col) {
+					if (in_array($col, $name_keywords) && $idx != $phone_col_index) {
+						$name = isset($data[$idx]) ? trim($data[$idx]) : '';
+						break;
+					}
+				}
+				
+				// Se não encontrou nome, usa a primeira coluna que não seja telefone
+				if (empty($name) && count($data) > 1) {
+					foreach ($data as $idx => $value) {
+						if ($idx != $phone_col_index && !empty(trim($value))) {
+							$name = trim($value);
+							break;
+						}
+					}
+				}
+				
 				$contacts[] = [
-					'name'  => $name,
-					'phone' => $phone
+					'phone' => $phone,
+					'name' => $name
 				];
 			}
 		}
@@ -1433,6 +1446,9 @@ class Bulk_Sender {
 		if (empty($contacts)) {
 			throw new \Exception(__('Nenhum contato com número de telefone válido foi encontrado no arquivo CSV.', 'wp-whatsapp-evolution'));
 		}
+		
+		// **NOVO: Log de sucesso**
+		error_log("WPWhatsEvolution CSV: Processados " . count($contacts) . " contatos com sucesso");
 		
 		return $contacts;
 	}
