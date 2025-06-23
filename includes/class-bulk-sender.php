@@ -92,7 +92,6 @@ class Bulk_Sender {
 
 		// Hook de debug para todas as requisições AJAX
 		add_action('wp_ajax_nopriv_wpwevo_preview_customers', function() {
-			wpwevo_log('error', 'Tentativa de acesso não autorizado ao preview customers');
 			wp_send_json_error('Acesso negado');
 		});
 
@@ -104,7 +103,6 @@ class Bulk_Sender {
 	 * Método de teste para verificar se o AJAX está funcionando
 	 */
 	public function test_ajax() {
-		wpwevo_log('info', 'Teste AJAX chamado');
 		wp_send_json_success(['message' => 'AJAX funcionando!', 'timestamp' => current_time('mysql')]);
 	}
 
@@ -123,6 +121,11 @@ class Bulk_Sender {
 		// Aplica scripts em qualquer página admin que contenha 'wpwevo'
 		if (strpos($hook, 'wpwevo') === false) {
 			return;
+		}
+
+		// BLINDAGEM DEFENSIVA: Carrega jquery-ui-datepicker se o plugin woo-cart-abandonment-recovery estiver ativo
+		if (is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php')) {
+			wp_enqueue_script('jquery-ui-datepicker');
 		}
 
 		wp_enqueue_style(

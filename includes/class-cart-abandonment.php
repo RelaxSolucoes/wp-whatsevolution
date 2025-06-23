@@ -250,43 +250,13 @@ class Cart_Abandonment {
     }
 
     public function enqueue_scripts($hook) {
-        // Aplica o fix em qualquer página admin que contenha 'wpwevo' OU 'woo-cart-abandonment-recovery'
-        if (strpos($hook, 'wpwevo') === false && strpos($hook, 'woo-cart-abandonment-recovery') === false) {
-            return;
-        }
-
-        // CSS das abas igual ao bulk-send (apenas para nossas páginas)
-        if (strpos($hook, 'wpwevo') !== false) {
-            wp_enqueue_style(
-                'wpwevo-admin',
-                WPWEVO_URL . 'assets/css/admin.css',
-                [],
-                WPWEVO_VERSION
-            );
-
-            // JavaScript das abas igual ao bulk-send
-            wp_enqueue_script(
-                'wpwevo-cart-abandonment',
-                WPWEVO_URL . 'assets/js/cart-abandonment.js',
-                ['jquery'],
-                WPWEVO_VERSION,
-                true
-            );
-
-            // Localizar script para AJAX
-            wp_localize_script('wpwevo-cart-abandonment', 'wpwevoCartAbandonment', [
+        if (strpos($hook, 'wpwevo-cart-abandonment') !== false) {
+            wp_enqueue_script('wpwevo-cart-abandonment', plugin_dir_url(__FILE__) . '../assets/js/cart-abandonment.js', array('jquery'), '1.0.0', true);
+            wp_localize_script('wpwevo-cart-abandonment', 'wpwevoCartAbandonment', array(
                 'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('wpwevo_cart_nonce'),
-                'i18n' => [
-                    'saving' => __('💾 Salvando...', 'wp-whatsapp-evolution'),
-                    'generating' => __('👁️ Gerando...', 'wp-whatsapp-evolution'),
-                ]
-            ]);
-        }
-
-        // CORREÇÃO CRÍTICA: JavaScript para Cart Abandonment Recovery
-        if (strpos($hook, 'woo-cart-abandonment-recovery') !== false) {
-            wp_enqueue_script('jquery');
+                'nonce' => wp_create_nonce('wpwevo_cart_abandonment_nonce')
+            ));
+            
             wp_add_inline_script('jquery', $this->get_cart_abandonment_fix_js());
         }
     }
@@ -459,8 +429,8 @@ class Cart_Abandonment {
                                                 <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center;">
                                                     <span style="color: #667eea; font-weight: bold;">1.</span> <span>Ative <strong>"Enable Webhook"</strong></span>
                                                     <span style="color: #667eea; font-weight: bold;">2.</span> <span>Cole a URL acima no campo <strong>"Webhook URL"</strong></span>
-                                                    <span style="color: #667eea; font-weight: bold;">3.</span> <span>Salve as configurações</span>
-                                                    <span style="color: #667eea; font-weight: bold;">4.</span> <span>Teste com <strong>"Trigger Sample"</strong></span>
+                                                    <span style="color: #667eea; font-weight: bold;">3.</span> <span>Teste com <strong>"Trigger Sample"</strong></span>
+                                                    <span style="color: #667eea; font-weight: bold;">4.</span> <span>Salve as configurações</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -656,27 +626,9 @@ class Cart_Abandonment {
      * Handle webhook externo (fallback)
      */
     public function handle_webhook() {
-        // RESPOSTA JSON COMPLETA - compatível com versão minificada do Cart Abandonment Recovery
-        while (ob_get_level()) { ob_end_clean(); }
-        http_response_code(200);
-        header('Content-Type: application/json; charset=utf-8');
-        
-        // JSON que satisfaz TANTO a versão normal quanto a minificada
-        $response = [
-            'status' => 'success',
-            'order_status' => 'abandoned',
-            'message' => 'Test webhook successful',
-            'response' => 'success'
-        ];
-        
-        echo json_encode($response);
-        die();
-        
         // NÍVEL 1: Se vem da página de configurações do Cart Abandonment Recovery, É TESTE!
         if (strpos($referer, 'woo-cart-abandonment-recovery') !== false || 
             strpos($referer, 'action=settings') !== false) {
-            
-            $this->log_success("🧪 Teste de conectividade OK (Trigger Sample)");
             
             // RESPOSTA EXATA QUE O JAVASCRIPT ESPERA
             while (ob_get_level()) { ob_end_clean(); }
@@ -695,30 +647,18 @@ class Cart_Abandonment {
         // NÍVEL 2: Detecção adicional por dados fictícios do teste
         $raw_input = file_get_contents('php://input');
         
-        if (!empty($raw_input)) {
-            $decoded_data = json_decode($raw_input, true);
-            if ($decoded_data && $this->is_trigger_sample_data($decoded_data)) {
-                $this->log_success("🧪 Teste de conectividade OK (Dados Fictícios)");
-                
-                while (ob_get_level()) { ob_end_clean(); }
-                http_response_code(200);
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode([
-                    'status' => 'success',
-                    'order_status' => 'abandoned',
-                    'message' => 'Test webhook successful'
-                ]);
-                die();
-            }
+        if ($raw_input) {
+            $data = json_decode($raw_input, true);
         }
         
-        // NÍVEL 3: Se é uma requisição AJAX do wp-admin, provavelmente é teste
-        $is_admin_ajax = is_admin() || (defined('DOING_AJAX') && DOING_AJAX);
-        $is_from_admin = strpos($referer, '/wp-admin/') !== false;
+        // Se não conseguiu decodificar JSON, tenta POST
+        if (!$data) {
+            $data = $_POST;
+        }
         
-        if ($is_admin_ajax || $is_from_admin) {
-            $this->log_success("🧪 Teste de conectividade OK (Requisição Admin/AJAX)");
-            
+        // NÍVEL 3: Detecção por requisição admin/AJAX
+        if (wp_doing_ajax() || is_admin()) {
+            // RESPOSTA COMPATÍVEL COM JAVASCRIPT
             while (ob_get_level()) { ob_end_clean(); }
             http_response_code(200);
             header('Content-Type: application/json; charset=utf-8');
@@ -730,17 +670,8 @@ class Cart_Abandonment {
             die();
         }
         
-        // Headers específicos para compatibilidade com Cart Abandonment Recovery
-        http_response_code(200);
-        header('Content-Type: application/json; charset=utf-8');
-        header('Cache-Control: no-cache');
-        header('X-Webhook-Status: OK');
-        
-        // Log dos dados recebidos para debug
-        $data = $this->get_safe_headers();
-        
+        // NÍVEL 4: Verificação se a integração está habilitada
         if (!get_option('wpwevo_cart_abandonment_enabled', 0)) {
-            $this->log_info("⚠️ Webhook recebido mas integração está desabilitada");
             // Resposta JSON que o Cart Abandonment Recovery espera
             $response = ['status' => 'success', 'message' => 'Webhook received but integration disabled'];
             echo json_encode($response);
@@ -751,8 +682,6 @@ class Cart_Abandonment {
         $is_test = $this->is_trigger_sample_data($data);
         
         if ($is_test) {
-            $this->log_success("🧪 Teste de conectividade OK (Detecção Avançada)");
-            
             // RESPOSTA COMPATÍVEL COM JAVASCRIPT
             while (ob_get_level()) { ob_end_clean(); }
             http_response_code(200);
@@ -772,14 +701,12 @@ class Cart_Abandonment {
             
         // Resposta JSON estruturada
         if ($result) {
-            $this->log_success("✅ WhatsApp enviado: {$customer_name}");
             $response = [
                 'status' => 'success', 
                 'message' => 'Webhook processed and WhatsApp sent successfully',
                 'customer' => $customer_name
             ];
         } else {
-            $this->log_info("ℹ️ Carrinho sem telefone válido: {$customer_name}");
             $response = [
                 'status' => 'success', 
                 'message' => 'Webhook received but no valid phone number for sending',
@@ -787,30 +714,33 @@ class Cart_Abandonment {
             ];
         }
         
+        // Headers específicos para compatibilidade com Cart Abandonment Recovery
+        http_response_code(200);
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache');
+        header('X-Webhook-Status: OK');
+        
         echo json_encode($response);
         wp_die();
     }
 
     private function process_webhook_data($data) {
         try {
+            // Extrai telefone dos dados
             $phone = $this->extract_phone($data);
+            
             if (!$phone) {
-                $this->log_error("❌ Telefone não encontrado - Cliente: " . ($data['first_name'] ?? 'N/A'));
                 return false;
             }
-
-            $formatted_phone = $this->format_phone($phone);
-            if (!$formatted_phone) {
-                $this->log_error("❌ Formato de telefone inválido: {$phone}");
-                return false;
-            }
-
+            
+            // Extrai mensagem dos dados
             $message = $this->extract_message($data);
             
-            $result = $this->send_whatsapp_message($formatted_phone, $message, $data);
+            // Envia mensagem WhatsApp
+            $result = $this->send_whatsapp_message($phone, $message, $data);
             
             return $result;
-
+            
         } catch (Exception $e) {
             $this->log_error("🚨 Erro ao processar webhook: " . $e->getMessage());
             return false;
@@ -818,30 +748,27 @@ class Cart_Abandonment {
     }
 
     private function extract_phone($data) {
-        // Expanded phone field search based on Cart Abandonment Recovery structure
-        $phone_fields = [
-            'phone_number',
-            'phone',
-            'billing_phone',
-            'wcf_phone',
-            'wcf_phone_number',
-            'wcf_billing_phone',
-            'billing_phone_number'
-        ];
+        // Procura telefone em diferentes campos
+        $phone_fields = ['phone', 'billing_phone', 'shipping_phone', 'telefone', 'celular'];
         
         foreach ($phone_fields as $field) {
             if (!empty($data[$field])) {
-                return $data[$field];
+                $phone = $data[$field];
+                break;
             }
         }
         
-        // Se não encontrou telefone, mas é um carrinho real (tem first_name), sugere como adicionar
-        if (!empty($data['first_name']) && !empty($data['email'])) {
-            $this->log_error("⚠️ Carrinho real sem telefone! Cliente: {$data['first_name']} ({$data['email']})");
-            $this->log_info("💡 Configure campo de telefone obrigatório no checkout");
+        if (empty($phone)) {
+            return false;
         }
         
-        return null;
+        // Formata o telefone
+        $formatted_phone = $this->format_phone($phone);
+        if (!$formatted_phone) {
+            return false;
+        }
+        
+        return $formatted_phone;
     }
 
     private function extract_message($data) {
@@ -877,20 +804,44 @@ class Cart_Abandonment {
      * Usa a função centralizada e adiciona o @c.us no final
      */
     private function format_phone($phone) {
-        // Usa a função centralizada do helpers.php
-        $formatted_phone = wpwevo_validate_phone($phone);
+        // Remove caracteres não numéricos
+        $phone = preg_replace('/[^0-9]/', '', $phone);
         
-        if ($formatted_phone === false) {
-            $this->log_error("❌ Formato de telefone inválido: {$phone}");
+        // Remove zeros à esquerda
+        $phone = ltrim($phone, '0');
+        
+        // Se tem menos de 10 dígitos, inválido
+        if (strlen($phone) < 10) {
             return false;
         }
         
-        // Adiciona o @c.us para WhatsApp
-        $whatsapp_number = $formatted_phone . '@c.us';
+        // Se tem 10 dígitos, adiciona 9 (formato antigo)
+        if (strlen($phone) === 10) {
+            $phone = '9' . $phone;
+        }
         
-        $this->log_debug("📞 Telefone formatado: {$phone} → {$whatsapp_number}");
+        // Se tem 11 dígitos, adiciona 55 (DDI Brasil)
+        if (strlen($phone) === 11) {
+            $phone = '55' . $phone;
+        }
         
-        return $whatsapp_number;
+        // Se tem 12 dígitos, adiciona 55 (DDI Brasil)
+        if (strlen($phone) === 12) {
+            $phone = '55' . $phone;
+        }
+        
+        // Valida se tem 13 dígitos (55 + DDD + 9 dígitos)
+        if (strlen($phone) !== 13) {
+            return false;
+        }
+        
+        // Valida DDD (11-99)
+        $ddd = substr($phone, 2, 2);
+        if ($ddd < 11 || $ddd > 99) {
+            return false;
+        }
+        
+        return $phone;
     }
 
     /**
@@ -930,58 +881,40 @@ class Cart_Abandonment {
     }
 
     public function test_webhook() {
-        // Verificação de segurança
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_nonce')) {
-            wp_send_json_error('Acesso negado - token de segurança inválido');
-        }
-        
-        $this->log_info("🧪 Teste de interceptação iniciado");
-        
-        if (!get_option('wpwevo_cart_abandonment_enabled', 0)) {
-            wp_send_json_error('❌ Integração não está ativada. Ative primeiro nas configurações.');
-        }
-
-        if (!Api_Connection::get_instance()->is_configured()) {
-            wp_send_json_error('❌ Evolution API não configurada. Configure primeiro a conexão.');
-        }
-
-        // Simula dados exatos do Cart Abandonment Recovery
-        $trigger_details = [
-            'first_name' => 'Cliente',
-            'last_name' => 'Teste', 
-            'phone_number' => '19989881838', // Número de teste
-            'email' => 'cliente@teste.com',
-            'cart_total' => '99.90',
-            'product_names' => 'Produto Teste, Outro Produto',
-            'checkout_url' => site_url('/checkout?wcf_ac_token=teste123'),
-            'coupon_code' => '',
-            'order_status' => 'abandoned'
-        ];
-
-        // Simula dados do checkout_details
-        $checkout_details = (object) [
-            'session_id' => 'teste_session_' . time(),
-            'email' => 'cliente@teste.com',
-            'phone' => '19989881838',
-            'cart_total' => 99.90,
-            'other_fields' => serialize([
-                'wcf_first_name' => 'Cliente',
-                'wcf_last_name' => 'Teste',
-                'wcf_phone_number' => '19989881838'
-            ])
-        ];
-
-        $this->log_info("📱 Simulando interceptação de webhook do Cart Abandonment Recovery...");
-        
         try {
-            // Simula o hook sendo disparado
-            $this->intercept_internal_webhook($trigger_details, $checkout_details, 'abandoned');
+            // Simula dados de teste
+            $test_data = [
+                'first_name' => 'João',
+                'last_name' => 'Silva',
+                'email' => 'joao@teste.com',
+                'phone' => '11999887766',
+                'order_status' => 'abandoned',
+                'checkout_url' => home_url('/checkout/?wcf_ac_token=test'),
+                'coupon_code' => 'TEST10',
+                'product_names' => 'Produto Teste',
+                'cart_total' => 'R$ 99,90'
+            ];
             
-            wp_send_json_success('Teste de interceptação executado com sucesso! Verifique os logs abaixo para ver os detalhes do processamento.');
+            // Simula interceptação de webhook
+            $result = $this->process_webhook_data($test_data);
+            
+            if ($result) {
+                return "✅ Teste realizado com sucesso!\n\n" .
+                       "📱 Mensagem enviada para WhatsApp\n" .
+                       "📞 Telefone: 11999887766\n" .
+                       "👤 Cliente: João Silva\n" .
+                       "🛒 Status: Carrinho Abandonado\n" .
+                       "⏰ Data/Hora: " . current_time('d/m/Y H:i:s');
+            } else {
+                return "❌ Teste falhou!\n\n" .
+                       "🔍 Verifique:\n" .
+                       "• Configurações da Evolution API\n" .
+                       "• Conexão com WhatsApp\n" .
+                       "• Logs de erro no sistema";
+            }
             
         } catch (Exception $e) {
-            $this->log_error("🚨 Erro durante o teste: " . $e->getMessage());
-            wp_send_json_error('Erro durante o teste: ' . $e->getMessage());
+            return "❌ Erro durante o teste: " . $e->getMessage();
         }
     }
 
@@ -1190,5 +1123,6 @@ class Cart_Abandonment {
         return $message;
     }
 }
+
 
 

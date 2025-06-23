@@ -15,11 +15,6 @@ function autoResizeTextarea(textarea) {
 }
 
 jQuery(document).ready(function($) {
-    console.log('=== WP WhatsEvolution - Send By Status CARREGADO ===');
-    console.log('jQuery disponível:', typeof $ !== 'undefined');
-    console.log('Botões .wpwevo-variable encontrados:', $('.wpwevo-variable').length);
-    console.log('Textareas encontrados:', $('.wpwevo-auto-resize-textarea').length);
-    
     var $form = $('#wpwevo-status-messages-form');
     var $button = $form.find('button[type="submit"]');
     var $spinner = $form.find('.spinner');
@@ -49,18 +44,14 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('=== CLIQUE DETECTADO ===');
-        
         // Se clicou em um elemento filho, pega o pai .wpwevo-variable
         var $button = $(this).hasClass('wpwevo-variable') ? $(this) : $(this).closest('.wpwevo-variable');
         
         if ($button.length === 0) {
-            console.log('Botão não encontrado!');
             return;
         }
         
         var variable = $button.data('variable') || $button.find('code').text().trim();
-        console.log('Variável extraída:', variable);
         
         // BUSCA TEXTAREA DE FORMA MAIS ROBUSTA
         var $textarea = null;
@@ -69,24 +60,19 @@ jQuery(document).ready(function($) {
         var $container = $button.closest('div[style*="border-left: 4px solid"]');
         if ($container.length > 0) {
             $textarea = $container.find('textarea.wpwevo-auto-resize-textarea');
-            console.log('Textarea encontrado no container:', $textarea.length);
         }
         
         // Se não encontrou, procura o textarea atualmente focado
         if ($textarea === null || $textarea.length === 0) {
             $textarea = $('textarea.wpwevo-auto-resize-textarea:focus');
-            console.log('Textarea focado encontrado:', $textarea.length);
         }
         
         // Se ainda não encontrou, pega o primeiro textarea visível
         if ($textarea === null || $textarea.length === 0) {
             $textarea = $('textarea.wpwevo-auto-resize-textarea:visible').first();
-            console.log('Primeiro textarea visível:', $textarea.length);
         }
         
         if ($textarea && $textarea.length > 0) {
-            console.log('Adicionando variável ao textarea...');
-            
             // Obtém a posição atual do cursor ou fim do texto
             var cursorPos = 0;
             try {
@@ -116,10 +102,7 @@ jQuery(document).ready(function($) {
             
             // FEEDBACK VISUAL GARANTIDO
             showVariableAddedFeedback($button, variable);
-            
-            console.log('Variável adicionada com sucesso!');
         } else {
-            console.log('ERRO: Nenhum textarea encontrado!');
             alert('Erro: Não foi possível encontrar o campo de mensagem. Clique primeiro no campo onde deseja adicionar a variável.');
         }
     });
@@ -330,6 +313,4 @@ jQuery(document).ready(function($) {
             to { transform: translateX(0); opacity: 1; }
         }
     `).appendTo('head');
-    
-    console.log('=== WP WhatsEvolution - Send By Status PRONTO ===');
 }); 

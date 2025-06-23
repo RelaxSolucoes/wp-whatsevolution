@@ -1,25 +1,20 @@
-# WP WhatsEvolution v1.2.1
+# WP WhatsEvolution v1.3.0
 
-🚀 **Integração completa com WooCommerce usando Evolution API**
+🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
-## 🆕 **NOVO na v1.2.1: Quick Signup + Correções Importantes!**
+## 🆕 **NOVO na v1.3.0: Envio em Massa Reescrito do Zero!**
 
-### 🚀 **Quick Signup - Teste Grátis em 1 Click**
-- **⚡ Teste 7 dias grátis** - Sem cartão de crédito
-- **🔧 Configuração automática** - Plugin configurado em 30 segundos
-- **🛠️ Sem VPS, sem Docker** - Zero complicação técnica
-- **📞 Suporte incluído** - Ajuda durante todo o período de teste
+### ✨ **Revolução do Envio em Massa**
+- **📊 Interface Intuitiva** - Abas organizadas (WooCommerce, CSV, Manual)
+- **🔍 Detecção Inteligente** - CSV com separadores automáticos (vírgula/ponto e vírgula)
+- **📱 Variáveis Contextuais** - Diferentes variáveis por fonte de dados
+- **⚡ Performance Otimizada** - Sistema robusto e à prova de falhas
+- **🎯 Histórico Completo** - Logs detalhados com limpeza automática
 
-### 🔧 **Correções Críticas**
-- **✅ Instalação via GitHub** - Funciona perfeitamente mesmo com pasta `wp-whatsevolution-main`
-- **🔧 Auto-updater corrigido** - Sistema de atualização automática agora 100% funcional
-- **🏷️ Constantes otimizadas** - Caminhos de arquivos consistentes
-
-### 🛒 **Carrinho Abandonado Aprimorado**
-- **⚡ Zero Configuração de Webhook** - Ativação com 1 clique
-- **🔒 100% Seguro** - Dados nunca saem do servidor WordPress
-- **⚡ Zero Latência** - Processamento instantâneo via hooks internos
-- **🎯 Interceptação Inteligente** - Captura carrinhos antes mesmo do webhook externo
+### 🔧 **Sistema de Fallback Inteligente**
+- **📍 Endereços de Envio** - Detecta automaticamente quando endereço está vazio e usa dados de cobrança
+- **📱 Validação Ultra-Robusta** - Aceita 8, 9, 10, 11, 12, 13 dígitos brasileiros
+- **🔄 Compatibilidade Total** - Funciona com qualquer configuração do WooCommerce
 
 ---
 
@@ -31,9 +26,26 @@ O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagen
 - 🛒 **Carrinho Abandonado** com interceptação interna revolucionária
 - 📊 **Envio por Status** de pedido automatizado  
 - 📱 **Envio Individual** para clientes específicos
-- 📢 **Envio em Massa** com filtros avançados
+- 📢 **Envio em Massa** com filtros avançados (REESCRITO v1.3.0)
 - ✅ **Validação no Checkout** em tempo real
 - 🎨 **Templates Personalizáveis** com shortcodes dinâmicos
+- 🧠 **Sistema Inteligente** de fallback e validação
+
+---
+
+## 🔧 **Dois Modos de Operação**
+
+### 🚀 **Modo Managed (Free Trial)**
+- **Backend Supabase**: Usado apenas para onboarding e verificação de status
+- **Configuração**: Automática em 30 segundos
+- **Custo**: 7 dias grátis, depois pago
+- **Ideal para**: Quem quer testar sem complicações técnicas
+
+### ⚙️ **Modo Manual (Credenciais Próprias)**
+- **Backend**: 100% local, sem calls externos
+- **Configuração**: URL, API Key, Instância próprias
+- **Custo**: Zero (usa sua Evolution API)
+- **Ideal para**: Quem já tem Evolution API configurada
 
 ---
 
@@ -59,12 +71,27 @@ O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagen
 
 ## 🛒 **Carrinho Abandonado - Funcionalidades Detalhadas**
 
-### 🔧 **Configuração Ultra-Simples**
+### 🔧 **Configuração da Integração**
 
-1. **Instale** o plugin "WooCommerce Cart Abandonment Recovery"
-2. **Ative** a integração em "WhatsEvolution > Carrinho Abandonado"  
-3. **Personalize** a mensagem com shortcodes
-4. **Pronto!** O sistema funciona automaticamente
+A configuração é feita em duas partes: ativar em nosso plugin e configurar o plugin parceiro.
+
+#### **Passo 1: Instale o Plugin Parceiro**
+1.  **Instale e ative** o plugin "WooCommerce Cart Abandonment Recovery".
+
+#### **Passo 2: Configure a Integração**
+Siga as instruções que aparecem na nossa página de configurações:
+
+1.  Navegue até: **WooCommerce → Cart Abandonment → Settings → Webhook Settings**.
+2.  **Ative** a opção `"Enable Webhook"`.
+3.  **Cole a URL** fornecida pelo nosso plugin no campo `"Webhook URL"`.
+4.  **Teste** a integração clicando em `"Trigger Sample"`.
+5.  **Salve as configurações**.
+
+### 🎯 **Interceptação Interna Revolucionária**
+- **⚡ Integração Simplificada** - Apenas ative o webhook no plugin parceiro.
+- **🔒 100% Seguro** - Dados nunca saem do servidor WordPress para o webhook.
+- **⚡ Zero Latência** - Processamento instantâneo via hooks internos.
+- **🎯 Interceptação Inteligente** - Captura carrinhos ANTES do webhook externo ser enviado.
 
 ### 🎨 **Shortcodes Disponíveis**
 
@@ -72,11 +99,14 @@ O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagen
 |-----------|-----------|---------|
 | `{first_name}` | Nome do cliente | João |
 | `{full_name}` | Nome completo | João Silva |
+| `{email}` | Email do cliente | joao@email.com |
 | `{product_names}` | Produtos no carrinho | Produto A, Produto B |
 | `{cart_total}` | Valor formatado | R$ 149,90 |
+| `{cart_total_raw}` | Valor sem formatação | 149.90 |
 | `{checkout_url}` | Link finalizar compra | https://loja.com/checkout?token=abc |
 | `{coupon_code}` | Código do cupom | DESCONTO10 |
 | `{site_name}` | Nome da loja | Minha Loja |
+| `{site_url}` | URL da loja | https://loja.com |
 
 ### 📱 **Template Padrão Brasileiro**
 
@@ -94,6 +124,141 @@ Vi que você adicionou estes itens no carrinho:
 Finalize agora:
 👆 {checkout_url}
 ```
+
+---
+
+## 📢 **Envio em Massa - Revolução v1.3.0**
+
+### 🆕 **Nova Interface Intuitiva**
+
+#### **🛒 Aba WooCommerce**
+- **Filtros Avançados**: Status de pedido, período, valor mínimo
+- **Variáveis Dinâmicas**: Dados completos do cliente e pedidos
+- **Preview Inteligente**: Visualize clientes antes do envio
+
+#### **📄 Aba Importação CSV**
+- **Detecção Automática**: Separadores vírgula (,) ou ponto e vírgula (;)
+- **Codificação UTF-8**: Suporte completo a acentos brasileiros
+- **Template de Exemplo**: Download de arquivo modelo
+- **Variáveis**: `{customer_name}`, `{customer_phone}`
+
+#### **✍️ Aba Lista Manual**
+- **Interface Simples**: Um número por linha
+- **Validação Automática**: Formato brasileiro
+- **Sem Variáveis**: Mensagem fixa para todos
+
+### ⚡ **Controle de Envio**
+- **Velocidade Configurável**: Segundos entre cada envio
+- **Agendamento**: Data e hora para iniciar
+- **Progresso em Tempo Real**: Barra de progresso com status
+- **Histórico Completo**: Logs detalhados com limpeza
+
+---
+
+## 📊 **Envio por Status - Automação Inteligente**
+
+### 🎯 **Status Suportados**
+- **pending/on-hold**: Pedido recebido, aguardando pagamento
+- **processing**: Pedido aprovado, preparando envio
+- **completed**: Pedido concluído com sucesso
+- **cancelled**: Pedido cancelado
+- **refunded**: Reembolso processado
+- **failed**: Problema no pedido
+
+### 🧠 **Sistema de Fallback Inteligente**
+- **Detecção Automática**: Quando endereço de entrega está vazio
+- **Fallback Inteligente**: Usa dados de cobrança automaticamente
+- **Compatibilidade Total**: Funciona com qualquer configuração do WooCommerce
+
+### 📱 **Templates por Status**
+Cada status tem template personalizável com variáveis específicas do pedido.
+
+---
+
+## 🏷️ **Variáveis Disponíveis (Expandidas)**
+
+### 🛒 **Dados do Pedido**
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `{order_id}` | ID do pedido | #1234 |
+| `{order_total}` | Valor total | R$ 149,90 |
+| `{order_url}` | Link do pedido | https://loja.com/pedido/1234 |
+| `{payment_method}` | Método de pagamento | Cartão de Crédito |
+| `{shipping_method}` | Método de envio | Correios |
+
+### 👤 **Dados do Cliente**
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `{customer_name}` | Nome completo | João Silva |
+| `{customer_email}` | Email | joao@email.com |
+| `{customer_phone}` | Telefone | +55 11 99999-9999 |
+| `{total_orders}` | Total de pedidos | 5 |
+| `{last_order_date}` | Último pedido | 15/01/2025 |
+
+### 📍 **Endereços (Com Fallback)**
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `{shipping_address_full}` | Endereço completo de entrega | Rua A, 123 - São Paulo, SP |
+| `{billing_address_full}` | Endereço de cobrança | Rua B, 456 - Rio de Janeiro, RJ |
+
+### 🏪 **Dados da Loja**
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `{store_name}` | Nome da loja | Minha Loja |
+| `{store_url}` | URL da loja | https://loja.com |
+| `{store_email}` | Email da loja | contato@loja.com |
+
+---
+
+## ✅ **Validação no Checkout - Ultra-Robusta**
+
+### 📱 **Validação Brasileira Avançada**
+- **Múltiplos Formatos**: Aceita 8, 9, 10, 11, 12, 13 dígitos
+- **DDDs Válidos**: Validação de códigos 11-99
+- **Formato Antigo**: Detecta e corrige celulares sem o 9
+- **Zero Erros**: Nunca mais "Formato de telefone inválido"
+
+### ⚡ **Funcionalidades**
+- **Tempo Real**: Validação enquanto digita
+- **Modal Inteligente**: Confirmação quando número inválido
+- **Compatibilidade**: Não interfere com máscaras existentes
+- **Customização**: Títulos e mensagens personalizáveis
+
+---
+
+## 🧠 **Sistema Inteligente de Fallback**
+
+### 📍 **Endereços de Envio**
+- **Detecção Automática**: Quando endereço de entrega está vazio
+- **Fallback Inteligente**: Usa dados de cobrança automaticamente
+- **Compatibilidade**: Funciona com qualquer configuração do WooCommerce
+- **Zero Configuração**: Funciona automaticamente
+
+### 📱 **Validação Ultra-Robusta**
+- **Números Brasileiros**: Aceita 8, 9, 10, 11, 12, 13 dígitos
+- **DDDs Válidos**: Validação de códigos 11-99
+- **Formato Antigo**: Detecta e corrige celulares sem o 9
+- **Zero Erros**: Nunca mais "Formato de telefone inválido"
+
+---
+
+## 📊 **Sistema Completo de Logs**
+
+### 🔍 **Níveis de Log**
+- **Error**: Erros críticos do sistema
+- **Warning**: Avisos importantes  
+- **Info**: Informações gerais
+- **Debug**: Apenas em modo debug
+
+### 💾 **Armazenamento**
+- **Banco de Dados**: Tabela `wpwevo_logs`
+- **WooCommerce**: Integração com sistema de logs do WC
+- **Limpeza**: Automática para manter performance
+
+### 📋 **Histórico de Envios**
+- **Envio em Massa**: Logs completos com sucesso/erro
+- **Carrinho Abandonado**: Logs em tempo real
+- **Limpeza**: Função para limpar histórico antigo
 
 ---
 
@@ -137,46 +302,6 @@ Finalize agora:
 
 ---
 
-## 📊 **Todas as Funcionalidades**
-
-### 🚀 **Quick Signup (NOVO!)**
-- ✅ Teste grátis por 7 dias
-- ✅ Configuração automática em 30s
-- ✅ Sem VPS/Docker necessário
-- ✅ Suporte técnico incluído
-- ✅ Upgrade simplificado
-
-### 🛒 **Carrinho Abandonado**
-- ✅ Interceptação interna automática
-- ✅ Templates personalizáveis  
-- ✅ Shortcodes dinâmicos
-- ✅ Logs em tempo real
-- ✅ Formatação brasileira (R$)
-
-### 📊 **Envio por Status**
-- ✅ Automação por status de pedido
-- ✅ Templates por status
-- ✅ Variáveis dinâmicas
-- ✅ Configuração flexível
-
-### 📱 **Envio Individual**
-- ✅ Interface simples
-- ✅ Validação automática
-- ✅ Histórico de envios
-
-### 📢 **Envio em Massa**
-- ✅ Filtros avançados
-- ✅ Importação CSV
-- ✅ Controle de velocidade
-- ✅ Logs detalhados
-
-### ✅ **Validação Checkout**
-- ✅ Campo obrigatório
-- ✅ Validação tempo real
-- ✅ Formatação automática
-
----
-
 ## 🔧 **Hooks para Desenvolvedores**
 
 ### 🎨 **Personalizar Mensagem Carrinho Abandonado**
@@ -198,115 +323,128 @@ add_filter('wpwevo_cart_abandonment_message', function($message, $data) {
 
 ```php
 add_action('wpwevo_cart_abandonment_sent', function($phone, $message, $trigger_details) {
-    // Log personalizado, integração CRM, etc.
-    error_log("Mensagem enviada para {$phone} - Valor: {$trigger_details['cart_total']}");
+    // Log personalizado
+    error_log("WhatsApp enviado para: {$phone}");
+    
+    // Integração com outros sistemas
+    // ...
 }, 10, 3);
 ```
 
-### ✅ **Validação Personalizada**
+### 🎯 **Personalizar Validação de Telefone**
 
 ```php
-add_filter('wpwevo_validate_whatsapp', function($is_valid, $number) {
-    // Sua lógica de validação personalizada
-    return $is_valid;
+add_filter('wpwevo_validate_phone', function($phone, $original) {
+    // Lógica personalizada de validação
+    if (strlen($phone) < 10) {
+        return false;
+    }
+    
+    return $phone;
 }, 10, 2);
 ```
 
 ---
 
-## 🚨 **Problemas Conhecidos e Soluções**
+## 📊 **Todas as Funcionalidades**
 
-### ❌ **Erro ao ativar plugin baixado do GitHub**
-```
-Failed opening required 'plugin-update-checker/plugin-update-checker.php'
-```
+### 🚀 **Quick Signup (Onboarding 1-Click)**
+- ✅ Teste grátis por 7 dias
+- ✅ Configuração automática em 30s
+- ✅ Sem VPS/Docker necessário
+- ✅ Suporte técnico incluído
+- ✅ Upgrade simplificado
 
-**✅ Solução:** Atualizado na v1.2.1! Agora funciona perfeitamente mesmo com pasta `wp-whatsevolution-main`.
+### 🛒 **Carrinho Abandonado**
+- ✅ Interceptação interna automática
+- ✅ Templates personalizáveis  
+- ✅ Shortcodes dinâmicos
+- ✅ Logs em tempo real
+- ✅ Formatação brasileira (R$)
 
-### ❌ **Plugin não encontra Evolution API** 
-**✅ Solução:** Use o Quick Signup para configuração automática ou verifique URL/API Key.
+### 📊 **Envio por Status**
+- ✅ Automação por status de pedido
+- ✅ Templates por status
+- ✅ Variáveis dinâmicas
+- ✅ Sistema de fallback inteligente
+- ✅ Configuração flexível
 
-### ❌ **Carrinho abandonado não funciona**
-**✅ Solução:** Instale o plugin "WooCommerce Cart Abandonment Recovery" primeiro.
+### 📱 **Envio Individual**
+- ✅ Interface simples
+- ✅ Validação automática
+- ✅ Histórico de envios
+- ✅ Variáveis da loja
 
----
+### 📢 **Envio em Massa (v1.3.0)**
+- ✅ Interface reescrita do zero
+- ✅ Filtros avançados
+- ✅ Importação CSV inteligente
+- ✅ Controle de velocidade
+- ✅ Histórico completo
+- ✅ Variáveis contextuais
 
-## 📝 **Changelog**
+### ✅ **Validação Checkout**
+- ✅ Campo obrigatório
+- ✅ Validação tempo real
+- ✅ Formatação automática
+- ✅ Modal de confirmação
+- ✅ Validação ultra-robusta
 
-### 🆕 **v1.2.1 - 2024-12-20**
-- **🚀 NOVO:** Sistema Quick Signup com teste grátis de 7 dias
-- **🚀 NOVO:** Configuração automática de Evolution API
-- **🚀 NOVO:** Interface de onboarding 1-click
-- **🔧 CORREÇÃO CRÍTICA:** Plugin funciona com download direto do GitHub (`wp-whatsevolution-main`)
-- **🔧 CORREÇÃO:** Auto-updater com caminhos consistentes
-- **✨ MELHORIA:** Interface de configuração redesenhada
-- **✨ MELHORIA:** Validação de dados aprimorada
-- **🛡️ SEGURANÇA:** Integração backend com Supabase Edge Functions
-
-### v1.2.0 - 2024-12-15
-- **🚀 NOVO:** Painel de administração redesenhado
-- **✨ MELHORIA:** Templates de mensagem otimizados
-- **🔧 CORREÇÃO:** Performance de logs melhorada
-- **🐛 CORREÇÃO:** Compatibilidade com WooCommerce 8.0+
-
-### v1.1.0 - 2024-12-10
-- **🚀 NOVO:** Interceptação interna de carrinho abandonado
-- **🚀 NOVO:** Integração com "WooCommerce Cart Abandonment Recovery"  
-- **🚀 NOVO:** Templates personalizáveis com shortcodes
-- **✨ MELHORIA:** Logs otimizados e mais limpos
-- **🔧 CORREÇÃO:** Formatação automática moeda brasileira (R$)
-- **🐛 CORREÇÃO:** Múltiplas correções de compatibilidade
-
-### v1.0.3 - 2024-11-15
-- ✨ Envio por status de pedido
-- ✨ Envio em massa melhorado
-- 🔧 Validação de checkout
-- 🐛 Correções gerais
-
-### v1.0.2 - 2024-10-10  
-- ✨ Envio em massa
-- 🔧 Melhorias interface
-- 🐛 Correções de bugs
-
-### v1.0.1 - 2024-09-05
-- ✨ Envio individual
-- 🔧 Melhorias conexão
-- 🐛 Correções iniciais
-
-### v1.0.0 - 2024-08-01
-- 🚀 Versão inicial
-- ✨ Conexão Evolution API
-- ✨ Configurações básicas
+### 🧠 **Sistema Inteligente**
+- ✅ Fallback automático de endereços
+- ✅ Validação brasileira avançada
+- ✅ Logs completos
+- ✅ Compatibilidade total
 
 ---
 
-## 🆘 **Suporte**
+## 🔒 **Segurança e Privacidade**
 
-- 📧 **Email:** chatrelaxbr@gmail.com
-- 🌐 **Site:** [relaxsolucoes.online](https://relaxsolucoes.online/)
-- 💬 **GitHub:** [RelaxSolucoes/wp-whatsevolution](https://github.com/RelaxSolucoes/wp-whatsevolution)
-- 🚀 **Quick Signup:** Teste grátis em WhatsEvolution > 🚀 Teste Grátis
+### 🛡️ **Proteções Implementadas**
+- **Nonces**: Todos os AJAX protegidos
+- **Capabilities**: `manage_options` para admin
+- **Sanitização**: Input sanitization em todos os campos
+- **Validação**: Números de telefone e dados críticos
+
+### 🔒 **Dados Sensíveis**
+- **Modo Managed**: Dados processados pelo backend Supabase
+- **Modo Manual**: 100% local, sem calls externos
+- **Logs**: Sem dados sensíveis nos logs
+- **Limpeza**: Desinstalação completa via `uninstall.php`
+
+---
+
+## 📞 **Suporte**
+
+### 🆘 **Canais de Ajuda**
+- **Documentação**: Este README
+- **Issues**: GitHub Issues
+- **Quick Signup**: Suporte incluído no período de teste
+
+### 🐛 **Reportar Bugs**
+1. Verifique se é um bug real
+2. Teste em ambiente limpo
+3. Inclua logs de erro
+4. Descreva passos para reproduzir
 
 ---
 
 ## 📄 **Licença**
 
-**GPL v2 ou posterior** - Plugin 100% gratuito e open source
+Este projeto está sob a licença GPL v2 ou posterior.
 
 ---
 
-## 👨‍💻 **Desenvolvido por**
+## 🤝 **Contribuição**
 
-**🏢 Relax Soluções**  
-🌐 [relaxsolucoes.online](https://relaxsolucoes.online/)  
-📧 chatrelaxbr@gmail.com
+Contribuições são bem-vindas! Por favor:
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
 
 ---
 
-**⭐ Se este plugin foi útil, deixe uma estrela no GitHub!** 
-
-### 🎯 **Links Rápidos**
-- [📦 Download Direto](https://github.com/RelaxSolucoes/wp-whatsevolution/archive/refs/heads/main.zip)
-- [🚀 Teste Grátis](https://whats-evolution.vercel.app/)
-- [📖 Documentação Completa](https://github.com/RelaxSolucoes/wp-whatsevolution/wiki)
-- [🐛 Reportar Bug](https://github.com/RelaxSolucoes/wp-whatsevolution/issues) 
+**🎉 Obrigado por usar o WP WhatsEvolution!** 
