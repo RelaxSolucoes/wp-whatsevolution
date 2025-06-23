@@ -118,9 +118,8 @@ jQuery(document).ready(function($) {
     }
 
     function validatePhoneNumber(number, $field) {
-        // Debounce para evitar muitas requisições
         clearTimeout($field.data('validationTimeout'));
-        
+        $field.removeData('apiValidated');
         const timeout = setTimeout(function() {
             $.ajax({
                 url: wpwevoCheckout.ajaxurl,
@@ -131,48 +130,36 @@ jQuery(document).ready(function($) {
                     number: number
                 },
                 success: function(response) {
+                    $field.data('apiValidated', true);
                     if (response.success) {
                         showValidationResult($field, true, wpwevoCheckout.validation_success);
                     } else {
                         showValidationResult($field, false, wpwevoCheckout.validation_error);
+                        // Modal só aparece DEPOIS da resposta da API e apenas se for inválido
+                        if (wpwevoCheckout.show_modal === 'yes') {
+                            showInvalidNumberModal();
+                        }
                     }
                 },
-                error: function() {
+                error: function(xhr) {
+                    $field.data('apiValidated', true);
+                    // Em caso de erro na API, mostra mensagem de erro personalizada, mas NUNCA mostra modal
                     showValidationResult($field, false, wpwevoCheckout.validation_error);
                 }
             });
-        }, 2000); // Aumentado para ser menos agressivo
-        
+        }, 2000);
         $field.data('validationTimeout', timeout);
     }
 
     function showValidationResult($field, isValid, message) {
-        // Remove classes anteriores
         $field.removeClass('wpwevo-valid wpwevo-invalid');
-        
-        // Remove mensagem anterior
         $field.siblings('.wpwevo-validation-message').remove();
-        
-        // Adiciona classe e mensagem
         const className = isValid ? 'wpwevo-valid' : 'wpwevo-invalid';
         const messageClass = isValid ? 'wpwevo-validation-success' : 'wpwevo-validation-error';
-        
         $field.addClass(className);
-        
         const $message = $('<div class="wpwevo-validation-message ' + messageClass + '">' + message + '</div>');
         $field.after($message);
-        
-        // Se número é inválido e modal está habilitado, mostra o modal
-        if (!isValid && wpwevoCheckout.show_modal === 'yes') {
-            showInvalidNumberModal();
-        }
-        
-        // Remove mensagem após 3 segundos
-        setTimeout(function() {
-            $message.fadeOut(function() {
-                $(this).remove();
-            });
-        }, 3000);
+        // Não apaga mais automaticamente!
     }
 
     function showInvalidNumberModal() {
