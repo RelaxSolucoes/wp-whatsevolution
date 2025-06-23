@@ -42,11 +42,6 @@ class Checkout_Validator {
 			// Modifica o placeholder e descrição dos campos de telefone
 			add_filter('woocommerce_billing_fields', [$this, 'modify_phone_fields']);
 			
-			// Validate phone fields during checkout
-			if ($this->settings['validation'] === 'yes') {
-				add_action('woocommerce_checkout_process', [$this, 'validate_phone_fields']);
-			}
-			
 			// Add WhatsApp validation via AJAX
 			add_action('wp_ajax_wpwevo_validate_checkout_number', [$this, 'handle_ajax_validation']);
 			add_action('wp_ajax_nopriv_wpwevo_validate_checkout_number', [$this, 'handle_ajax_validation']);
@@ -262,67 +257,6 @@ class Checkout_Validator {
 		}
 
 		return $fields;
-	}
-
-	/**
-	 * Validate phone fields during checkout
-	 */
-	public function validate_phone_fields() {
-		// Tenta pegar o número do campo de celular primeiro
-		$phone = isset($_POST['billing_cellphone']) ? sanitize_text_field($_POST['billing_cellphone']) : '';
-		
-		// Se não tiver celular, tenta o campo de telefone
-		if (empty($phone)) {
-			$phone = isset($_POST['billing_phone']) ? sanitize_text_field($_POST['billing_phone']) : '';
-		}
-		
-		if (empty($phone)) {
-			return; // WooCommerce já valida se é obrigatório
-		}
-
-		// Clean the phone number (remove all non-digits)
-		$phone = preg_replace('/\D/', '', $phone);
-		
-		// Basic format validation (numbers only, correct length for Brazil)
-		// Aceita:
-		// - 10 dígitos: DDD + 8 dígitos (1133334444) - telefone fixo
-		// - 11 dígitos: DDD + 9 dígitos (11999999999) - celular
-		// - 12 dígitos: Código do país + DDD + 8 dígitos (551133334444)
-		// - 13 dígitos: Código do país + DDD + 9 dígitos (5511999999999)
-		if (!preg_match('/^\d{10,13}$/', $phone)) {
-			wc_add_notice(
-				__('O número de WhatsApp deve conter apenas números, incluindo DDD (Ex: 11999999999).', 'wp-whatsapp-evolution'),
-				'error'
-			);
-			return;
-		}
-
-		// Normaliza o número para o formato internacional brasileiro
-		if (strlen($phone) == 10) {
-			// Se tem 10 dígitos, assume que é DDD + número fixo sem código do país
-			$phone = '55' . $phone;
-		} elseif (strlen($phone) == 11) {
-			// Se tem 11 dígitos, assume que é DDD + número celular sem código do país
-			$phone = '55' . $phone;
-		} elseif (strlen($phone) == 12 && substr($phone, 0, 2) !== '55') {
-			// Se tem 12 dígitos e não começa com 55, pode ser um número incorreto
-			wc_add_notice(
-				__('Número de WhatsApp inválido. Certifique-se de incluir o código do país (55) e DDD.', 'wp-whatsapp-evolution'),
-				'error'
-			);
-			return;
-		}
-
-		// Validate through API
-		$api = Api_Connection::get_instance();
-		$result = $api->validate_number($phone);
-
-		if (!$result['success']) {
-			wc_add_notice(
-				__('Número de WhatsApp inválido. Por favor, verifique e tente novamente.', 'wp-whatsapp-evolution'),
-				'error'
-			);
-		}
 	}
 
 	/**

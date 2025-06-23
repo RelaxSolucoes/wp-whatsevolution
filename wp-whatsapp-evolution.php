@@ -4,8 +4,8 @@
  * Plugin URI: https://github.com/RelaxSolucoes/wp-whatsevolution
  * Description: Integração avançada com WooCommerce usando Evolution API para envio de mensagens
  * Version:           1.3.0
- * Author:            WhatsEvolution
- * Author URI:        https://whatsevolution.com.br/
+ * Author:            Relax Soluções
+ * Author URI:        https://relaxsolucoes.online/
  * Text Domain: wp-whatsevolution
  * Domain Path: /languages
  * Requires PHP: 7.4

@@ -109,19 +109,19 @@ jQuery(document).ready(function($) {
                 url: wpwevoCheckout.ajaxurl,
                 type: 'POST',
                 data: {
-                    action: 'wpwevo_validate_phone',
+                    action: 'wpwevo_validate_checkout_number',
                     nonce: wpwevoCheckout.nonce,
                     number: number
                 },
                 success: function(response) {
                     if (response.success) {
-                        showValidationResult($field, true, 'Número válido');
+                        showValidationResult($field, true, wpwevoCheckout.validation_success);
                     } else {
-                        showValidationResult($field, false, 'Número inválido');
+                        showValidationResult($field, false, wpwevoCheckout.validation_error);
                     }
                 },
                 error: function() {
-                    showValidationResult($field, false, 'Erro na validação');
+                    showValidationResult($field, false, wpwevoCheckout.validation_error);
                 }
             });
         }, 1500);
@@ -145,12 +145,108 @@ jQuery(document).ready(function($) {
         const $message = $('<div class="wpwevo-validation-message ' + messageClass + '">' + message + '</div>');
         $field.after($message);
         
+        // Se número é inválido e modal está habilitado, mostra o modal
+        if (!isValid && wpwevoCheckout.show_modal === 'yes') {
+            showInvalidNumberModal();
+        }
+        
         // Remove mensagem após 3 segundos
         setTimeout(function() {
             $message.fadeOut(function() {
                 $(this).remove();
             });
         }, 3000);
+    }
+
+    function showInvalidNumberModal() {
+        // Remove modal anterior se existir
+        $('.wpwevo-checkout-modal').remove();
+        
+        // Cria o modal
+        const modalHtml = `
+            <div class="wpwevo-checkout-modal" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            ">
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 30px;
+                    max-width: 500px;
+                    width: 90%;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                    text-align: center;
+                ">
+                    <div style="
+                        background: #ff6b6b;
+                        color: white;
+                        width: 60px;
+                        height: 60px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 30px;
+                        margin: 0 auto 20px;
+                    ">⚠️</div>
+                    
+                    <h3 style="
+                        margin: 0 0 15px 0;
+                        color: #2d3748;
+                        font-size: 20px;
+                        font-weight: 600;
+                    ">${wpwevoCheckout.modal_title}</h3>
+                    
+                    <p style="
+                        margin: 0 0 25px 0;
+                        color: #4a5568;
+                        font-size: 16px;
+                        line-height: 1.5;
+                    ">${wpwevoCheckout.modal_message}</p>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button type="button" class="wpwevo-modal-continue" style="
+                            background: #667eea;
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: background 0.3s;
+                        ">${wpwevoCheckout.modal_button_text}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(modalHtml);
+        
+        // Event handlers
+        $('.wpwevo-modal-continue').on('click', function() {
+            $('.wpwevo-checkout-modal').fadeOut(300, function() {
+                $(this).remove();
+            });
+        });
+        
+        // Fecha modal ao clicar fora
+        $('.wpwevo-checkout-modal').on('click', function(e) {
+            if (e.target === this) {
+                $(this).fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }
+        });
     }
 
     // Inicialização com múltiplas tentativas
