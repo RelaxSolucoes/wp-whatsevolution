@@ -1,5 +1,6 @@
 /**
  * Frontend script for WhatsApp number validation on checkout
+ * Otimizado para compatibilidade com Cart Abandonment Recovery
  */
 jQuery(document).ready(function($) {
     // Inicialização robusta que funciona mesmo com conflitos
@@ -37,17 +38,33 @@ jQuery(document).ready(function($) {
                         $field.attr('id', fieldId);
                     }
                     
-                    // Adiciona validação em tempo real
-                    $field.on('input keyup paste', function() {
-                        const number = $(this).val().replace(/[^0-9]/g, '');
-                        $(this).val(number);
+                    // SOLUÇÃO INTELIGENTE: Usa eventos que não interferem no Cart Abandonment Recovery
+                    // 1. Validação no blur (quando sai do campo) - não interfere no rastreamento
+                    $field.on('blur.wpwevo', function() {
+                        const rawValue = $(this).val();
+                        const number = rawValue.replace(/[^0-9]/g, '');
                         
                         if (number.length >= 10) {
                             validatePhoneNumber(number, $field);
                         }
                     });
                     
-                    // Validação inicial se o campo já tem valor
+                    // 2. Validação com debounce no input (sem modificar o valor)
+                    let inputTimeout;
+                    $field.on('input.wpwevo', function() {
+                        clearTimeout(inputTimeout);
+                        const rawValue = $(this).val();
+                        const number = rawValue.replace(/[^0-9]/g, '');
+                        
+                        // Só valida se tiver pelo menos 10 dígitos
+                        if (number.length >= 10) {
+                            inputTimeout = setTimeout(function() {
+                                validatePhoneNumber(number, $field);
+                            }, 2000); // 2 segundos de debounce
+                        }
+                    });
+                    
+                    // 3. Validação inicial se o campo já tem valor (sem modificar)
                     if ($field.val().trim()) {
                         const number = $field.val().replace(/[^0-9]/g, '');
                         if (number.length >= 10) {
@@ -66,7 +83,7 @@ jQuery(document).ready(function($) {
             setTimeout(findAndValidatePhoneFields, 1000);
         }
         
-        // MutationObserver para detectar novos campos dinamicamente
+        // MutationObserver menos agressivo - só observa, não interfere
         const observer = new MutationObserver(function(mutations) {
             let hasNewPhoneFields = false;
             
@@ -89,11 +106,11 @@ jQuery(document).ready(function($) {
                 initTimeout = setTimeout(function() {
                     isInitialized = false;
                     findAndValidatePhoneFields();
-                }, 500);
+                }, 1000); // Aumentado para ser menos agressivo
             }
         });
         
-        // Observa mudanças no DOM
+        // Observa mudanças no DOM (menos agressivo)
         observer.observe(document.body, {
             childList: true,
             subtree: true
@@ -124,7 +141,7 @@ jQuery(document).ready(function($) {
                     showValidationResult($field, false, wpwevoCheckout.validation_error);
                 }
             });
-        }, 1500);
+        }, 2000); // Aumentado para ser menos agressivo
         
         $field.data('validationTimeout', timeout);
     }
@@ -249,12 +266,12 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Inicialização com múltiplas tentativas
+    // Inicialização com múltiplas tentativas (reduzido para ser menos agressivo)
     initializeCheckoutValidation();
     
-    // Backup: tenta novamente após 2 segundos
-    setTimeout(initializeCheckoutValidation, 2000);
+    // Backup: tenta novamente após 3 segundos (aumentado)
+    setTimeout(initializeCheckoutValidation, 3000);
     
-    // Backup: tenta novamente após 5 segundos
-    setTimeout(initializeCheckoutValidation, 5000);
+    // Backup: tenta novamente após 8 segundos (aumentado)
+    setTimeout(initializeCheckoutValidation, 8000);
 }); 

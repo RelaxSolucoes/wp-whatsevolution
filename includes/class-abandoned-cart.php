@@ -342,13 +342,9 @@ class Abandoned_Cart {
 	}
 
 	public function add_phone_field( $checkout ) {
-		woocommerce_form_field( 'billing_phone', [
-			'type' => 'tel',
-			'class' => ['form-row-wide'],
-			'label' => __('Telefone', 'wp-whatsapp-evolution'),
-			'placeholder' => __('Seu número de WhatsApp com DDD', 'wp-whatsapp-evolution'),
-			'required' => true,
-			'clear' => true
-		], $checkout->get_value( 'billing_phone' ) );
+		// Função mantida para compatibilidade, mas não adiciona campo duplicado
+		// O WooCommerce já tem o campo billing_phone por padrão
+		// Esta função não faz nada para evitar interferência com Cart Abandonment Recovery
+		return;
 	}
 } 

@@ -39,9 +39,6 @@ class Checkout_Validator {
 
 		// Only add functionality if enabled
 		if ($this->settings['enabled'] === 'yes') {
-			// Modifica o placeholder e descrição dos campos de telefone
-			add_filter('woocommerce_billing_fields', [$this, 'modify_phone_fields']);
-			
 			// Add WhatsApp validation via AJAX
 			add_action('wp_ajax_wpwevo_validate_checkout_number', [$this, 'handle_ajax_validation']);
 			add_action('wp_ajax_nopriv_wpwevo_validate_checkout_number', [$this, 'handle_ajax_validation']);
@@ -102,9 +99,19 @@ class Checkout_Validator {
 	 * Render settings page
 	 */
 	public function render_page() {
+		$cart_abandonment_active = is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php');
 		?>
 		<div class="wrap wpwevo-checkout-page" style="max-width: none;">
 			<h1>📱 Validação de WhatsApp no Checkout</h1>
+			
+			<?php if ($cart_abandonment_active): ?>
+			<div class="notice notice-info" style="margin: 20px 0; padding: 15px; border-left: 4px solid #00a0d2;">
+				<p><strong>ℹ️ Compatibilidade com Cart Abandonment Recovery:</strong></p>
+				<p>O plugin <strong>WooCommerce Cart Abandonment Recovery</strong> foi detectado e está ativo.</p>
+				<p>✅ <strong>Ambos os plugins funcionam em harmonia:</strong> O Checkout Validator valida os números de WhatsApp e o Cart Abandonment Recovery rastreia os carrinhos abandonados sem interferência.</p>
+				<p>🔧 <strong>Otimizações aplicadas:</strong> O JavaScript foi ajustado para não interferir no rastreamento do plugin parceiro.</p>
+			</div>
+			<?php endif; ?>
 			
 			<form method="post" action="options.php">
 				<?php
@@ -235,28 +242,6 @@ class Checkout_Validator {
 		});
 		</script>
 		<?php
-	}
-
-	/**
-	 * Modify phone fields to indicate WhatsApp
-	 */
-	public function modify_phone_fields($fields) {
-		$whatsapp_field_config = [
-			'placeholder' => __('Ex: 1133334444 ou 11999999999', 'wp-whatsapp-evolution'),
-			'description' => __('Digite seu número de WhatsApp com DDD (fixo ou celular)', 'wp-whatsapp-evolution')
-		];
-
-		// Modifica o campo padrão do WooCommerce
-		if (isset($fields['billing_phone'])) {
-			$fields['billing_phone'] = array_merge($fields['billing_phone'], $whatsapp_field_config);
-		}
-
-		// Modifica o campo do Brazilian Market se existir
-		if (isset($fields['billing_cellphone'])) {
-			$fields['billing_cellphone'] = array_merge($fields['billing_cellphone'], $whatsapp_field_config);
-		}
-
-		return $fields;
 	}
 
 	/**

@@ -1,5 +1,4 @@
 <?php
-
 namespace WpWhatsAppEvolution;
 
 class Cart_Abandonment {
@@ -13,7 +12,6 @@ class Cart_Abandonment {
     }
 
     private function __construct() {
-        
         add_action('admin_menu', [$this, 'add_admin_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
         
@@ -28,7 +26,7 @@ class Cart_Abandonment {
         add_action('wp_ajax_wpwevo_save_template', [$this, 'save_template_ajax']);
         add_action('wp_ajax_wpwevo_preview_template', [$this, 'preview_template_ajax']);
 
-        // Hook interno do Cart Abandonment Recovery - ESTA É A MÁGICA!
+        // Hook interno do Cart Abandonment Recovery
         add_action('wcf_ca_before_trigger_webhook', [$this, 'intercept_internal_webhook'], 10, 3);
     }
 
@@ -264,25 +262,34 @@ class Cart_Abandonment {
     private function get_cart_abandonment_fix_js() {
         return '
         jQuery(document).ready(function($) {
-            // EXECUTAR MÚLTIPLAS VEZES para garantir que pegue
+            // BLINDAGEM SUAVIZADA: Não bloqueia o plugin parceiro
             function applyWPWEVOFix() {
-                // Remove TODOS os handlers do botão trigger
-                $("#wcf_ca_trigger_web_hook_abandoned_btn").off();
-                $(document).off("click", "#wcf_ca_trigger_web_hook_abandoned_btn");
+                // Verifica se o botão existe
+                const triggerBtn = $("#wcf_ca_trigger_web_hook_abandoned_btn");
+                if (!triggerBtn.length) return;
                 
-                // Adiciona nosso handler com MÁXIMA prioridade
-                $("#wcf_ca_trigger_web_hook_abandoned_btn").on("click.wpwevo_critical", function(e) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
+                // Remove apenas handlers específicos do WhatsEvolution para evitar duplicação
+                triggerBtn.off("click.wpwevo_critical");
+                
+                // Adiciona nosso handler SEM bloquear o original
+                triggerBtn.on("click.wpwevo_critical", function(e) {
+                    // NÃO bloqueia o evento original - permite que ambos processem
+                    // e.preventDefault(); // REMOVIDO
+                    // e.stopImmediatePropagation(); // REMOVIDO
                     
                     const webhook_url = $("#wcf_ca_zapier_cart_abandoned_webhook").val().trim();
                     const btn_message = $("#wcf_ca_abandoned_btn_message");
+                    
+                    // Só processa se a URL for do WhatsEvolution
+                    if (!webhook_url.includes("wpwevo_cart_abandonment_webhook")) {
+                        return true; // Permite que o handler original continue
+                    }
                     
                     if (!webhook_url.length) {
                         btn_message.text("Please enter a valid webhook URL")
                             .css("color", "#dc3232")
                             .fadeIn().delay(2000).fadeOut();
-                        return false;
+                        return true; // Permite que o handler original continue
                     }
                     
                     btn_message.text("Testing webhook...").css("color", "#666").fadeIn();
@@ -318,15 +325,14 @@ class Cart_Abandonment {
                         }
                     });
                     
-                    return false;
+                    return true; // Permite que o handler original continue
                 });
             }
             
-            // Aplica a correção múltiplas vezes
+            // Aplica a correção múltiplas vezes (reduzido para ser menos agressivo)
             applyWPWEVOFix(); // Imediatamente
             setTimeout(applyWPWEVOFix, 1000);  // 1 segundo
             setTimeout(applyWPWEVOFix, 3000);  // 3 segundos
-            setTimeout(applyWPWEVOFix, 5000);  // 5 segundos
         });
         ';
     }
@@ -919,7 +925,7 @@ class Cart_Abandonment {
     }
 
     public function get_logs_ajax() {
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_abandonment_nonce')) {
             wp_die('Acesso negado');
         }
         echo $this->get_recent_logs();
@@ -927,7 +933,7 @@ class Cart_Abandonment {
     }
 
     public function clear_logs_ajax() {
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_abandonment_nonce')) {
             wp_die('Acesso negado');
         }
         global $wpdb;
@@ -1039,7 +1045,7 @@ class Cart_Abandonment {
      * Salva template personalizado via AJAX
      */
     public function save_template_ajax() {
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_abandonment_nonce')) {
             wp_send_json_error(['message' => 'Falha na verificação de segurança']);
             return;
         }
@@ -1064,7 +1070,7 @@ class Cart_Abandonment {
      * Gera preview do template via AJAX
      */
     public function preview_template_ajax() {
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'wpwevo_cart_abandonment_nonce')) {
             wp_send_json_error(['message' => 'Falha na verificação de segurança']);
             return;
         }

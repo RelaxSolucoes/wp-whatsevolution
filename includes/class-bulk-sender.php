@@ -123,11 +123,6 @@ class Bulk_Sender {
 			return;
 		}
 
-		// BLINDAGEM DEFENSIVA: Carrega jquery-ui-datepicker se o plugin woo-cart-abandonment-recovery estiver ativo
-		if (is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php')) {
-			wp_enqueue_script('jquery-ui-datepicker');
-		}
-
 		wp_enqueue_style(
 			'wpwevo-admin',
 			WPWEVO_URL . 'assets/css/admin.css',
