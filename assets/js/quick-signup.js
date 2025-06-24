@@ -49,22 +49,26 @@ jQuery(document).ready(function($) {
                 body: JSON.stringify({ api_key: wpwevo_quick_signup.api_key })
             });
 
-            if (!response.ok) {
-                return;
+            let result = null;
+            try {
+                result = await response.json();
+            } catch (jsonErr) {
+                // Não conseguiu ler JSON
             }
 
-            const result = await response.json();
-
-            if (result.success && result.data) {
-                // 1. Atualiza a interface imediatamente para o usuário ver o status correto.
-                updateUserInterface(result.data);
-                
-                // 2. 🚀 SINCRONIZA com o backend do WordPress para manter os dados consistentes.
-                syncStatusWithWordPress(result.data);
+            if (result) {
+                if (result.success && result.data) {
+                    updateUserInterface(result.data);
+                    syncStatusWithWordPress(result.data);
+                } else {
+                    showError(result.error || 'Erro desconhecido');
+                }
+            } else {
+                showError('Erro ao conectar com o servidor.');
             }
 
         } catch (error) {
-            // Erro silencioso para produção
+            showError('Erro inesperado ao consultar status.');
         }
     }
 
@@ -106,8 +110,19 @@ jQuery(document).ready(function($) {
 
     // Botão retry
     $retryBtn.on('click', function() {
-        resetForm();
-        startQuickSignup();
+        // Verifica a mensagem de erro exibida
+        const errorMsg = $('#wpwevo-error-message').text().trim();
+        if (errorMsg === 'Instância não encontrada') {
+            // Apenas tenta consultar o status novamente
+            hideAllContainers();
+            statusContainer.show(); // Mostra o loader
+            checkInitialStatus();
+        } else {
+            // Para outros erros, só tenta consultar status de novo
+            hideAllContainers();
+            statusContainer.show();
+            checkInitialStatus();
+        }
     });
 
     // Polling para verificar status
@@ -232,22 +247,12 @@ jQuery(document).ready(function($) {
         $successContainer.hide();
         $errorContainer.hide();
         $form.hide();
+        statusContainer.hide();
     }
 
     function resetContainers() {
         hideAllContainers();
         $form.show();
-    }
-
-    function resetForm() {
-        currentStep = 0;
-        clearInterval(statusCheckInterval);
-        resetContainers();
-        
-        // Reset progress indicators
-        $('.wpwevo-step').removeClass('active completed');
-        $progressBar.css('width', '0%');
-        $progressText.text('');
     }
 
     function startStatusPolling() {
