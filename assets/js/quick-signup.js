@@ -1,8 +1,17 @@
 /**
- * JavaScript para o Quick Signup do WP WhatsApp Evolution
+ * JavaScript CORRIGIDO para o Quick Signup do WP WhatsApp Evolution
+ * Versão otimizada e padronizada
  */
 
 jQuery(document).ready(function($) {
+    // 🔍 DEBUG: Verificar se o objeto está carregado
+    console.log('🔧 Plugin inicializado');
+    console.log('📦 wpwevo_quick_signup:', typeof wpwevo_quick_signup !== 'undefined' ? 'Carregado' : 'NÃO CARREGADO');
+    if (typeof wpwevo_quick_signup !== 'undefined') {
+        console.log('🔑 API Key disponível:', wpwevo_quick_signup.api_key ? 'SIM' : 'NÃO');
+        console.log('🌐 AJAX URL:', wpwevo_quick_signup.ajax_url);
+    }
+    
     // Estado do processo de signup
     let currentStep = 0;
     const steps = [
@@ -21,60 +30,48 @@ jQuery(document).ready(function($) {
     const $errorContainer = $('#wpwevo-error-container');
     const $retryBtn = $('#wpwevo-retry-btn');
     const $qrContainer = $('#wpwevo-qr-container');
+    const $statusContainer = $('#wpwevo-status-container');
 
-    // --- ELEMENTOS DA INTERFACE ---
-    // IMPORTANTE: Certifique-se de que estes seletores correspondem ao seu HTML.
-    const statusContainer = $('#wpwevo-status-container');
-    const statusTitle = $('#connection-status-message');
-    const statusDaysLeft = $('#trial-days-left-container');
-    const statusMessage = $('#wpwevo-trial-expired-notice');
-    const renewalModal = $('#wpwevo-upgrade-modal');
+    // Variáveis de controle
+    let statusCheckInterval = null;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
 
     /**
-     * Função que chama a API para obter o status real da conta.
+     * ✅ CORRIGIDO: Função unificada para verificar status inicial
+     * Usa jQuery.ajax() consistentemente
      */
-    async function checkInitialStatus() {
+    function checkInitialStatus() {
         if (typeof wpwevo_quick_signup === 'undefined' || !wpwevo_quick_signup.api_key) {
-            statusContainer.hide();
+            $statusContainer.hide();
             return;
         }
 
-        try {
-            const response = await fetch('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/plugin-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlkbm9icXNlcHZlZWZpZWZteGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDkwOTAsImV4cCI6MjA2NTIyNTA5MH0.PlLrBA3eauvanWT-gQoKdvpTaPRrwgtuW8gZhbrlO7o'
-                },
-                body: JSON.stringify({ api_key: wpwevo_quick_signup.api_key })
-            });
-
-            let result = null;
-            try {
-                result = await response.json();
-            } catch (jsonErr) {
-                // Não conseguiu ler JSON
-            }
-
-            if (result) {
-                if (result.success && result.data) {
-                    updateUserInterface(result.data);
-                    syncStatusWithWordPress(result.data);
+        $.ajax({
+            url: wpwevo_quick_signup.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wpwevo_check_plugin_status',
+                nonce: wpwevo_quick_signup.nonce,
+                api_key: wpwevo_quick_signup.api_key
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    updateUserInterface(response.data);
+                    syncStatusWithWordPress(response.data);
                 } else {
-                    showError(result.error || 'Erro desconhecido');
+                    showError(response.data ? response.data.message : 'Erro ao verificar status');
                 }
-            } else {
-                showError('Erro ao conectar com o servidor.');
+            },
+            error: function(xhr, status, error) {
+                console.error('Erro ao verificar status inicial:', error);
+                showError('Erro de conexão ao verificar status');
             }
-
-        } catch (error) {
-            showError('Erro inesperado ao consultar status.');
-        }
+        });
     }
 
     /**
-     * 🚀 NOVO: Envia os dados mais recentes para o backend do WordPress para serem salvos no banco de dados.
-     * @param {object} statusData Os dados recebidos da API principal.
+     * ✅ CORRIGIDO: Sincronização com WordPress
      */
     function syncStatusWithWordPress(statusData) {
         $.ajax({
@@ -83,23 +80,20 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'wpwevo_sync_status',
                 nonce: wpwevo_quick_signup.nonce,
-                status_data: statusData // jQuery lida com a serialização do objeto
+                status_data: statusData
             },
             success: function(response) {
-                if (response.success) {
-                    // Status sincronizado
-                } else {
-                    // Falha ao sincronizar
+                if (!response.success) {
+                    console.warn('Falha ao sincronizar status com WordPress');
                 }
             },
             error: function() {
-                // Erro de AJAX
+                console.warn('Erro ao sincronizar status com WordPress');
             }
         });
     }
 
     // --- PONTO DE ENTRADA ---
-    // Executa a verificação assim que a página estiver pronta.
     checkInitialStatus();
 
     // Formulário de quick signup
@@ -110,24 +104,15 @@ jQuery(document).ready(function($) {
 
     // Botão retry
     $retryBtn.on('click', function() {
-        // Verifica a mensagem de erro exibida
-        const errorMsg = $('#wpwevo-error-message').text().trim();
-        if (errorMsg === 'Instância não encontrada') {
-            // Apenas tenta consultar o status novamente
-            hideAllContainers();
-            statusContainer.show(); // Mostra o loader
-            checkInitialStatus();
-        } else {
-            // Para outros erros, só tenta consultar status de novo
-            hideAllContainers();
-            statusContainer.show();
-            checkInitialStatus();
-        }
+        retryCount = 0;
+        hideAllContainers();
+        $statusContainer.show();
+        checkInitialStatus();
     });
 
-    // Polling para verificar status
-    let statusCheckInterval;
-
+    /**
+     * ✅ CORRIGIDO: Função principal de quick signup
+     */
     function startQuickSignup() {
         resetContainers();
         showProgress();
@@ -140,7 +125,6 @@ jQuery(document).ready(function($) {
             whatsapp: $('#wpwevo-whatsapp').val()
         };
 
-        // Etapa 1: Validando dados
         updateProgress(0, wpwevo_quick_signup.messages.validating);
 
         $.ajax({
@@ -149,12 +133,12 @@ jQuery(document).ready(function($) {
             data: formData,
             success: function(response) {
                 if (response.success && response.data) {
-                    // 🚀 OTIMIZADO: A configuração agora é salva no primeiro passo (PHP).
-                    // Não há mais necessidade da função saveConfiguration().
-                    // Ação: Mostra a tela de sucesso e o QR Code IMEDIATAMENTE.
                     updateProgress(3, wpwevo_quick_signup.messages.success);
+                    // CORREÇÃO: Atualiza a API Key do objeto global se vier na resposta
+                    if (response.data.api_key) {
+                        wpwevo_quick_signup.api_key = response.data.api_key;
+                    }
                     showSuccess(response.data);
-
                 } else {
                     const errorMessage = response.data ? (response.data.message || response.data.error) : wpwevo_quick_signup.messages.error;
                     showError(errorMessage);
@@ -163,7 +147,6 @@ jQuery(document).ready(function($) {
             error: function(xhr, status, error) {
                 let errorMessage = wpwevo_quick_signup.messages.error;
                 
-                // Tenta extrair mensagem específica do erro
                 if (xhr.responseText) {
                     try {
                         const errorData = JSON.parse(xhr.responseText);
@@ -187,7 +170,6 @@ jQuery(document).ready(function($) {
         $progressBar.css('width', percentage + '%');
         $progressText.text(message);
         
-        // Atualiza indicadores visuais dos steps
         $('.wpwevo-step').each(function(index) {
             const $step = $(this);
             if (index <= step) {
@@ -223,17 +205,18 @@ jQuery(document).ready(function($) {
             $('#dashboard-info').hide();
         }
         
-        // Mostra QR code imediatamente se disponível na resposta
+        // CORREÇÃO: Usar qr_code_base64 da resposta do quick-signup
         if (data.qr_code_base64) {
             const $qrContainer = $('#wpwevo-qr-container');
             if ($qrContainer.length) {
-                $qrContainer.html(`<img src="${data.qr_code_base64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">`);
+                $qrContainer.html(`<img src="data:image/png;base64,${data.qr_code_base64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">`);
                 $qrContainer.show();
             }
         }
         
-        // Inicia polling para verificar conexão do WhatsApp
-        startStatusPolling();
+        // Inicia polling unificado com a nova API Key se disponível
+        console.log('🎯 Quick signup concluído, iniciando polling...');
+        startStatusPolling(data.api_key || wpwevo_quick_signup.api_key);
     }
 
     function showError(message) {
@@ -247,7 +230,7 @@ jQuery(document).ready(function($) {
         $successContainer.hide();
         $errorContainer.hide();
         $form.hide();
-        statusContainer.hide();
+        $statusContainer.hide();
     }
 
     function resetContainers() {
@@ -255,84 +238,180 @@ jQuery(document).ready(function($) {
         $form.show();
     }
 
-    function startStatusPolling() {
-        // ✅ Polling de 3 segundos para detecção rápida
+    /**
+     * ✅ CORRIGIDO: Função unificada de polling
+     * Parâmetro apiKey opcional para diferentes contextos
+     */
+    function startStatusPolling(apiKey = null) {
+        console.log('🚀 Iniciando polling de status...');
+        
+        // Para polling anterior
+        if (statusCheckInterval) {
+            console.log('🔄 Parando polling anterior...');
+            clearInterval(statusCheckInterval);
+            statusCheckInterval = null;
+        }
+
+        const keyToUse = apiKey || wpwevo_quick_signup.api_key;
+        console.log('🔑 API Key para polling:', keyToUse ? keyToUse.substring(0, 10) + '...' : 'NÃO ENCONTRADA');
+        
+        if (!keyToUse) {
+            console.error('❌ API Key não encontrada, não é possível iniciar polling');
+            return;
+        }
+
+        console.log('⏱️ Configurando polling a cada 3 segundos...');
+        
+        // Polling de 3 segundos para detecção rápida
         statusCheckInterval = setInterval(function() {
-            checkPluginStatus();
+            console.log('🔄 Executando verificação de status...');
+            checkPluginStatus(keyToUse);
         }, 3000);
         
         // Primeira verificação imediatamente
-        checkPluginStatus();
+        console.log('⚡ Primeira verificação imediata...');
+        checkPluginStatus(keyToUse);
+        
+        // Timeout de segurança (5 minutos)
+        setTimeout(function() {
+            if (statusCheckInterval) {
+                console.log('⏰ Timeout de 5 minutos atingido, parando polling');
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }, 300000);
+        
+        console.log('✅ Polling iniciado com sucesso!');
     }
 
-    function checkPluginStatus() {
-        if (!wpwevo_quick_signup.api_key) return; // Não faz nada se não tiver chave
+    /**
+     * ✅ CORRIGIDO: Verificação de status usando jQuery.ajax()
+     */
+    function checkPluginStatus(apiKey) {
+        if (!apiKey) {
+            console.error('❌ API Key não fornecida para verificação de status');
+            return;
+        }
 
+        console.log('📡 Enviando requisição AJAX para verificar status...');
+        
         $.ajax({
-            url: admin_url('admin-ajax.php'),
+            url: wpwevo_quick_signup.ajax_url,
             type: 'POST',
             data: {
                 action: 'wpwevo_check_plugin_status',
-                nonce: wpwevo_quick_signup.nonce, // Reutiliza o nonce principal
-                api_key: wpwevo_quick_signup.api_key
+                nonce: wpwevo_quick_signup.nonce,
+                api_key: apiKey
             },
             success: function(response) {
-                if (response.success && response.data && response.data.instance) {
-                    const state = response.data.instance.state;
+                console.log('📥 Resposta recebida:', response);
+                
+                if (response.success && response.data) {
+                    // CORREÇÃO: A Edge Function retorna dados diretamente, não dentro de 'instance'
+                    const statusData = response.data;
 
-                    if (state === 'open') {
+                    // 🔍 DEBUG: Log dos dados recebidos
+                    console.log('📱 Status recebido:', statusData);
+                    console.log('🔗 whatsapp_connected:', statusData.whatsapp_connected);
+                    console.log('📊 currentStatus:', statusData.currentStatus);
+                    console.log('📋 qr_code:', statusData.qr_code ? 'presente' : 'null');
+
+                    // ✅ CORREÇÃO: Verificar tanto whatsapp_connected quanto currentStatus
+                    const isConnected = statusData.whatsapp_connected === true || statusData.currentStatus === 'connected';
+                    
+                    console.log('🎯 isConnected:', isConnected);
+
+                    if (isConnected) {
                         // Conectado com sucesso
-                        stopPolling(); // 1. Para de verificar
-
-                        // 2. Sincroniza o status mais recente com o WordPress
-                        syncStatusWithWordPress(response.data);
-
-                        // 3. Atualiza a interface dinamicamente
-                        updateUserInterface(response.data);
-
-                        // 4. Garante que os elementos visuais corretos sejam mostrados
-                        $('#wpwevo-qr-container').hide();
-                        $('#wpwevo-connection-success').show();
+                        console.log('✅ WhatsApp conectado! Parando polling...');
+                        stopPolling();
+                        syncStatusWithWordPress(statusData);
+                        updateUserInterface(statusData);
                         
+                        // ✅ CORREÇÃO: Mostrar sucesso no container do QR
+                        const $qrContainer = $('#wpwevo-qr-container');
+                        if ($qrContainer.length) {
+                            $qrContainer.html('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; border-radius: 8px; text-align: center; padding: 15px;"><div>✅ WhatsApp Conectado!<br><small>Seu WhatsApp está pronto para uso</small></div></div>');
+                            $qrContainer.show();
+                        }
                     } else {
-                        // Ainda não conectado, atualiza o QR code se necessário
-                        displayQRCode(response.data);
+                        // Ainda não conectado, atualiza QR code
+                        console.log('⏳ WhatsApp ainda não conectado, atualizando QR...');
+                        displayQRCode(statusData);
                     }
                 } else {
-                    // Mantém o polling ativo, pode ser um erro temporário
+                    // Erro temporário, continua polling
+                    console.log('⚠️ Erro na resposta, continuando polling...');
+                    console.log('Resposta de erro:', response);
+                    retryCount++;
+                    if (retryCount >= MAX_RETRIES) {
+                        console.error('❌ Máximo de tentativas atingido, parando polling');
+                        stopPolling();
+                        showError('Erro ao verificar status da instância');
+                    } else {
+                        console.log(`🔄 Tentativa ${retryCount}/${MAX_RETRIES}, continuando...`);
+                    }
                 }
             },
-            error: function() {
-                // Para o polling em caso de erro grave (ex: 500)
-                stopPolling();
+            error: function(xhr, status, error) {
+                console.log('❌ Erro de conexão:', error);
+                console.log('Status:', status);
+                console.log('XHR:', xhr);
+                retryCount++;
+                if (retryCount >= MAX_RETRIES) {
+                    console.error('❌ Máximo de tentativas atingido, parando polling');
+                    stopPolling();
+                    showError('Erro de conexão ao verificar status');
+                } else {
+                    console.log(`🔄 Tentativa ${retryCount}/${MAX_RETRIES}, continuando...`);
+                }
             }
         });
     }
 
+    function stopPolling() {
+        console.log('🛑 Parando polling de status...');
+        if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+            statusCheckInterval = null;
+            console.log('✅ Polling parado com sucesso');
+        } else {
+            console.log('ℹ️ Nenhum polling ativo para parar');
+        }
+        retryCount = 0;
+        console.log('🔄 Contador de tentativas resetado');
+    }
+
     /**
-     * Mostra o QR Code na tela usando a imagem base64 da API.
-     * @param {object} apiData - O objeto 'data' da resposta da API (quick-signup).
+     * ✅ CORRIGIDO: Exibição do QR Code
      */
     function displayQRCode(apiData) {
-        // 1. Encontre o elemento no HTML onde o QR Code deve aparecer.
         const $qrContainer = $('#wpwevo-qr-container');
-
-        // Se o container não for encontrado, não faz nada.
+        
         if (!$qrContainer.length) {
             return;
         }
 
-        // 2. Pegue o QR Code base64.
-        const qrCodeBase64 = apiData.qr_code;
+        // CORREÇÃO: Aceitar tanto qr_code (do polling) quanto qr_code_base64 (do signup)
+        const qrCodeBase64 = apiData.qr_code || apiData.qr_code_base64;
+        const isConnected = apiData.whatsapp_connected === true || apiData.currentStatus === 'connected';
+
+        // ✅ CORREÇÃO: Se conectado, não mostrar QR Code
+        if (isConnected) {
+            console.log('✅ WhatsApp conectado, escondendo QR Code');
+            $qrContainer.hide();
+            return;
+        }
 
         if (!qrCodeBase64) {
-            $qrContainer.html('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 8px; text-align: center; padding: 15px;">❌ Erro:<br>O QR Code não foi recebido do servidor. Verifique o status da sua instância.</div>');
+            console.log('⚠️ QR Code não disponível, mostrando mensagem de aguardo');
+            $qrContainer.html('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1; border-radius: 8px; text-align: center; padding: 15px;">⏳ Aguardando QR Code...<br><small>Verificando status da instância</small></div>');
             $qrContainer.show();
             return;
         }
 
-        // 3. Insira a imagem base64 diretamente.
-        $qrContainer.html(`<img src="${qrCodeBase64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">`);
+        console.log('📱 Exibindo QR Code');
+        $qrContainer.html(`<img src="data:image/png;base64,${qrCodeBase64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">`);
         $qrContainer.show();
     }
 
@@ -340,12 +419,10 @@ jQuery(document).ready(function($) {
     $('#wpwevo-whatsapp').on('input', function() {
         let value = $(this).val().replace(/\D/g, '');
         
-        // Limita a 11 dígitos (formato brasileiro)
         if (value.length > 11) {
             value = value.substring(0, 11);
         }
         
-        // Formata conforme o usuário digita
         if (value.length >= 2) {
             value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
         }
@@ -389,7 +466,7 @@ jQuery(document).ready(function($) {
         return isValid;
     }
 
-    // Ativa/desativa botão de submit baseado na validação
+    // Ativa/desativa botão de submit
     $form.find('input').on('input', function() {
         const isValid = validateForm();
         $('#wpwevo-signup-btn').prop('disabled', !isValid);
@@ -407,9 +484,8 @@ jQuery(document).ready(function($) {
     // ===== LÓGICA DO MODAL DE UPGRADE =====
     const upgradeModal = document.getElementById('wpwevo-upgrade-modal');
     const paymentFeedback = document.getElementById('wpwevo-payment-feedback');
-    let pollingInterval; // Variável para controlar o intervalo do polling
 
-    // TORNAR FUNÇÕES GLOBAIS PARA ONCLICK DO HTML
+    // Funções globais para onclick do HTML
     window.showUpgradeModal = function() {
         if (upgradeModal) {
             upgradeModal.style.display = 'block';
@@ -419,7 +495,7 @@ jQuery(document).ready(function($) {
     window.closeUpgradeModal = function() {
         if (upgradeModal) {
             upgradeModal.style.display = 'none';
-            stopPolling(); // Para o polling quando o modal é fechado
+            stopPolling();
         }
     }
 
@@ -431,134 +507,71 @@ jQuery(document).ready(function($) {
 
         paymentFeedback.style.display = 'none';
 
-        jQuery.post(wpwevo_quick_signup.ajax_url, {
-            action: 'wpwevo_create_payment',
-            nonce: wpwevo_quick_signup.nonce
-        }, function(response) {
-            if (response.success) {
-                // Lógica para decidir se é PIX ou URL de Redirecionamento
-                const responseData = response.data;
-                
-                if (responseData.pix_qr_code_base64 && responseData.pix_copy_paste) {
-                    // --- É PIX ---
-                    // 1. Esconde a view normal e mostra a view do PIX
-                    upgradeModal.querySelector('.wpwevo-modal-body').style.display = 'none';
-                    document.getElementById('wpwevo-pix-payment-info').style.display = 'block';
-
-                    // 2. Popula os dados do PIX
-                    document.getElementById('wpwevo-pix-qr-code').src = 'data:image/png;base64,' + responseData.pix_qr_code_base64;
-                    document.getElementById('wpwevo-pix-copy-paste').value = responseData.pix_copy_paste;
+        $.ajax({
+            url: wpwevo_quick_signup.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wpwevo_create_payment',
+                nonce: wpwevo_quick_signup.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    const responseData = response.data;
                     
-                    // 3. Muda os botões do footer
-                    upgradeButton.style.display = 'none'; // Esconde o botão "Assinar"
-                    const cancelButton = upgradeModal.querySelector('.wpwevo-cancel-btn');
-                    cancelButton.innerText = 'Fechar'; // Muda "Talvez depois" para "Fechar"
+                    if (responseData.pix_qr_code_base64 && responseData.pix_copy_paste) {
+                        // PIX
+                        upgradeModal.querySelector('.wpwevo-modal-body').style.display = 'none';
+                        document.getElementById('wpwevo-pix-payment-info').style.display = 'block';
+                        document.getElementById('wpwevo-pix-qr-code').src = 'data:image/png;base64,' + responseData.pix_qr_code_base64;
+                        document.getElementById('wpwevo-pix-copy-paste').value = responseData.pix_copy_paste;
+                        
+                        upgradeButton.style.display = 'none';
+                        const cancelButton = upgradeModal.querySelector('.wpwevo-cancel-btn');
+                        cancelButton.innerText = 'Fechar';
 
-                    // 4. Inicia o polling para verificar o status do pagamento
-                    if (responseData.api_key) {
-                        startStatusPolling(responseData.api_key);
+                        if (responseData.api_key) {
+                            startStatusPolling(responseData.api_key);
+                        }
+
+                    } else if (responseData.payment_url && responseData.payment_url.startsWith('http')) {
+                        // URL de redirecionamento
+                        paymentFeedback.style.color = '#155724';
+                        paymentFeedback.innerText = '✅ Sucesso! Redirecionando para pagamento...';
+                        paymentFeedback.style.display = 'block';
+                        
+                        setTimeout(function() {
+                            window.open(responseData.payment_url, '_blank');
+                            closeUpgradeModal();
+                        }, 1500);
+
+                    } else {
+                        // Erro
+                        paymentFeedback.style.color = '#721c24';
+                        paymentFeedback.innerText = '❌ Erro: Resposta de pagamento inválida.';
+                        paymentFeedback.style.display = 'block';
+                        upgradeButton.innerHTML = originalButtonText;
+                        upgradeButton.disabled = false;
                     }
 
-                } else if (responseData.payment_url && responseData.payment_url.startsWith('http')) {
-                    // --- É URL de redirecionamento ---
-                    paymentFeedback.style.color = '#155724';
-                    paymentFeedback.innerText = '✅ Sucesso! Redirecionando para pagamento...';
-                    paymentFeedback.style.display = 'block';
-                    
-                    setTimeout(function() {
-                        window.open(responseData.payment_url, '_blank');
-                        closeUpgradeModal();
-                    }, 1500);
-
                 } else {
-                    // --- Erro: formato inesperado ---
                     paymentFeedback.style.color = '#721c24';
-                    paymentFeedback.innerText = '❌ Erro: Resposta de pagamento inválida.';
+                    paymentFeedback.innerText = '❌ Erro: ' + (response.data ? response.data.message : 'Ocorreu um erro desconhecido.');
                     paymentFeedback.style.display = 'block';
                     upgradeButton.innerHTML = originalButtonText;
                     upgradeButton.disabled = false;
                 }
-
-            } else {
+            },
+            error: function() {
                 paymentFeedback.style.color = '#721c24';
-                paymentFeedback.innerText = '❌ Erro: ' + (response.data ? response.data.message : 'Ocorreu um erro desconhecido.');
+                paymentFeedback.innerText = '❌ Erro de conexão. Verifique sua internet e tente novamente.';
                 paymentFeedback.style.display = 'block';
                 upgradeButton.innerHTML = originalButtonText;
                 upgradeButton.disabled = false;
             }
-        }).fail(function() {
-            paymentFeedback.style.color = '#721c24';
-            paymentFeedback.innerText = '❌ Erro de conexão. Verifique sua internet e tente novamente.';
-            paymentFeedback.style.display = 'block';
-            upgradeButton.innerHTML = originalButtonText;
-            upgradeButton.disabled = false;
         });
     };
 
-    // ===== LÓGICA DE POLLING DE STATUS =====
-    function startStatusPolling(apiKey) {
-      // Para o polling anterior, se houver
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-
-      // Inicia um novo polling a cada 5 segundos (5000 ms)
-      pollingInterval = setInterval(() => {
-        checkInstanceStatus(apiKey);
-      }, 5000);
-      
-      // Defina um timeout para parar de tentar após 5 minutos
-      setTimeout(() => {
-          if (pollingInterval) {
-              clearInterval(pollingInterval);
-              // Opcional: mostrar uma mensagem para o usuário verificar mais tarde.
-          }
-      }, 300000); // 5 minutos
-    }
-
-    function stopPolling() {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-      }
-    }
-
-    async function checkInstanceStatus(apiKey) {
-      try {
-        const response = await fetch('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/plugin-status', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlkbm9icXNlcHZlZWZpZWZteGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDkwOTAsImV4cCI6MjA2NTIyNTA5MH0.PlLrBA3eauvanWT-gQoKdvpTaPRrwgtuW8gZhbrlO7o'
-          },
-          body: JSON.stringify({ api_key: apiKey })
-        });
-
-        if (!response.ok) {
-          // Continue tentando em caso de erro de servidor
-          return; 
-        }
-
-        const result = await response.json();
-        
-        // 🎯 LÓGICA EXATA DO BACKEND: Verifica se o status é 'connected'
-        if (result.success && result.data && result.data.status === 'connected') {
-          stopPolling(); // 1. Para o polling
-          closeUpgradeModal(); // 2. Fecha o modal de pagamento
-          
-          // 3. Mostra uma notificação de sucesso
-          alert('Pagamento recebido! Sua conta foi reativada com sucesso.');
-          
-          // 4. Recarrega a página para refletir o novo estado
-          window.location.reload();
-        }
-
-      } catch (error) {
-        // A rede pode ter falhado, o polling continuará na próxima iteração
-      }
-    }
-
-    // Nova função para copiar o código PIX
+    // Copiar código PIX
     $(document).on('click', '#wpwevo-copy-pix-btn', function() {
         const copyText = document.getElementById('wpwevo-pix-copy-paste');
         copyText.select();
@@ -572,7 +585,7 @@ jQuery(document).ready(function($) {
         }, 2000);
     });
 
-    // 🚀 ADAPTADO: Adicionar funcionalidade para copiar senha
+    // Copiar senha
     $('#copy-password-btn').on('click', function() {
         const password = $('#dashboard-password-value').text();
         navigator.clipboard.writeText(password).then(function() {
@@ -588,11 +601,10 @@ jQuery(document).ready(function($) {
     });
 
     /**
-     * ATUALIZA A INTERFACE DE STATUS
-     * @param {object} apiData - O objeto 'data' completo recebido da nossa API.
+     * ✅ CORRIGIDO: Atualização da interface de status
+     * Função unificada e otimizada
      */
     function updateUserInterface(apiData) {
-        // Seletores dos elementos que queremos mudar.
         const titleElement = $('#connection-status-message');
         const daysLeftElement = $('#trial-days-left-container');
         const mainContainer = $('#wpwevo-status-container');
@@ -600,19 +612,15 @@ jQuery(document).ready(function($) {
         const expiredNotice = $('#wpwevo-trial-expired-notice');
         const upgradeButton = $('#wpwevo-upgrade-btn-from-status');
 
-        // Se a conta tem dias restantes, mostre o status correto baseado no plano.
         if (apiData.trial_days_left > 0) {
-            // ✅ LÓGICA CORRETA: Usar o campo user_plan para diferenciar os tipos de conta
+            // Conta ativa
             if (apiData.user_plan === 'basic') {
-                // Usuário com plano Basic pago
                 titleElement.text('Plano Basic');
                 daysLeftElement.html(`Você tem <strong>${apiData.trial_days_left} dias</strong> restantes.`);
             } else if (apiData.user_plan === 'trial') {
-                // Usuário em período de trial
                 titleElement.text('Trial Ativo');
                 daysLeftElement.html(`Você tem <strong>${apiData.trial_days_left} dias</strong> restantes.`);
             } else {
-                // Fallback para outros planos ou planos não identificados
                 const planName = apiData.user_plan ? apiData.user_plan.charAt(0).toUpperCase() + apiData.user_plan.slice(1) : 'Ativo';
                 titleElement.text(`${planName} Ativo`);
                 daysLeftElement.html(`Você tem <strong>${apiData.trial_days_left} dias</strong> restantes.`);
@@ -622,14 +630,13 @@ jQuery(document).ready(function($) {
             renewalModal.hide();
             expiredNotice.hide();
             upgradeButton.hide();
-        } 
-        // Se a conta NÃO tem dias restantes, mostre o status de Expirado e ABRA o modal automaticamente.
-        else {
+        } else {
+            // Conta expirada
             titleElement.text('Assinatura Expirada');
             daysLeftElement.text('Faça upgrade para reativar sua conta.');
             mainContainer.removeClass('status-active').addClass('status-expired');
             expiredNotice.show();
-            // Exibe o modal de upgrade automaticamente se não estiver aberto
+            
             if (renewalModal.length && renewalModal.is(':hidden')) {
                 renewalModal.show();
                 if (typeof window.showUpgradeModal === 'function') {
@@ -638,7 +645,6 @@ jQuery(document).ready(function($) {
                     renewalModal[0].style.display = 'block';
                 }
             }
-            // Garante que o botão de upgrade esteja visível
             upgradeButton.show();
         }
     }
