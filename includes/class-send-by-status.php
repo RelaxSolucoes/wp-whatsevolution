@@ -56,9 +56,6 @@ class Send_By_Status {
 		add_action('wp_ajax_wpwevo_save_status_messages', [$this, 'handle_save_messages']);
 		add_action('wp_ajax_wpwevo_preview_message', [$this, 'handle_preview_message']);
 		
-		// Hook para novos pedidos - prioridade mais alta para garantir que seja executado antes da mudança de status
-		add_action('woocommerce_new_order', [$this, 'handle_new_order'], 5, 1);
-		
 		// Hook para mudança de status
 		add_action('woocommerce_order_status_changed', [$this, 'handle_status_change'], 10, 4);
 	}
