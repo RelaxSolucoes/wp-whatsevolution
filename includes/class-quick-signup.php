@@ -184,6 +184,7 @@ class Quick_Signup {
 	 */
 	private function get_localized_data() {
 		$api_key = get_option('wpwevo_managed_api_key', '');
+		$user_id = get_option('wpwevo_user_id', '');
 
 		return [
 			'ajax_url' => admin_url('admin-ajax.php'),
@@ -191,6 +192,7 @@ class Quick_Signup {
 			'should_show_upgrade_modal' => self::should_show_upgrade_modal(),
 			'is_trial_expired' => self::should_show_upgrade_modal(),
 			'api_key' => $api_key,
+			'user_id' => $user_id,
 			'messages' => $this->get_messages(),
 			'debug_enabled' => get_option('wpwevo_debug_enabled', false)
 		];
