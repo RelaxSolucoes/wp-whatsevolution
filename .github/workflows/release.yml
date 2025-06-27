@@ -1,0 +1,62 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## 🚀 WP WhatsEvolution ${{ github.ref_name }}
+          
+          ### 📋 O que há de novo nesta versão:
+          
+          Consulte o [CHANGELOG.md](https://github.com/RelaxSolucoes/wp-whatsevolution/blob/main/CHANGELOG.md) para detalhes completos das mudanças.
+          
+          ### 📦 Instalação:
+          
+          1. Faça backup do seu site
+          2. Desative o plugin atual
+          3. Faça upload da nova versão
+          4. Ative o plugin
+          5. Teste as funcionalidades
+          
+          ### 🔧 Requisitos:
+          - WordPress 5.8+
+          - WooCommerce 5.0+
+          - PHP 7.4+
+          
+          ### 📞 Suporte:
+          Em caso de dúvidas, consulte a [documentação](https://github.com/RelaxSolucoes/wp-whatsevolution) ou abra uma issue.
+          
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./wp-whatsapp-evolution.zip
+        asset_name: wp-whatsapp-evolution-${{ github.ref_name }}.zip
+        asset_content_type: application/zip 

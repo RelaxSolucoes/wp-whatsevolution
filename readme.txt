@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.2.1
+Stable tag: 1.3.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -110,6 +110,15 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
+= 1.3.1 - 2025-01-27 =
+*   **NOVO**: Sistema automático de adição de notas nos pedidos ao enviar mensagens de WhatsApp
+*   **Carrinho Abandonado**: Notas são adicionadas automaticamente quando mensagens são enviadas para carrinhos abandonados
+*   **Mudanças de Status**: Notas são criadas quando mensagens são enviadas por mudanças de status de pedido
+*   **Rastreabilidade**: Todas as mensagens enviadas ficam registradas no histórico do pedido para auditoria
+*   **Correção de Bugs**: Diversos bugs menores foram corrigidos para melhor estabilidade
+*   **Otimização**: Melhorias de performance no sistema de envio de mensagens
+*   **Compatibilidade**: Garantida compatibilidade total com WooCommerce 8.0+
+
 = 1.3.0 - 2024-06-21 =
 *   **REVOLUÇÃO NO ENVIO EM MASSA**: A funcionalidade de Envio em Massa foi completamente reconstruída do zero para ser mais poderosa, intuitiva e à prova de falhas.
 *   **Melhoria - Interface de Importação CSV Inteligente:** A tela de importação de CSV agora é visualmente clara, com uma tabela de exemplo que elimina a confusão entre colunas e vírgulas.
@@ -153,6 +162,9 @@ Sim, 100% gratuito e open source.
 *   I18n: Adicionada a tradução para Português do Brasil.
 
 == Upgrade Notice ==
+
+= 1.3.1 =
+Esta versão adiciona o sistema automático de notas nos pedidos, garantindo rastreabilidade completa de todas as mensagens enviadas. Recomendamos a atualização para ter acesso ao novo sistema de auditoria e as correções de bugs implementadas.
 
 = 1.3.0 =
 Esta versão contém uma reconstrução completa da funcionalidade de Envio em Massa. Recomendamos fortemente a atualização para ter acesso à nova interface, importação de CSV aprimorada, personalização com variáveis e relatórios de erro detalhados. 

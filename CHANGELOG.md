@@ -1,5 +1,26 @@
 # Changelog - WP WhatsEvolution
 
+## [1.3.1] - 2025-01-27
+### 🚀 Novas Funcionalidades e Correções
+
+**📝 Adição de Notas nos Pedidos**
+* **NOVO**: Sistema automático de adição de notas nos pedidos ao enviar mensagens de WhatsApp
+* **Carrinho Abandonado**: Notas são adicionadas automaticamente quando mensagens são enviadas para carrinhos abandonados
+* **Mudanças de Status**: Notas são criadas quando mensagens são enviadas por mudanças de status de pedido
+* **Rastreabilidade**: Todas as mensagens enviadas ficam registradas no histórico do pedido para auditoria
+
+**🔧 Melhorias e Correções**
+* **Correção de Bugs**: Diversos bugs menores foram corrigidos para melhor estabilidade
+* **Otimização**: Melhorias de performance no sistema de envio de mensagens
+* **Compatibilidade**: Garantida compatibilidade total com WooCommerce 8.0+
+
+**📋 Detalhes Técnicos**
+* As notas incluem: tipo de mensagem, data/hora, número de telefone e status do envio
+* Sistema funciona automaticamente sem necessidade de configuração adicional
+* Compatível com todos os tipos de envio: individual, em massa, por status e carrinho abandonado
+
+---
+
 ## [1.3.0] - 2025-06-21
 ### 🚀 Lançamento Oficial
 
