@@ -384,6 +384,13 @@ jQuery(document).ready(function($) {
      * Cria container temporário sempre visível
      */
     function displayQRCode(apiData) {
+        // ✅ CORREÇÃO CRÍTICA: NÃO mostrar QR Code se conta expirada
+        if (apiData.trial_days_left <= 0 || apiData.isTrialExpired) {
+            console.log('❌ Conta expirada - NÃO mostrar QR Code de conexão');
+            $('#wpwevo-qr-container-temp').hide();
+            return;
+        }
+        
         // ✅ SOLUÇÃO ALTERNATIVA: Criar container temporário sempre visível
         let $qrContainer = $('#wpwevo-qr-container-temp');
         
@@ -735,7 +742,6 @@ jQuery(document).ready(function($) {
         // ✅ NOVO: Verificar se precisa de reconexão
         const needsReconnection = apiData.currentStatus === 'disconnected' || apiData.currentStatus === 'connecting';
         const isConnected = apiData.currentStatus === 'connected';
-        // const hasQRCode = apiData.qr_code_url || apiData.qr_code || apiData.qr_code_base64;
 
         if (apiData.trial_days_left > 0) {
             // Conta ativa
@@ -758,7 +764,7 @@ jQuery(document).ready(function($) {
             }
             daysLeftElement.html(descriptionText);
             
-            // ✅ CORRIGIDO: Adicionar botão de reconexão sempre que necessário
+            // ✅ CORREÇÃO: Adicionar botão de reconexão apenas se conta ativa E precisa reconectar
             if (needsReconnection && !isConnected) {
                 const reconnectButton = `
                     <div style="margin-top: 15px;">
@@ -781,6 +787,16 @@ jQuery(document).ready(function($) {
             renewalModal.hide();
             expiredNotice.hide();
             upgradeButton.hide();
+            
+            // ✅ CORRIGIDO: NÃO mostrar QR Code automaticamente. Só mostrar via clique (requestNewQRCode)
+            // if (needsReconnection && !isConnected) {
+            //     displayQRCode(apiData);
+            // } else {
+            //     // Esconder QR Code de conexão se conectado ou não precisa reconectar
+            //     $('#wpwevo-qr-container-temp').hide();
+            // }
+            // Nova lógica: sempre esconder QR Code automático
+            $('#wpwevo-qr-container-temp').hide();
         } else {
             // Conta expirada
             titleElement.text('Assinatura Expirada');
@@ -794,6 +810,10 @@ jQuery(document).ready(function($) {
             
             mainContainer.removeClass('status-active').addClass('status-expired');
             expiredNotice.show();
+            
+            // ✅ CORREÇÃO CRÍTICA: NÃO mostrar QR Code de conexão quando expirado
+            // Esconder qualquer QR Code de conexão que possa estar visível
+            $('#wpwevo-qr-container-temp').hide();
             
             if (renewalModal.length && renewalModal.is(':hidden')) {
                 renewalModal.show();
@@ -811,6 +831,18 @@ jQuery(document).ready(function($) {
      * ✅ NOVO: Função para solicitar novo QR Code (padronizada com onboarding)
      */
     window.requestNewQRCode = function() {
+        // ✅ CORREÇÃO CRÍTICA: Verificar se conta está expirada antes de solicitar QR Code
+        const currentStatus = $('#connection-status-message').text();
+        const isExpired = currentStatus === 'Assinatura Expirada' || 
+                         currentStatus.includes('Expirada') || 
+                         currentStatus.includes('Expirado');
+        
+        if (isExpired) {
+            console.log('❌ Conta expirada - NÃO solicitar QR Code de conexão');
+            alert('Sua conta expirou. Faça upgrade para reativar o WhatsApp.');
+            return;
+        }
+        
         const reconnectBtn = $('#wpwevo-reconnect-btn');
         const originalText = reconnectBtn.text();
         
@@ -829,6 +861,17 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success && response.data) {
                     console.log('✅ QR Code obtido com sucesso (reconexão):', response.data);
+                    
+                    // ✅ CORREÇÃO: Verificar se conta ainda está ativa antes de mostrar QR Code
+                    if (response.data.trial_days_left <= 0 || response.data.isTrialExpired) {
+                        console.log('❌ Conta expirou durante a solicitação - NÃO mostrar QR Code');
+                        reconnectBtn.text('❌ Conta Expirada').addClass('error').prop('disabled', false);
+                        setTimeout(() => {
+                            reconnectBtn.text(originalText).removeClass('error');
+                        }, 3000);
+                        return;
+                    }
+                    
                     // Exibe QR Code igual onboarding
                     displayQRCode(response.data);
                     // Reinicia polling automático

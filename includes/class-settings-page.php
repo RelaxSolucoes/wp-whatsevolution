@@ -937,12 +937,21 @@ Finalize agora:
 						<p id="trial-days-left-container" style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px;">
 							Aguarde um instante...
 						</p>
-						
+						<!-- AVISO ESTÁTICO DE ACESSO AO PAINEL -->
+						<div id="wpwevo-dashboard-static-info" style="background: #e0f2fe; border: 1px solid #38bdf8; border-radius: 10px; padding: 18px 24px; margin: 0 auto 24px auto; max-width: 480px; text-align: left; box-shadow: 0 2px 8px rgba(56,189,248,0.08);">
+							<h3 style="margin: 0 0 10px 0; color: #0ea5e9; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+								<span style="font-size: 22px;">🔑</span> Acesse seu Painel de Controle
+							</h3>
+							<div style="font-size: 15px; color: #0369a1; margin-bottom: 8px;">
+								Para acessar sua dashboard, utilize o link enviado para o seu WhatsApp.<br>
+								<span style="color: #64748b; font-size: 13px;">Utilize o email e senha cadastrados.</span>
+							</div>
+						</div>
 						<!-- BOTÃO DE UPGRADE DENTRO DO CARD -->
 						<button id="wpwevo-upgrade-btn-from-status" onclick="showUpgradeModal()" style="display: none; background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; margin-bottom: 15px;">
 							💳 Fazer Upgrade Agora
 						</button>
-						
+
 						<div id="wpwevo-trial-expired-notice" style="display: none; background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
 							<span style="color: #721c24;">⚠️ Trial expirado! Faça upgrade para continuar usando.</span>
 						</div>

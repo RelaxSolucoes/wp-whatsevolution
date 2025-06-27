@@ -947,7 +947,7 @@ class Cart_Abandonment {
         $logs = $wpdb->get_results(
             "SELECT timestamp, level, message 
              FROM {$wpdb->prefix}wpwevo_logs 
-             WHERE (message LIKE '%CARRINHO%' OR message LIKE '%WhatsApp%') 
+             WHERE message LIKE '[CARRINHO]%' 
              AND level IN ('info', 'success', 'error')
              ORDER BY timestamp DESC 
              LIMIT 30"
