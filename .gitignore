@@ -1,6 +1,6 @@
 # Ignorar plugins externos
 woo-cart-abandonment-recovery/
-wp-whatsapp-sender/
+
 
 # Arquivos temporários  
 debug-*.php
@@ -105,3 +105,4 @@ Thumbs.db
 INTEGRACAO_PAGAMENTO_PLUGIN.md
 INTEGRACAO_PAGAMENTO_SUPABASE.md
 docs/MANUAL_API_PLUGIN_WORDPRESS.md
+docs/IMPLEMENTACAO_PLUGIN_PAYMENT_STATUS.md

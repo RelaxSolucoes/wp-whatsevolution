@@ -226,7 +226,20 @@ class Cart_Abandonment {
 
         if ($result['success']) {
             $this->log_success("✅ WhatsApp enviado para {$customer_name} ({$phone})");
-            
+            // Adiciona nota no pedido se houver order_id
+            if (isset($trigger_details['order_id'])) {
+                $order = wc_get_order($trigger_details['order_id']);
+                if ($order) {
+                    $order->add_order_note(
+                        sprintf(
+                            'Mensagem de WhatsApp enviada para carrinho abandonado (%s): %s',
+                            $phone,
+                            $message
+                        ),
+                        false
+                    );
+                }
+            }
             // Hook para ações após envio
             do_action('wpwevo_cart_abandonment_sent', $phone, $message, $trigger_details);
             return true;

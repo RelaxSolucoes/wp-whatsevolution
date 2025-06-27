@@ -660,6 +660,17 @@ Valor: {order_total}
 		if (!$result || !isset($result['success']) || !$result['success']) {
 			$error_msg = isset($result['message']) ? $result['message'] : 'Erro desconhecido';
 			wpwevo_log('error', "Send_By_Status: Falha ao enviar mensagem para novo pedido #$order_id - $error_msg");
+		} else {
+			// Adiciona nota no pedido
+			$order->add_order_note(
+				sprintf(
+					'Mensagem de WhatsApp enviada automaticamente para %s devido à mudança de status para %s: %s',
+					$billing_phone,
+					wc_get_order_status_name($status),
+					$message
+				),
+				false
+			);
 		}
 	}
 
@@ -733,6 +744,17 @@ Valor: {order_total}
 		if (!$result || !isset($result['success']) || !$result['success']) {
 			$error_msg = isset($result['message']) ? $result['message'] : 'Erro desconhecido';
 			wpwevo_log('error', "Send_By_Status: Falha ao enviar mensagem para pedido #$order_id - $error_msg");
+		} else {
+			// Adiciona nota no pedido
+			$order->add_order_note(
+				sprintf(
+					'Mensagem de WhatsApp enviada automaticamente para %s devido à mudança de status para %s: %s',
+					$billing_phone,
+					wc_get_order_status_name($new_status),
+					$message
+				),
+				false
+			);
 		}
 	}
 } 
