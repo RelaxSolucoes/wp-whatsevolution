@@ -612,19 +612,43 @@ jQuery(document).ready(function($) {
         const expiredNotice = $('#wpwevo-trial-expired-notice');
         const upgradeButton = $('#wpwevo-upgrade-btn-from-status');
 
+        // ✅ NOVO: Exibir status da instância
+        let statusText = '';
+        if (apiData.currentStatus) {
+            const statusMap = {
+                'connected': 'Conectado',
+                'connecting': 'Conectando...',
+                'disconnected': 'Desconectado',
+                'disconnecting': 'Desconectando...',
+                'qrcode': 'Aguardando QR Code',
+                'open': 'Conectado',
+                'close': 'Desconectado'
+            };
+            
+            const statusDisplay = statusMap[apiData.currentStatus] || apiData.currentStatus;
+            statusText = `Status da Instância: ${statusDisplay}`;
+        }
+
         if (apiData.trial_days_left > 0) {
             // Conta ativa
+            let planText = '';
             if (apiData.user_plan === 'basic') {
-                titleElement.text('Plano Basic');
-                daysLeftElement.html(`Você tem <strong>${apiData.trial_days_left} dias</strong> restantes.`);
+                planText = 'Plano Basic';
             } else if (apiData.user_plan === 'trial') {
-                titleElement.text('Trial Ativo');
-                daysLeftElement.html(`Você tem <strong>${apiData.trial_days_left} dias</strong> restantes.`);
+                planText = 'Trial Ativo';
             } else {
                 const planName = apiData.user_plan ? apiData.user_plan.charAt(0).toUpperCase() + apiData.user_plan.slice(1) : 'Ativo';
-                titleElement.text(`${planName} Ativo`);
-                daysLeftElement.html(`Você tem <strong>${apiData.trial_days_left} dias</strong> restantes.`);
+                planText = `${planName} Ativo`;
             }
+            
+            titleElement.text(planText);
+            
+            // ✅ NOVO: Incluir status da instância na descrição
+            let descriptionText = `Você tem <strong>${apiData.trial_days_left} dias</strong> restantes.`;
+            if (statusText) {
+                descriptionText += `<br><small style="color: #4a5568; font-size: 14px;">${statusText}</small>`;
+            }
+            daysLeftElement.html(descriptionText);
             
             mainContainer.removeClass('status-expired').addClass('status-active');
             renewalModal.hide();
@@ -633,7 +657,14 @@ jQuery(document).ready(function($) {
         } else {
             // Conta expirada
             titleElement.text('Assinatura Expirada');
-            daysLeftElement.text('Faça upgrade para reativar sua conta.');
+            
+            // ✅ NOVO: Incluir status da instância mesmo quando expirado
+            let descriptionText = 'Faça upgrade para reativar sua conta.';
+            if (statusText) {
+                descriptionText += `<br><small style="color: #4a5568; font-size: 14px;">${statusText}</small>`;
+            }
+            daysLeftElement.html(descriptionText);
+            
             mainContainer.removeClass('status-active').addClass('status-expired');
             expiredNotice.show();
             

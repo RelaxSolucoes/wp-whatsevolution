@@ -78,6 +78,11 @@ class Api_Connection {
             ];
         }
 
+        // Se está no modo managed, usa o status do backend Supabase
+        if (get_option('wpwevo_connection_mode') === 'managed') {
+            return $this->get_managed_connection_status();
+        }
+
         // Constrói a URL exatamente como no teste
         $url = rtrim($this->api_url, '/') . '/instance/connectionState/' . $this->instance_name;
 
@@ -169,6 +174,77 @@ class Api_Connection {
             'success' => $is_connected,
             'message' => $state_messages[$state] ?? $state_messages['default'],
             'state' => $state
+        ];
+    }
+
+    /**
+     * ✅ NOVO: Obtém o status da conexão no modo managed usando o backend Supabase
+     */
+    private function get_managed_connection_status() {
+        $api_key = get_option('wpwevo_managed_api_key', '');
+        
+        if (empty($api_key)) {
+            return [
+                'success' => false,
+                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        // Chama a Edge Function para obter o status
+        $url = 'https://ydnobqsepveefiefmxag.supabase.co/functions/v1/plugin-status';
+        
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
+        ];
+
+        $body = json_encode(['api_key' => $api_key]);
+
+        $response = wp_remote_post($url, [
+            'headers' => $headers,
+            'body' => $body,
+            'timeout' => WHATSEVOLUTION_STATUS_TIMEOUT,
+            'sslverify' => false
+        ]);
+
+        if (is_wp_error($response)) {
+            return [
+                'success' => false,
+                'message' => sprintf(
+                    __('Erro ao verificar status: %s', 'wp-whatsapp-evolution'),
+                    $response->get_error_message()
+                )
+            ];
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if ($status_code !== 200 || !is_array($data) || !isset($data['success']) || !$data['success']) {
+            return [
+                'success' => false,
+                'message' => __('Erro ao verificar status da instância.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        // Extrai o currentStatus da resposta
+        $current_status = $data['data']['currentStatus'] ?? 'unknown';
+        $is_connected = $current_status === 'connected';
+        
+        $status_messages = [
+            'connected' => __('Status da Instância: Conectado', 'wp-whatsapp-evolution'),
+            'connecting' => __('Status da Instância: Conectando...', 'wp-whatsapp-evolution'),
+            'disconnected' => __('Status da Instância: Desconectado', 'wp-whatsapp-evolution'),
+            'disconnecting' => __('Status da Instância: Desconectando...', 'wp-whatsapp-evolution'),
+            'qrcode' => __('Status da Instância: Aguardando QR Code', 'wp-whatsapp-evolution'),
+            'unknown' => __('Status da Instância: Desconhecido', 'wp-whatsapp-evolution')
+        ];
+
+        return [
+            'success' => $is_connected,
+            'message' => $status_messages[$current_status] ?? $status_messages['unknown'],
+            'state' => $current_status
         ];
     }
 
