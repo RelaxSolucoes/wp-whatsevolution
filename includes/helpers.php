@@ -11,8 +11,37 @@ if (!defined('ABSPATH')) {
  * Verifica se a instância do WhatsApp está conectada
  */
 function wpwevo_check_instance() {
+	// ✅ CORREÇÃO: Verificar modo de conexão primeiro
+	$connection_mode = get_option('wpwevo_connection_mode', 'manual');
+	
+	if ($connection_mode === 'managed') {
+		// ✅ Modo managed - usar Edge Function
+		$api_key = get_option('wpwevo_managed_api_key', '');
+		if (empty($api_key)) {
+			return false;
+		}
+		
+		$response = wp_remote_post('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/plugin-status', [
+			'headers' => [
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
+			],
+			'body' => json_encode(['api_key' => $api_key]),
+			'timeout' => 10,
+			'sslverify' => false
+		]);
+		
+		if (is_wp_error($response)) {
+			return false;
+		}
+		
+		$data = json_decode(wp_remote_retrieve_body($response), true);
+		return isset($data['success']) && $data['success'] && isset($data['data']['whatsapp_connected']) && $data['data']['whatsapp_connected'];
+	}
+	
+	// ✅ Modo manual - usar Evolution API diretamente
 	$api_url = get_option('wpwevo_api_url');
-	$api_key = get_option('wpwevo_api_key');
+	$api_key = get_option('wpwevo_manual_api_key'); // ✅ Usar manual_api_key
 	$instance = get_option('wpwevo_instance');
 
 	if (!$api_url || !$api_key || !$instance) {
@@ -40,8 +69,44 @@ function wpwevo_check_instance() {
  * Envia uma mensagem via WhatsApp
  */
 function wpwevo_send_message($number, $message) {
+	// ✅ CORREÇÃO: Verificar modo de conexão primeiro
+	$connection_mode = get_option('wpwevo_connection_mode', 'manual');
+	
+	if ($connection_mode === 'managed') {
+		// ✅ Modo managed - usar Edge Function
+		$api_key = get_option('wpwevo_managed_api_key', '');
+		if (empty($api_key)) {
+			return false;
+		}
+		
+		// Formata o número
+		$number = preg_replace('/[^0-9]/', '', $number);
+		
+		$response = wp_remote_post('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/send-message', [
+			'headers' => [
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
+			],
+			'body' => json_encode([
+				'api_key' => $api_key,
+				'number' => $number,
+				'message' => $message
+			]),
+			'timeout' => 15,
+			'sslverify' => false
+		]);
+		
+		if (is_wp_error($response)) {
+			return false;
+		}
+		
+		$data = json_decode(wp_remote_retrieve_body($response), true);
+		return isset($data['success']) && $data['success'];
+	}
+	
+	// ✅ Modo manual - usar Evolution API diretamente
 	$api_url = get_option('wpwevo_api_url');
-	$api_key = get_option('wpwevo_api_key');
+	$api_key = get_option('wpwevo_manual_api_key'); // ✅ Usar manual_api_key
 	$instance = get_option('wpwevo_instance');
 
 	if (!$api_url || !$api_key || !$instance) {

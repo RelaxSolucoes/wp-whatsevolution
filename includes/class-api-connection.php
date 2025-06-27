@@ -39,7 +39,7 @@ class Api_Connection {
      */
     public function setup() {
         $this->api_url = get_option('wpwevo_api_url');
-        $this->api_key = get_option('wpwevo_api_key');
+        $this->api_key = self::get_active_api_key(); // ✅ CORREÇÃO: Usar função que busca a chave correta
         $this->instance_name = get_option('wpwevo_instance');
     }
 
@@ -340,6 +340,99 @@ class Api_Connection {
             ];
         }
 
+        // ✅ CORREÇÃO: Verificar modo de conexão primeiro
+        $connection_mode = get_option('wpwevo_connection_mode', 'manual');
+        
+        if ($connection_mode === 'managed') {
+            return $this->send_message_managed($number, $message);
+        }
+        
+        return $this->send_message_manual($number, $message);
+    }
+
+    /**
+     * ✅ NOVO: Envia mensagem no modo managed via Edge Function
+     */
+    private function send_message_managed($number, $message) {
+        $api_key = get_option('wpwevo_managed_api_key', '');
+        
+        if (empty($api_key)) {
+            return [
+                'success' => false,
+                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        // Formata e valida o número
+        $phone_validation = $this->format_phone_number($number);
+        if (!$phone_validation['success']) {
+            return $phone_validation;
+        }
+        $number = $phone_validation['number'];
+
+        // Substitui variáveis da loja na mensagem
+        $message = $this->replace_store_variables($message);
+
+        // Chama a Edge Function para enviar mensagem
+        $url = 'https://ydnobqsepveefiefmxag.supabase.co/functions/v1/send-message';
+        
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
+        ];
+
+        $body = json_encode([
+            'api_key' => $api_key,
+            'number' => $number,
+            'message' => $message
+        ]);
+
+        $response = wp_remote_post($url, [
+            'headers' => $headers,
+            'body' => $body,
+            'timeout' => 15,
+            'sslverify' => false
+        ]);
+
+        if (is_wp_error($response)) {
+            return [
+                'success' => false,
+                'message' => sprintf(
+                    __('Erro ao enviar mensagem: %s', 'wp-whatsapp-evolution'),
+                    $response->get_error_message()
+                )
+            ];
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if ($status_code !== 200 || !isset($data['success'])) {
+            return [
+                'success' => false,
+                'message' => __('Erro ao enviar mensagem via Edge Function.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        if (!$data['success']) {
+            return [
+                'success' => false,
+                'message' => $data['error'] ?? __('Erro ao enviar mensagem.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message' => __('Mensagem enviada com sucesso!', 'wp-whatsapp-evolution'),
+            'data' => $data
+        ];
+    }
+
+    /**
+     * ✅ NOVO: Envia mensagem no modo manual via Evolution API
+     */
+    private function send_message_manual($number, $message) {
         // Formata e valida o número
         $phone_validation = $this->format_phone_number($number);
         if (!$phone_validation['success']) {
@@ -468,6 +561,103 @@ class Api_Connection {
             ];
         }
 
+        // ✅ CORREÇÃO: Verificar modo de conexão primeiro
+        $connection_mode = get_option('wpwevo_connection_mode', 'manual');
+        
+        if ($connection_mode === 'managed') {
+            return $this->validate_number_managed($number);
+        }
+        
+        return $this->validate_number_manual($number);
+    }
+
+    /**
+     * ✅ NOVO: Valida número no modo managed via Edge Function
+     */
+    private function validate_number_managed($number) {
+        $api_key = get_option('wpwevo_managed_api_key', '');
+        
+        if (empty($api_key)) {
+            return [
+                'success' => false,
+                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        // Formata o número antes de validar
+        $formatted = $this->format_phone_number($number);
+        if (!$formatted['success']) {
+            return $formatted;
+        }
+        $number = $formatted['number'];
+
+        // Chama a Edge Function para validar número
+        $url = 'https://ydnobqsepveefiefmxag.supabase.co/functions/v1/validate-number';
+        
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
+        ];
+
+        $body = json_encode([
+            'api_key' => $api_key,
+            'number' => $number
+        ]);
+
+        $response = wp_remote_post($url, [
+            'headers' => $headers,
+            'body' => $body,
+            'timeout' => 15,
+            'sslverify' => false
+        ]);
+
+        if (is_wp_error($response)) {
+            return [
+                'success' => false,
+                'message' => sprintf(
+                    __('Erro ao validar número: %s', 'wp-whatsapp-evolution'),
+                    $response->get_error_message()
+                )
+            ];
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if ($status_code !== 200 || !isset($data['success'])) {
+            return [
+                'success' => false,
+                'message' => __('Erro ao validar número via Edge Function.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        if (!$data['success']) {
+            return [
+                'success' => false,
+                'data' => [
+                    'is_whatsapp' => false,
+                    'exists' => false
+                ],
+                'message' => $data['error'] ?? __('O número informado não é um WhatsApp válido.', 'wp-whatsapp-evolution')
+            ];
+        }
+
+        return [
+            'success' => true,
+            'data' => [
+                'is_whatsapp' => true,
+                'exists' => true,
+                'name' => $data['data']['name'] ?? null
+            ],
+            'message' => __('Número válido!', 'wp-whatsapp-evolution')
+        ];
+    }
+
+    /**
+     * ✅ NOVO: Valida número no modo manual via Evolution API
+     */
+    private function validate_number_manual($number) {
         // Formata o número antes de validar
         $formatted = $this->format_phone_number($number);
         if (!$formatted['success']) {

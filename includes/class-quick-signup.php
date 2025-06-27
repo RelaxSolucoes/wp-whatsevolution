@@ -31,12 +31,10 @@ class Quick_Signup {
 		add_action('wp_ajax_wpwevo_check_plugin_status', [$this, 'handle_check_status']);
 		add_action('wp_ajax_wpwevo_create_payment', [$this, 'handle_create_payment']);
 		add_action('wp_ajax_wpwevo_sync_status', [$this, 'handle_sync_status']);
+		add_action('wp_ajax_wpwevo_request_qr_code', [$this, 'handle_request_qr_code']);
 		
 		// Enqueue scripts
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_quick_signup_assets']);
-
-		// Reset trial
-		add_action('admin_init', [$this, 'maybe_reset_trial']);
 	}
 
 	/**
@@ -102,97 +100,55 @@ class Quick_Signup {
 	}
 
 	/**
-	 * ✅ NOVO: Sincronizar status para opções do WordPress
+	 * ✅ MELHORADO: Sincronizar status para opções do WordPress
 	 */
 	private function sync_status_to_options($status_data) {
+		// ✅ CORREÇÃO: Verificar múltiplas estruturas possíveis para trial_expires_at
+		$trial_expires_at = null;
 		if (isset($status_data['trial_expires_at'])) {
-			update_option('wpwevo_trial_expires_at', $status_data['trial_expires_at']);
+			$trial_expires_at = $status_data['trial_expires_at'];
+		} elseif (isset($status_data['instance']['trial_expires_at'])) {
+			$trial_expires_at = $status_data['instance']['trial_expires_at'];
+		} elseif (isset($status_data['data']['instance']['trial_expires_at'])) {
+			$trial_expires_at = $status_data['data']['instance']['trial_expires_at'];
+		}
+		
+		if ($trial_expires_at) {
+			update_option('wpwevo_trial_expires_at', $trial_expires_at);
+			$this->log_info('Trial expires at sincronizado: ' . $trial_expires_at);
+		} else {
+			$this->log_debug('Trial expires at não encontrado nos dados de status');
 		}
 
+		// ✅ CORREÇÃO: Verificar múltiplas estruturas possíveis para user_plan
+		$user_plan = null;
 		if (isset($status_data['user_plan'])) {
-			update_option('wpwevo_user_plan', $status_data['user_plan']);
+			$user_plan = $status_data['user_plan'];
+		} elseif (isset($status_data['instance']['profiles']['plan'])) {
+			$user_plan = $status_data['instance']['profiles']['plan'];
+		} elseif (isset($status_data['data']['instance']['profiles']['plan'])) {
+			$user_plan = $status_data['data']['instance']['profiles']['plan'];
+		}
+		
+		if ($user_plan) {
+			update_option('wpwevo_user_plan', $user_plan);
+			$this->log_info('User plan sincronizado: ' . $user_plan);
 		}
 
+		// ✅ CORREÇÃO: Verificar múltiplas estruturas possíveis para trial_days_left
+		$trial_days_left = null;
 		if (isset($status_data['trial_days_left'])) {
-			update_option('wpwevo_trial_days_left', $status_data['trial_days_left']);
+			$trial_days_left = $status_data['trial_days_left'];
+		} elseif (isset($status_data['trialDaysLeft'])) {
+			$trial_days_left = $status_data['trialDaysLeft'];
+		} elseif (isset($status_data['data']['trialDaysLeft'])) {
+			$trial_days_left = $status_data['data']['trialDaysLeft'];
 		}
-	}
-
-	/**
-	 * ✅ MELHORADO: Reset de trial com limpeza completa
-	 */
-	public function maybe_reset_trial() {
-		if (!$this->should_reset_trial()) {
-			return;
+		
+		if ($trial_days_left !== null) {
+			update_option('wpwevo_trial_days_left', intval($trial_days_left));
+			$this->log_info('Trial days left sincronizado: ' . $trial_days_left);
 		}
-
-		$this->perform_trial_reset();
-		$this->redirect_after_reset();
-	}
-
-	/**
-	 * ✅ NOVO: Verificar se deve resetar trial
-	 */
-	private function should_reset_trial() {
-		return isset($_GET['wpwevo_reset_trial']) && 
-			   $_GET['wpwevo_reset_trial'] === 'true' && 
-			   current_user_can('manage_options') &&
-			   isset($_GET['_wpnonce']) && 
-			   wp_verify_nonce(sanitize_key($_GET['_wpnonce']), 'wpwevo_reset_trial_nonce');
-	}
-
-	/**
-	 * ✅ NOVO: Executar reset do trial
-	 */
-	private function perform_trial_reset() {
-		$options_to_delete = [
-			// Configurações básicas
-			'wpwevo_api_url',
-			'wpwevo_api_key',
-			'wpwevo_managed_api_key',
-			'wpwevo_instance',
-			'wpwevo_auto_configured',
-			'wpwevo_trial_started_at',
-			'wpwevo_trial_expires_at',
-			'wpwevo_plan_name',
-			'wpwevo_user_plan',
-			'wpwevo_trial_days_left',
-			
-			// Modo de conexão
-			'wpwevo_connection_mode',
-			
-			// Dados do usuário
-			'wpwevo_user_id',
-			'wpwevo_user_email',
-			'wpwevo_user_name',
-			'wpwevo_user_whatsapp',
-			
-			// Credenciais da API
-			'wpwevo_manual_api_key',
-			
-			// Dados de acesso ao dashboard
-			'wpwevo_dashboard_url',
-			'wpwevo_dashboard_email',
-			'wpwevo_dashboard_password',
-		];
-
-		foreach ($options_to_delete as $option) {
-			delete_option($option);
-		}
-
-		// Transients
-		delete_transient('wpwevo_connection_status');
-		delete_transient('wpwevo_instance_status');
-
-		$this->log_info('Configuração de teste resetada completamente');
-	}
-
-	/**
-	 * ✅ NOVO: Redirecionar após reset
-	 */
-	private function redirect_after_reset() {
-		wp_redirect(admin_url('admin.php?page=wpwevo-settings&tab=quick-signup&reset_success=1'));
-		exit;
 	}
 
 	/**
@@ -366,6 +322,9 @@ class Quick_Signup {
 	 * ✅ MELHORADO: Salvar configuração com validação
 	 */
 	private function save_configuration($api_data, $form_data, $previous_config) {
+		// ✅ DEBUG: Log da estrutura dos dados recebidos
+		$this->log_debug('Estrutura dos dados da API recebidos: ' . json_encode($api_data));
+		
 		// Configurações básicas
 		update_option('wpwevo_connection_mode', 'managed');
 		update_option('wpwevo_auto_configured', true);
@@ -390,8 +349,34 @@ class Quick_Signup {
 		// Limpa configurações manuais antigas
 		delete_option('wpwevo_manual_api_key');
 		
-		// Dados do Trial
-		update_option('wpwevo_trial_expires_at', sanitize_text_field($api_data['trial_expires_at']));
+		// ✅ CORREÇÃO: Dados do Trial - verificar múltiplas estruturas possíveis
+		$trial_expires_at = null;
+		if (isset($api_data['trial_expires_at'])) {
+			$trial_expires_at = $api_data['trial_expires_at'];
+			$this->log_debug('Trial expires at encontrado em api_data[trial_expires_at]: ' . $trial_expires_at);
+		} elseif (isset($api_data['instance']['trial_expires_at'])) {
+			$trial_expires_at = $api_data['instance']['trial_expires_at'];
+			$this->log_debug('Trial expires at encontrado em api_data[instance][trial_expires_at]: ' . $trial_expires_at);
+		} elseif (isset($api_data['data']['instance']['trial_expires_at'])) {
+			$trial_expires_at = $api_data['data']['instance']['trial_expires_at'];
+			$this->log_debug('Trial expires at encontrado em api_data[data][instance][trial_expires_at]: ' . $trial_expires_at);
+		} else {
+			$this->log_debug('Trial expires at não encontrado em nenhuma estrutura conhecida');
+			$this->log_debug('Estruturas disponíveis: ' . json_encode(array_keys($api_data)));
+			if (isset($api_data['instance'])) {
+				$this->log_debug('Estruturas em instance: ' . json_encode(array_keys($api_data['instance'])));
+			}
+			if (isset($api_data['data'])) {
+				$this->log_debug('Estruturas em data: ' . json_encode(array_keys($api_data['data'])));
+			}
+		}
+		
+		if ($trial_expires_at) {
+			update_option('wpwevo_trial_expires_at', sanitize_text_field($trial_expires_at));
+			$this->log_info('Trial expires at salvo: ' . $trial_expires_at);
+		} else {
+			$this->log_error('Trial expires at não encontrado na resposta da API');
+		}
 		
 		// Dados de Acesso ao Dashboard
 		if (isset($api_data['dashboard_access']) && is_array($api_data['dashboard_access'])) {
@@ -399,6 +384,9 @@ class Quick_Signup {
 			update_option('wpwevo_dashboard_email', sanitize_email($api_data['dashboard_access']['email'] ?? ''));
 			update_option('wpwevo_dashboard_password', sanitize_text_field($api_data['dashboard_access']['password'] ?? ''));
 		}
+
+		// ✅ Sincroniza todos os campos críticos
+		$this->sync_status_to_options($api_data);
 	}
 
 	/**
@@ -468,13 +456,43 @@ class Quick_Signup {
 	private function extract_status_data($response_data) {
 		$final_data = $response_data['data'];
 
+		// ✅ CORREÇÃO: Extrair trial_expires_at de múltiplas estruturas possíveis
+		$trial_expires_at = null;
+		if (isset($final_data['instance']['trial_expires_at'])) {
+			$trial_expires_at = $final_data['instance']['trial_expires_at'];
+		} elseif (isset($final_data['trial_expires_at'])) {
+			$trial_expires_at = $final_data['trial_expires_at'];
+		} elseif (isset($response_data['trial_expires_at'])) {
+			$trial_expires_at = $response_data['trial_expires_at'];
+		}
+
+		// ✅ CORREÇÃO: Extrair user_plan de múltiplas estruturas possíveis
+		$user_plan = 'trial';
+		if (isset($final_data['instance']['profiles']['plan'])) {
+			$user_plan = $final_data['instance']['profiles']['plan'];
+		} elseif (isset($final_data['user_plan'])) {
+			$user_plan = $final_data['user_plan'];
+		} elseif (isset($response_data['user_plan'])) {
+			$user_plan = $response_data['user_plan'];
+		}
+
+		// ✅ CORREÇÃO: Extrair trial_days_left de múltiplas estruturas possíveis
+		$trial_days_left = 0;
+		if (isset($final_data['trialDaysLeft'])) {
+			$trial_days_left = $final_data['trialDaysLeft'];
+		} elseif (isset($final_data['trial_days_left'])) {
+			$trial_days_left = $final_data['trial_days_left'];
+		} elseif (isset($response_data['trialDaysLeft'])) {
+			$trial_days_left = $response_data['trialDaysLeft'];
+		}
+
 		// CORREÇÃO: Garantir que os dados estejam no formato correto para o JavaScript
 		$formatted_data = [
 			'whatsapp_connected' => false,
-			'trial_days_left' => $final_data['trialDaysLeft'] ?? 0,
-			'user_plan' => $final_data['instance']['profiles']['plan'] ?? 'trial',
-			'trial_expires_at' => $final_data['instance']['trial_expires_at'] ?? null,
-			'qr_code' => $final_data['instance']['qr_code'] ?? null,
+			'trial_days_left' => $trial_days_left,
+			'user_plan' => $user_plan,
+			'trial_expires_at' => $trial_expires_at,
+			'qr_code' => $final_data['qr_code'] ?? null,
 			'qr_code_url' => $final_data['qr_code_url'] ?? null,
 			'currentStatus' => $final_data['currentStatus'] ?? 'connecting',
 			'isTrialExpired' => $final_data['isTrialExpired'] ?? false
@@ -486,7 +504,7 @@ class Quick_Signup {
 		}
 
 		// CORREÇÃO: Se não há QR Code e status é connected, WhatsApp está conectado
-		if (empty($final_data['instance']['qr_code']) && $final_data['currentStatus'] === 'connected') {
+		if (empty($final_data['qr_code']) && $final_data['currentStatus'] === 'connected') {
 			$formatted_data['whatsapp_connected'] = true;
 		}
 
@@ -494,6 +512,9 @@ class Quick_Signup {
 		$this->log_debug('whatsapp_connected: ' . ($formatted_data['whatsapp_connected'] ? 'true' : 'false'));
 		$this->log_debug('currentStatus: ' . $formatted_data['currentStatus']);
 		$this->log_debug('QR Code presente: ' . (isset($formatted_data['qr_code']) ? 'SIM' : 'NÃO'));
+		$this->log_debug('Trial expires at: ' . ($formatted_data['trial_expires_at'] ?: 'NÃO ENCONTRADO'));
+		$this->log_debug('Trial days left: ' . $formatted_data['trial_days_left']);
+		$this->log_debug('User plan: ' . $formatted_data['user_plan']);
 
 		return $formatted_data;
 	}
@@ -755,6 +776,57 @@ class Quick_Signup {
 	private function log_debug($message) {
 		if (get_option('wpwevo_debug_enabled', false)) {
 			wpwevo_log('debug', $message);
+		}
+	}
+
+	/**
+	 * ✅ NOVO: Handler para solicitar novo QR Code
+	 */
+	public function handle_request_qr_code() {
+		try {
+			$this->validate_ajax_request();
+
+			$api_key = $this->get_api_key();
+			$this->validate_api_key($api_key);
+
+			// Verifica se está no modo managed
+			if (get_option('wpwevo_connection_mode') !== 'managed') {
+				throw new \Exception(__('Apenas usuários do teste grátis podem usar esta funcionalidade.', 'wp-whatsapp-evolution'));
+			}
+
+			// ✅ CORREÇÃO: Usa a Edge Function plugin-status que já existe
+			$response = $this->call_edge_function('plugin-status', [
+				'api_key' => $api_key
+			]);
+
+			if (!$response['success']) {
+				$error_message = $response['error'] ?? 'Erro desconhecido ao verificar status.';
+				if (isset($response['data']['error'])) {
+					$error_message = $response['data']['error'];
+				}
+				throw new \Exception($error_message);
+			}
+
+			$status_data = $response['data']['data'] ?? $response['data'];
+			
+			// Verifica se temos QR Code disponível
+			if (empty($status_data['qr_code_url']) && empty($status_data['qr_code'])) {
+				throw new \Exception(__('QR Code não disponível no momento. Tente novamente em alguns segundos.', 'wp-whatsapp-evolution'));
+			}
+			
+			// Retorna os dados do QR Code
+			wp_send_json_success([
+				'qr_code_url' => $status_data['qr_code_url'] ?? null,
+				'qr_code_base64' => $status_data['qr_code'] ?? null,
+				'currentStatus' => $status_data['currentStatus'] ?? 'connecting',
+				'message' => 'QR Code obtido com sucesso'
+			]);
+
+		} catch (\Exception $e) {
+			$this->log_error('Erro ao solicitar QR Code', $e);
+			wp_send_json_error([
+				'message' => $e->getMessage()
+			]);
 		}
 	}
 } 

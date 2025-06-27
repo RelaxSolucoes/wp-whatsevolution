@@ -205,15 +205,6 @@ jQuery(document).ready(function($) {
             $('#dashboard-info').hide();
         }
         
-        // CORREÇÃO: Usar qr_code_base64 da resposta do quick-signup
-        if (data.qr_code_base64) {
-            const $qrContainer = $('#wpwevo-qr-container');
-            if ($qrContainer.length) {
-                $qrContainer.html(`<img src="data:image/png;base64,${data.qr_code_base64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">`);
-                $qrContainer.show();
-            }
-        }
-        
         // Inicia polling unificado com a nova API Key se disponível
         console.log('🎯 Quick signup concluído, iniciando polling...');
         startStatusPolling(data.api_key || wpwevo_quick_signup.api_key);
@@ -334,6 +325,12 @@ jQuery(document).ready(function($) {
                             $qrContainer.html('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; border-radius: 8px; text-align: center; padding: 15px;"><div>✅ WhatsApp Conectado!<br><small>Seu WhatsApp está pronto para uso</small></div></div>');
                             $qrContainer.show();
                         }
+                        
+                        // ✅ NOVO: Fechar container temporário automaticamente
+                        $('#wpwevo-qr-container-temp').fadeOut(500, function() {
+                            $(this).remove(); // Remove o elemento do DOM
+                        });
+                        console.log('✅ Container temporário fechado automaticamente');
                     } else {
                         // Ainda não conectado, atualiza QR code
                         console.log('⏳ WhatsApp ainda não conectado, atualizando QR...');
@@ -383,36 +380,114 @@ jQuery(document).ready(function($) {
     }
 
     /**
-     * ✅ CORRIGIDO: Exibição do QR Code
+     * ✅ SOLUÇÃO DEFINITIVA: Exibição inteligente do QR Code
+     * Cria container temporário sempre visível
      */
     function displayQRCode(apiData) {
-        const $qrContainer = $('#wpwevo-qr-container');
+        // ✅ SOLUÇÃO ALTERNATIVA: Criar container temporário sempre visível
+        let $qrContainer = $('#wpwevo-qr-container-temp');
         
+        // ✅ Se não existir, criar o container temporário
         if (!$qrContainer.length) {
-            return;
+            console.log('🔧 Criando container temporário para QR Code...');
+            $qrContainer = $('<div id="wpwevo-qr-container-temp" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 99999; border: 2px solid #48bb78;"></div>');
+            $('body').append($qrContainer);
         }
+
+        console.log('🔍 Container temporário criado/encontrado, visibilidade:', $qrContainer.is(':visible'));
 
         // CORREÇÃO: Aceitar tanto qr_code (do polling) quanto qr_code_base64 (do signup)
         const qrCodeBase64 = apiData.qr_code || apiData.qr_code_base64;
+        const qrCodeUrl = apiData.qr_code_url;
         const isConnected = apiData.whatsapp_connected === true || apiData.currentStatus === 'connected';
 
-        // ✅ CORREÇÃO: Se conectado, não mostrar QR Code
+        // ✅ CORREÇÃO: Se conectado, esconder QR Code
         if (isConnected) {
             console.log('✅ WhatsApp conectado, escondendo QR Code');
             $qrContainer.hide();
+            
+            // ✅ NOVO: Fechar container temporário automaticamente
+            $('#wpwevo-qr-container-temp').fadeOut(500, function() {
+                $(this).remove(); // Remove o elemento do DOM
+            });
+            console.log('✅ Container temporário fechado automaticamente');
             return;
         }
 
-        if (!qrCodeBase64) {
-            console.log('⚠️ QR Code não disponível, mostrando mensagem de aguardo');
-            $qrContainer.html('<div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1; border-radius: 8px; text-align: center; padding: 15px;">⏳ Aguardando QR Code...<br><small>Verificando status da instância</small></div>');
-            $qrContainer.show();
+        // ✅ MELHORADO: Priorizar QR Code base64 (funciona perfeitamente)
+        if (qrCodeBase64) {
+            console.log('📱 Exibindo QR Code via base64 (container temporário)');
+            $qrContainer.html(`
+                <div style="text-align: center;">
+                    <h3 style="margin: 0 0 15px 0; color: #2d3748;">📱 Conecte seu WhatsApp</h3>
+                    <div style="background: #f7fafc; padding: 20px; border-radius: 10px; display: inline-block;">
+                        <img src="data:image/png;base64,${qrCodeBase64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">
+                    </div>
+                    <p style="margin: 10px 0 0 0; color: #4a5568; font-size: 14px;">
+                        <span id="connection-indicator">⏳ Aguardando conexão...</span>
+                    </p>
+                    <button onclick="$('#wpwevo-qr-container-temp').hide();" style="margin-top: 15px; padding: 8px 16px; background: #e53e3e; color: white; border: none; border-radius: 5px; cursor: pointer;">✕ Fechar</button>
+                </div>
+            `);
+            
+            // ✅ GARANTIR VISIBILIDADE
+            $qrContainer.show().css({
+                'display': 'block',
+                'visibility': 'visible',
+                'opacity': '1',
+                'z-index': '99999'
+            });
+            console.log('✅ Container temporário agora visível:', $qrContainer.is(':visible'));
             return;
         }
 
-        console.log('📱 Exibindo QR Code');
-        $qrContainer.html(`<img src="data:image/png;base64,${qrCodeBase64}" style="width: 300px; height: 300px;" alt="QR Code WhatsApp" title="QR Code de Conexão do WhatsApp">`);
-        $qrContainer.show();
+        // ✅ MELHORADO: Fallback para URL apenas se não houver base64
+        if (qrCodeUrl) {
+            console.log('📱 Exibindo QR Code via URL (fallback - container temporário):', qrCodeUrl);
+            $qrContainer.html(`
+                <div style="text-align: center;">
+                    <h3 style="margin: 0 0 15px 0; color: #2d3748;">📱 Conecte seu WhatsApp</h3>
+                    <div style="background: #f7fafc; padding: 20px; border-radius: 10px; display: inline-block;">
+                        <iframe src="${qrCodeUrl}" width="300" height="300" style="border: none; border-radius: 8px;"></iframe>
+                    </div>
+                    <p style="margin: 10px 0 0 0; color: #4a5568; font-size: 14px;">
+                        <span id="connection-indicator">⏳ Aguardando conexão...</span>
+                    </p>
+                    <button onclick="$('#wpwevo-qr-container-temp').hide();" style="margin-top: 15px; padding: 8px 16px; background: #e53e3e; color: white; border: none; border-radius: 5px; cursor: pointer;">✕ Fechar</button>
+                </div>
+            `);
+            
+            // ✅ GARANTIR VISIBILIDADE
+            $qrContainer.show().css({
+                'display': 'block',
+                'visibility': 'visible',
+                'opacity': '1',
+                'z-index': '99999'
+            });
+            console.log('✅ Container temporário agora visível (URL):', $qrContainer.is(':visible'));
+            return;
+        }
+
+        // ✅ MELHORADO: Se nenhum QR Code disponível
+        console.log('⚠️ QR Code não disponível, mostrando mensagem de aguardo (container temporário)');
+        $qrContainer.html(`
+            <div style="text-align: center;">
+                <div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1; border-radius: 8px; text-align: center; padding: 15px;">
+                    ⏳ Aguardando QR Code...<br>
+                    <small>Verificando status da instância</small>
+                </div>
+                <button onclick="$('#wpwevo-qr-container-temp').hide();" style="margin-top: 15px; padding: 8px 16px; background: #e53e3e; color: white; border: none; border-radius: 5px; cursor: pointer;">✕ Fechar</button>
+            </div>
+        `);
+        
+        // ✅ GARANTIR VISIBILIDADE
+        $qrContainer.show().css({
+            'display': 'block',
+            'visibility': 'visible',
+            'opacity': '1',
+            'z-index': '99999'
+        });
+        console.log('✅ Container temporário agora visível (aguardando):', $qrContainer.is(':visible'));
     }
 
     // Máscara para WhatsApp
@@ -484,6 +559,34 @@ jQuery(document).ready(function($) {
     // ===== LÓGICA DO MODAL DE UPGRADE =====
     const upgradeModal = document.getElementById('wpwevo-upgrade-modal');
     const paymentFeedback = document.getElementById('wpwevo-payment-feedback');
+
+    // ✅ NOVO: Adicionar estilos CSS para o botão de reconexão
+    $('<style>')
+        .prop('type', 'text/css')
+        .html(`
+            #wpwevo-reconnect-btn {
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+            }
+            #wpwevo-reconnect-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(245, 101, 101, 0.4);
+            }
+            #wpwevo-reconnect-btn:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+                transform: none;
+            }
+            #wpwevo-reconnect-btn.success {
+                background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+                box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3) !important;
+            }
+            #wpwevo-reconnect-btn.error {
+                background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%) !important;
+                box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3) !important;
+            }
+        `)
+        .appendTo('head');
 
     // Funções globais para onclick do HTML
     window.showUpgradeModal = function() {
@@ -629,6 +732,11 @@ jQuery(document).ready(function($) {
             statusText = `Status da Instância: ${statusDisplay}`;
         }
 
+        // ✅ NOVO: Verificar se precisa de reconexão
+        const needsReconnection = apiData.currentStatus === 'disconnected' || apiData.currentStatus === 'connecting';
+        const isConnected = apiData.currentStatus === 'connected';
+        // const hasQRCode = apiData.qr_code_url || apiData.qr_code || apiData.qr_code_base64;
+
         if (apiData.trial_days_left > 0) {
             // Conta ativa
             let planText = '';
@@ -649,6 +757,25 @@ jQuery(document).ready(function($) {
                 descriptionText += `<br><small style="color: #4a5568; font-size: 14px;">${statusText}</small>`;
             }
             daysLeftElement.html(descriptionText);
+            
+            // ✅ CORRIGIDO: Adicionar botão de reconexão sempre que necessário
+            if (needsReconnection && !isConnected) {
+                const reconnectButton = `
+                    <div style="margin-top: 15px;">
+                        <button id="wpwevo-reconnect-btn" onclick="requestNewQRCode()" 
+                                style="background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
+                            🔄 Reconectar WhatsApp
+                        </button>
+                        <p style="margin: 5px 0 0 0; color: #4a5568; font-size: 12px;">
+                            Clique para solicitar um novo QR Code de conexão
+                        </p>
+                    </div>
+                `;
+                daysLeftElement.append(reconnectButton);
+            } else {
+                // Remove botão de reconexão se não for necessário
+                $('#wpwevo-reconnect-btn').parent().remove();
+            }
             
             mainContainer.removeClass('status-expired').addClass('status-active');
             renewalModal.hide();
@@ -679,4 +806,65 @@ jQuery(document).ready(function($) {
             upgradeButton.show();
         }
     }
+
+    /**
+     * ✅ NOVO: Função para solicitar novo QR Code (padronizada com onboarding)
+     */
+    window.requestNewQRCode = function() {
+        const reconnectBtn = $('#wpwevo-reconnect-btn');
+        const originalText = reconnectBtn.text();
+        
+        // Mostra loading
+        reconnectBtn.text('⏳ Verificando...').prop('disabled', true);
+        
+        // Chama o mesmo endpoint do polling do onboarding
+        $.ajax({
+            url: wpwevo_quick_signup.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wpwevo_check_plugin_status',
+                nonce: wpwevo_quick_signup.nonce,
+                api_key: wpwevo_quick_signup.api_key
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    console.log('✅ QR Code obtido com sucesso (reconexão):', response.data);
+                    // Exibe QR Code igual onboarding
+                    displayQRCode(response.data);
+                    // Reinicia polling automático
+                    startStatusPolling(wpwevo_quick_signup.api_key);
+                    // Feedback visual
+                    reconnectBtn.text('✅ QR Code Atualizado!').removeClass('error').addClass('success');
+                    setTimeout(() => {
+                        reconnectBtn.text(originalText).prop('disabled', false).removeClass('success');
+                    }, 3000);
+                } else {
+                    reconnectBtn.text('⚠️ QR Code Indisponível').addClass('error').prop('disabled', false);
+                    setTimeout(() => {
+                        reconnectBtn.text(originalText).removeClass('error');
+                    }, 3000);
+                    // Mensagem informativa
+                    const $qrContainer = $('#wpwevo-qr-container');
+                    if ($qrContainer.length) {
+                        $qrContainer.html(`
+                            <div style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; border-radius: 8px; text-align: center; padding: 15px;">
+                                <div>
+                                    ⚠️ QR Code Indisponível<br>
+                                    <small>Aguarde alguns segundos e tente novamente</small>
+                                </div>
+                            </div>
+                        `);
+                        $qrContainer.show();
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Erro ao solicitar QR Code:', error);
+                reconnectBtn.text('❌ Erro!').addClass('error').prop('disabled', false);
+                setTimeout(() => {
+                    reconnectBtn.text(originalText).removeClass('error');
+                }, 3000);
+            }
+        });
+    };
 }); 
