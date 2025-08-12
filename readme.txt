@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -109,6 +109,15 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.3.2 - 2025-08-12 =
+*   Padronização completa do text domain para `wp-whatsevolution`
+*   Renomeio do arquivo principal para `wp-whatsevolution.php`
+*   Remoção do agendamento CRON (envio apenas com tela aberta)
+*   Validação de checkout agora ignora CPF/CNPJ e foca apenas em telefone
+*   Compatibilidade com Cart Abandonment Recovery sem exibir aviso ao usuário
+*   Fallback para telas de Quick Signup quando templates não existirem
+*   Geração automática de arquivo .mo se ausente
 
 = 1.3.1 - 2025-01-27 =
 *   **NOVO**: Sistema automático de adição de notas nos pedidos ao enviar mensagens de WhatsApp

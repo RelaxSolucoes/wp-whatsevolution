@@ -23,11 +23,11 @@ class Checkout_Validator {
 			'enabled' => get_option('wpwevo_checkout_enabled', 'yes'),
 			'validation' => get_option('wpwevo_checkout_validation', 'yes'),
 			'show_modal' => get_option('wpwevo_checkout_show_modal', 'yes'),
-			'modal_title' => get_option('wpwevo_checkout_modal_title', __('Atenção!', 'wp-whatsapp-evolution')),
-			'modal_message' => get_option('wpwevo_checkout_modal_message', __('O número informado não parece ser um WhatsApp válido. Deseja prosseguir mesmo assim?', 'wp-whatsapp-evolution')),
-			'modal_button_text' => get_option('wpwevo_checkout_modal_button_text', __('Prosseguir sem WhatsApp', 'wp-whatsapp-evolution')),
-			'validation_success_message' => get_option('wpwevo_checkout_validation_success', __('✓ Número de WhatsApp válido', 'wp-whatsapp-evolution')),
-			'validation_error_message' => get_option('wpwevo_checkout_validation_error', __('⚠ Este número não possui WhatsApp', 'wp-whatsapp-evolution'))
+            'modal_title' => get_option('wpwevo_checkout_modal_title', __('Atenção!', 'wp-whatsevolution')),
+            'modal_message' => get_option('wpwevo_checkout_modal_message', __('O número informado não parece ser um WhatsApp válido. Deseja prosseguir mesmo assim?', 'wp-whatsevolution')),
+            'modal_button_text' => get_option('wpwevo_checkout_modal_button_text', __('Prosseguir sem WhatsApp', 'wp-whatsevolution')),
+            'validation_success_message' => get_option('wpwevo_checkout_validation_success', __('✓ Número de WhatsApp válido', 'wp-whatsevolution')),
+            'validation_error_message' => get_option('wpwevo_checkout_validation_error', __('⚠ Este número não possui WhatsApp', 'wp-whatsevolution'))
 		];
 
 		// Adiciona menu e configurações
@@ -73,8 +73,8 @@ class Checkout_Validator {
 	public function add_menu() {
 		add_submenu_page(
 			$this->parent_slug,
-			__('Validação no Checkout', 'wp-whatsapp-evolution'),
-			__('Validação no Checkout', 'wp-whatsapp-evolution'),
+            __('Validação no Checkout', 'wp-whatsevolution'),
+            __('Validação no Checkout', 'wp-whatsevolution'),
 			'manage_options',
 			$this->menu_slug,
 			[$this, 'render_page']
@@ -99,19 +99,15 @@ class Checkout_Validator {
 	 * Render settings page
 	 */
 	public function render_page() {
-		$cart_abandonment_active = is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php');
+        if (!function_exists('is_plugin_active')) {
+            include_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $cart_abandonment_active = is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php');
 		?>
 		<div class="wrap wpwevo-checkout-page" style="max-width: none;">
 			<h1>📱 Validação de WhatsApp no Checkout</h1>
 			
-			<?php if ($cart_abandonment_active): ?>
-			<div class="notice notice-info" style="margin: 20px 0; padding: 15px; border-left: 4px solid #00a0d2;">
-				<p><strong>ℹ️ Compatibilidade com Cart Abandonment Recovery:</strong></p>
-				<p>O plugin <strong>WooCommerce Cart Abandonment Recovery</strong> foi detectado e está ativo.</p>
-				<p>✅ <strong>Ambos os plugins funcionam em harmonia:</strong> O Checkout Validator valida os números de WhatsApp e o Cart Abandonment Recovery rastreia os carrinhos abandonados sem interferência.</p>
-				<p>🔧 <strong>Otimizações aplicadas:</strong> O JavaScript foi ajustado para não interferir no rastreamento do plugin parceiro.</p>
-			</div>
-			<?php endif; ?>
+			<?php /* Compatibilidade com Cart Abandonment Recovery mantida, mensagem oculta por decisão de UX */ ?>
 			
 			<form method="post" action="options.php">
 				<?php
@@ -253,7 +249,7 @@ class Checkout_Validator {
 		$number = isset($_POST['number']) ? sanitize_text_field($_POST['number']) : '';
 
 		if (empty($number)) {
-			wp_send_json_error(__('Número é obrigatório.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Número é obrigatório.', 'wp-whatsevolution'));
 		}
 
 		// Validate through API

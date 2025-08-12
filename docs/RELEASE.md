@@ -17,7 +17,7 @@ Antes de criar um release, certifique-se de que:
 
 Para cada nova versão, atualize:
 
-1. **wp-whatsapp-evolution.php**
+1. **wp-whatsevolution.php**
    - Linha 6: `Version: X.X.X`
    - Linha 20: `define('WPWEVO_VERSION', 'X.X.X');`
 
@@ -79,7 +79,7 @@ Após criar o release:
 
 ## 📋 Checklist de Release
 
-- [ ] Versão atualizada em `wp-whatsapp-evolution.php`
+- [ ] Versão atualizada em `wp-whatsevolution.php`
 - [ ] Versão atualizada em `readme.txt`
 - [ ] CHANGELOG.md atualizado
 - [ ] Todos os commits enviados
@@ -108,7 +108,7 @@ git push origin v1.3.1
 - Verifique os logs do GitHub Actions
 
 ### Auto-update não funciona
-- Verifique se o repositório está correto em `wp-whatsapp-evolution.php`
+- Verifique se o repositório está correto em `wp-whatsevolution.php`
 - Verifique se o `stable tag` no `readme.txt` está correto
 - Aguarde alguns minutos para propagação
 

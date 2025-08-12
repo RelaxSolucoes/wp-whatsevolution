@@ -3,7 +3,7 @@
  * Plugin Name: WP WhatsEvolution
  * Plugin URI: https://github.com/RelaxSolucoes/wp-whatsevolution
  * Description: Integração avançada com WooCommerce usando Evolution API para envio de mensagens
- * Version:           1.3.1
+ * Version:           1.3.2
  * Author:            Relax Soluções
  * Author URI:        https://relaxsolucoes.online/
  * Text Domain: wp-whatsevolution
@@ -21,14 +21,14 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('WPWEVO_VERSION', '1.3.1');
+define('WPWEVO_VERSION', '1.3.2');
 define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));
 define('WPWEVO_MIN_PHP_VERSION', '7.4');
 define('WPWEVO_MIN_WP_VERSION', '5.8');
 define('WPWEVO_MIN_WC_VERSION', '5.0');
-define('WPWEVO_GITHUB_REPO', 'RelaxSolucoes/wp-whatsapp-evolution');
+ define('WPWEVO_GITHUB_REPO', 'RelaxSolucoes/wp-whatsevolution');
 
 // Declara compatibilidade com HPOS
 add_action('before_woocommerce_init', function() {
@@ -61,6 +61,36 @@ function wpwevo_init() {
 	\WpWhatsAppEvolution\Plugin_Loader::init();
 }
 add_action('plugins_loaded', 'wpwevo_init');
+
+/**
+ * Compila automaticamente o arquivo .mo a partir do .po se necessário
+ */
+add_action('init', function() {
+    $lang_dir = WPWEVO_PATH . 'languages/';
+    $po_file = $lang_dir . 'wp-whatsevolution-pt_BR.po';
+    $mo_file = $lang_dir . 'wp-whatsevolution-pt_BR.mo';
+
+    // Só tenta gerar se existir .po e não existir .mo
+    if (file_exists($po_file) && !file_exists($mo_file)) {
+        // Tenta carregar classes POMO do WordPress
+        $po_class = ABSPATH . WPINC . '/pomo/po.php';
+        $mo_class = ABSPATH . WPINC . '/pomo/mo.php';
+        if (file_exists($po_class) && file_exists($mo_class)) {
+            require_once $po_class;
+            require_once $mo_class;
+            if (class_exists('PO') && class_exists('MO')) {
+                $po = new \PO();
+                if ($po->import_from_file($po_file)) {
+                    $mo = new \MO();
+                    $mo->entries = $po->entries;
+                    $mo->headers = $po->headers;
+                    // Ignora falhas silenciosamente para não quebrar o site
+                    @$mo->export_to_file($mo_file);
+                }
+            }
+        }
+    }
+});
 
 // Ativação
 register_activation_hook(__FILE__, 'wpwevo_activate');
@@ -144,23 +174,23 @@ function wpwevo_display_requirement_errors($errors, $requirements) {
 					<?php
 					switch ($error) {
 						case 'php':
-							printf(
-								/* translators: %s: Versão do PHP requerida */
-								esc_html__('WP WhatsApp Evolution requer PHP %s ou superior.', 'wp-whatsapp-evolution'),
+                            printf(
+                                /* translators: %s: Versão do PHP requerida */
+                                esc_html__('WP WhatsApp Evolution requer PHP %s ou superior.', 'wp-whatsevolution'),
 								$requirements['php']
 							);
 							break;
 						case 'wp':
-							printf(
-								/* translators: %s: Versão do WordPress requerida */
-								esc_html__('WP WhatsApp Evolution requer WordPress %s ou superior.', 'wp-whatsapp-evolution'),
+                            printf(
+                                /* translators: %s: Versão do WordPress requerida */
+                                esc_html__('WP WhatsApp Evolution requer WordPress %s ou superior.', 'wp-whatsevolution'),
 								$requirements['wp']
 							);
 							break;
 						case 'wc':
-							printf(
-								/* translators: %s: Versão do WooCommerce requerida */
-								esc_html__('WP WhatsApp Evolution requer WooCommerce %s ou superior.', 'wp-whatsapp-evolution'),
+                            printf(
+                                /* translators: %s: Versão do WooCommerce requerida */
+                                esc_html__('WP WhatsApp Evolution requer WooCommerce %s ou superior.', 'wp-whatsevolution'),
 								$requirements['wc']
 							);
 							break;
@@ -251,4 +281,4 @@ function wp_whatsevolution_init_auto_updater() {
 	);
 }
 add_action('init', 'wp_whatsevolution_init_auto_updater');
-// ===== FIM AUTO-UPDATE ===== 
+// ===== FIM AUTO-UPDATE =====

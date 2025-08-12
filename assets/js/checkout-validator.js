@@ -25,7 +25,17 @@ jQuery(document).ready(function($) {
         function findAndValidatePhoneFields() {
             if (isInitialized) return;
             
-            const $phoneFields = $('input[name="billing_phone"], input[name="shipping_phone"], input[type="tel"], input[placeholder*="telefone"], input[placeholder*="phone"]');
+            // Valida APENAS campos de telefone. EXCLUI cpf/cnpj e similares
+            const $phoneFields = $(
+                'input[name="billing_phone"], input[name="shipping_phone"], input[type="tel"], input[name*="phone" i]'
+            ).filter(function() {
+                const name = (this.name || '').toLowerCase();
+                const id = (this.id || '').toLowerCase();
+                const placeholder = (this.placeholder || '').toLowerCase();
+                // Excluir campos de CPF/CNPJ/Documento
+                const blacklist = ['cpf', 'cnpj', 'document', 'documento', 'taxvat', 'vat', 'ssn'];
+                return !blacklist.some(b => name.includes(b) || id.includes(b) || placeholder.includes(b));
+            });
             
             if ($phoneFields.length > 0) {
                 isInitialized = true;

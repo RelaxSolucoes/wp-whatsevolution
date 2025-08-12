@@ -351,6 +351,9 @@ class Cart_Abandonment {
     }
 
     public function render_admin_page() {
+        if (!function_exists('is_plugin_active')) {
+            include_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
         $wcar_active = is_plugin_active('woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php');
         
         if (isset($_POST['save_settings'])) {
@@ -646,6 +649,8 @@ class Cart_Abandonment {
      */
     public function handle_webhook() {
         // NÍVEL 1: Se vem da página de configurações do Cart Abandonment Recovery, É TESTE!
+        $referer = wp_get_referer();
+        $referer = is_string($referer) ? $referer : '';
         if (strpos($referer, 'woo-cart-abandonment-recovery') !== false || 
             strpos($referer, 'action=settings') !== false) {
             

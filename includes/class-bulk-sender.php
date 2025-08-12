@@ -18,66 +18,66 @@ class Bulk_Sender {
 
 	public function __construct() {
 		// Define as propriedades ANTES dos hooks
-		$this->menu_title = __('Envio em Massa', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio em Massa', 'wp-whatsapp-evolution');
+        $this->menu_title = __('Envio em Massa', 'wp-whatsevolution');
+        $this->page_title = __('Envio em Massa', 'wp-whatsevolution');
 		
 		$this->i18n = [
-			'connection_error' => __('A conexão com o WhatsApp não está ativa. Verifique as configurações.', 'wp-whatsapp-evolution'),
-			'sending' => __('Enviando...', 'wp-whatsapp-evolution'),
-			'preview' => __('Visualizar', 'wp-whatsapp-evolution'),
+            'connection_error' => __('A conexão com o WhatsApp não está ativa. Verifique as configurações.', 'wp-whatsevolution'),
+            'sending' => __('Enviando...', 'wp-whatsevolution'),
+            'preview' => __('Visualizar', 'wp-whatsevolution'),
 			'variables' => [
-				'title' => __('Variáveis Disponíveis', 'wp-whatsapp-evolution'),
-				'customer_name' => __('Nome do cliente', 'wp-whatsapp-evolution'),
-				'customer_email' => __('Email do cliente', 'wp-whatsapp-evolution'),
-				'total_orders' => __('Total de pedidos do cliente', 'wp-whatsapp-evolution'),
-				'last_order_date' => __('Data do último pedido', 'wp-whatsapp-evolution'),
-				'for_all' => __('Comum a todas as fontes', 'wp-whatsapp-evolution'),
-				'for_woo' => __('Específicas para WooCommerce', 'wp-whatsapp-evolution'),
-				'for_csv' => __('Para importação CSV', 'wp-whatsapp-evolution'),
-				'for_manual' => __('Variáveis não se aplicam à Lista Manual.', 'wp-whatsapp-evolution')
+                'title' => __('Variáveis Disponíveis', 'wp-whatsevolution'),
+                'customer_name' => __('Nome do cliente', 'wp-whatsevolution'),
+                'customer_email' => __('Email do cliente', 'wp-whatsevolution'),
+                'total_orders' => __('Total de pedidos do cliente', 'wp-whatsevolution'),
+                'last_order_date' => __('Data do último pedido', 'wp-whatsevolution'),
+                'for_all' => __('Comum a todas as fontes', 'wp-whatsevolution'),
+                'for_woo' => __('Específicas para WooCommerce', 'wp-whatsevolution'),
+                'for_csv' => __('Para importação CSV', 'wp-whatsevolution'),
+                'for_manual' => __('Variáveis não se aplicam à Lista Manual.', 'wp-whatsevolution')
 			],
 			'tabs' => [
-				'customers' => __('Clientes WooCommerce', 'wp-whatsapp-evolution'),
-				'csv' => __('Importar CSV', 'wp-whatsapp-evolution'),
-				'manual' => __('Lista Manual', 'wp-whatsapp-evolution')
+                'customers' => __('Clientes WooCommerce', 'wp-whatsevolution'),
+                'csv' => __('Importar CSV', 'wp-whatsevolution'),
+                'manual' => __('Lista Manual', 'wp-whatsevolution')
 			],
 			'form' => [
-				'order_status' => __('Filtrar por Status', 'wp-whatsapp-evolution'),
-				'status_help' => __('Selecione os status dos pedidos para filtrar os clientes.', 'wp-whatsapp-evolution'),
-				'period' => __('Período', 'wp-whatsapp-evolution'),
-				'to' => __('até', 'wp-whatsapp-evolution'),
-				'min_value' => __('Valor Mínimo', 'wp-whatsapp-evolution'),
-				'preview_customers' => __('Visualizar Clientes', 'wp-whatsapp-evolution'),
-				'csv_file' => __('Arquivo CSV', 'wp-whatsapp-evolution'),
-				'csv_help' => __('Para melhores resultados, use um arquivo CSV com as colunas "nome" e "telefone". O sistema aceita separação por ponto e vírgula (;) ou vírgula (,).', 'wp-whatsapp-evolution'),
-				'csv_example_title' => __('Exemplo Visual da Estrutura:', 'wp-whatsapp-evolution'),
-				'csv_download' => __('Baixar Arquivo de Exemplo', 'wp-whatsapp-evolution'),
-				'number_list' => __('Lista de Números', 'wp-whatsapp-evolution'),
-				'number_placeholder' => __('Um número por linha, com DDD e país', 'wp-whatsapp-evolution'),
-				'message' => __('Mensagem', 'wp-whatsapp-evolution'),
-				'message_placeholder' => __('Digite sua mensagem aqui...', 'wp-whatsapp-evolution'),
-				'schedule' => __('Agendamento', 'wp-whatsapp-evolution'),
-				'schedule_enable' => __('Agendar envio', 'wp-whatsapp-evolution'),
-				'schedule_help' => __('Data e hora para iniciar o envio das mensagens.', 'wp-whatsapp-evolution'),
-				'interval' => __('Intervalo', 'wp-whatsapp-evolution'),
-				'interval_help' => __('segundos entre cada envio', 'wp-whatsapp-evolution'),
-				'start_sending' => __('Iniciar Envio', 'wp-whatsapp-evolution'),
-				'send_button' => __('Iniciar Envio', 'wp-whatsapp-evolution')
+                'order_status' => __('Filtrar por Status', 'wp-whatsevolution'),
+                'status_help' => __('Selecione os status dos pedidos para filtrar os clientes.', 'wp-whatsevolution'),
+                'period' => __('Período', 'wp-whatsevolution'),
+                'to' => __('até', 'wp-whatsevolution'),
+                'min_value' => __('Valor Mínimo', 'wp-whatsevolution'),
+                'preview_customers' => __('Visualizar Clientes', 'wp-whatsevolution'),
+                'csv_file' => __('Arquivo CSV', 'wp-whatsevolution'),
+                'csv_help' => __('Para melhores resultados, use um arquivo CSV com as colunas "nome" e "telefone". O sistema aceita separação por ponto e vírgula (;) ou vírgula (,).', 'wp-whatsevolution'),
+                'csv_example_title' => __('Exemplo Visual da Estrutura:', 'wp-whatsevolution'),
+                'csv_download' => __('Baixar Arquivo de Exemplo', 'wp-whatsevolution'),
+                'number_list' => __('Lista de Números', 'wp-whatsevolution'),
+                'number_placeholder' => __('Um número por linha, com DDD e país', 'wp-whatsevolution'),
+                'message' => __('Mensagem', 'wp-whatsevolution'),
+                'message_placeholder' => __('Digite sua mensagem aqui...', 'wp-whatsevolution'),
+                'schedule' => __('Agendamento', 'wp-whatsevolution'),
+                'schedule_enable' => __('Agendar envio', 'wp-whatsevolution'),
+                'schedule_help' => __('Data e hora para iniciar o envio das mensagens.', 'wp-whatsevolution'),
+                'interval' => __('Intervalo', 'wp-whatsevolution'),
+                'interval_help' => __('segundos entre cada envio', 'wp-whatsevolution'),
+                'start_sending' => __('Iniciar Envio', 'wp-whatsevolution'),
+                'send_button' => __('Iniciar Envio', 'wp-whatsevolution')
 			],
 			'history' => [
-				'title' => __('Histórico de Envios', 'wp-whatsapp-evolution'),
-				'clear' => __('Limpar Histórico', 'wp-whatsapp-evolution'),
-				'confirm_clear' => __('Tem certeza que deseja limpar todo o histórico de envios?', 'wp-whatsapp-evolution'),
-				'no_history' => __('Nenhum envio em massa realizado ainda.', 'wp-whatsapp-evolution'),
-				'date' => __('Data', 'wp-whatsapp-evolution'),
-				'source' => __('Origem', 'wp-whatsapp-evolution'),
-				'total' => __('Total', 'wp-whatsapp-evolution'),
-				'sent' => __('Enviados', 'wp-whatsapp-evolution'),
-				'status' => __('Status', 'wp-whatsapp-evolution'),
+                'title' => __('Histórico de Envios', 'wp-whatsevolution'),
+                'clear' => __('Limpar Histórico', 'wp-whatsevolution'),
+                'confirm_clear' => __('Tem certeza que deseja limpar todo o histórico de envios?', 'wp-whatsevolution'),
+                'no_history' => __('Nenhum envio em massa realizado ainda.', 'wp-whatsevolution'),
+                'date' => __('Data', 'wp-whatsevolution'),
+                'source' => __('Origem', 'wp-whatsevolution'),
+                'total' => __('Total', 'wp-whatsevolution'),
+                'sent' => __('Enviados', 'wp-whatsevolution'),
+                'status' => __('Status', 'wp-whatsevolution'),
 				'sources' => [
-					'customers' => __('Clientes WooCommerce', 'wp-whatsapp-evolution'),
-					'csv' => __('Importação CSV', 'wp-whatsapp-evolution'),
-					'manual' => __('Lista Manual', 'wp-whatsapp-evolution')
+                    'customers' => __('Clientes WooCommerce', 'wp-whatsevolution'),
+                    'csv' => __('Importação CSV', 'wp-whatsevolution'),
+                    'manual' => __('Lista Manual', 'wp-whatsevolution')
 				]
 			]
 		];
@@ -139,17 +139,17 @@ class Bulk_Sender {
 		);
 
 		wp_localize_script('wpwevo-bulk-send', 'wpwevoBulkSend', [
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('wpwevo_bulk_send'),
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('wpwevo_bulk_send'),
 			'i18n' => [
-				'loading' => __('Carregando...', 'wp-whatsapp-evolution'),
-				'error' => __('Erro ao carregar dados.', 'wp-whatsapp-evolution'),
-				'success' => __('Enviado com sucesso!', 'wp-whatsapp-evolution'),
-				'confirm' => __('Tem certeza que deseja enviar mensagens para todos os clientes selecionados?', 'wp-whatsapp-evolution'),
-				'sending' => __('Enviando...', 'wp-whatsapp-evolution'),
-				'send' => __('Iniciar Envio', 'wp-whatsapp-evolution'),
-				'statusRequired' => __('Selecione pelo menos um status de pedido.', 'wp-whatsapp-evolution'),
-				'confirmClearHistory' => __('Tem certeza que deseja limpar todo o histórico de envios?', 'wp-whatsapp-evolution')
+                'loading' => __('Carregando...', 'wp-whatsevolution'),
+                'error' => __('Erro ao carregar dados.', 'wp-whatsevolution'),
+                'success' => __('Enviado com sucesso!', 'wp-whatsevolution'),
+                'confirm' => __('Tem certeza que deseja enviar mensagens para todos os clientes selecionados?', 'wp-whatsevolution'),
+                'sending' => __('Enviando...', 'wp-whatsevolution'),
+                'send' => __('Iniciar Envio', 'wp-whatsevolution'),
+                'statusRequired' => __('Selecione pelo menos um status de pedido.', 'wp-whatsevolution'),
+                'confirmClearHistory' => __('Tem certeza que deseja limpar todo o histórico de envios?', 'wp-whatsevolution')
 			]
 		]);
 	}
@@ -702,11 +702,11 @@ class Bulk_Sender {
 		try {
 			// Verifica nonce
 			if (!wp_verify_nonce($_POST['nonce'], 'wpwevo_bulk_send')) {
-				wp_send_json_error(__('Verificação de segurança falhou.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Verificação de segurança falhou.', 'wp-whatsevolution'));
 			}
 
-			if (!current_user_can('manage_options')) {
-				wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
 			}
 
 			// Garante que status seja um array
@@ -723,8 +723,8 @@ class Bulk_Sender {
 			});
 
 			// Verifica se há status válidos
-			if (empty($status)) {
-				throw new \Exception(__('Selecione pelo menos um status.', 'wp-whatsapp-evolution'));
+            if (empty($status)) {
+                throw new \Exception(__('Selecione pelo menos um status.', 'wp-whatsevolution'));
 			}
 
 			// Sanitiza e formata os status
@@ -738,8 +738,8 @@ class Bulk_Sender {
 			$valid_statuses = array_keys(wc_get_order_statuses());
 			$invalid_statuses = array_diff($statuses, $valid_statuses);
 			
-			if (!empty($invalid_statuses)) {
-				throw new \Exception(__('Um ou mais status selecionados são inválidos.', 'wp-whatsapp-evolution'));
+            if (!empty($invalid_statuses)) {
+                throw new \Exception(__('Um ou mais status selecionados são inválidos.', 'wp-whatsevolution'));
 			}
 
 			// Obtém os filtros adicionais
@@ -786,8 +786,8 @@ class Bulk_Sender {
 			$orders_query = new \WC_Order_Query($query_args);
 			$orders = $orders_query->get_orders();
 
-			if (empty($orders)) {
-				throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsapp-evolution'));
+            if (empty($orders)) {
+                throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsevolution'));
 			}
 
 			// Processa os pedidos encontrados
@@ -830,8 +830,8 @@ class Bulk_Sender {
 				}
 			}
 
-			if (empty($customers)) {
-				throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsapp-evolution'));
+            if (empty($customers)) {
+                throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsevolution'));
 			}
 
 			// Ordena os clientes pelo nome
@@ -846,7 +846,7 @@ class Bulk_Sender {
 					<h4>
 						<?php 
 						printf(
-							__('Total de clientes únicos encontrados: %d', 'wp-whatsapp-evolution'),
+                            __('Total de clientes únicos encontrados: %d', 'wp-whatsevolution'),
 							count($customers)
 						); 
 						?>
@@ -859,11 +859,11 @@ class Bulk_Sender {
 						$status_labels = array_map(function($s) {
 							return wc_get_order_status_name(str_replace('wc-', '', $s));
 						}, $statuses);
-						$filters[] = __('Status: ', 'wp-whatsapp-evolution') . implode(', ', $status_labels);
+                        $filters[] = __('Status: ', 'wp-whatsevolution') . implode(', ', $status_labels);
 						
 						// Período
 						if (!empty($date_from) || !empty($date_to)) {
-							$period = __('Período: ', 'wp-whatsapp-evolution');
+                            $period = __('Período: ', 'wp-whatsevolution');
 							if (!empty($date_from)) {
 								$period .= date_i18n('d/m/Y', strtotime($date_from));
 							}
@@ -876,8 +876,8 @@ class Bulk_Sender {
 						
 						// Valor mínimo
 						if ($min_total > 0) {
-							$filters[] = sprintf(
-								__('Valor mínimo: R$ %s', 'wp-whatsapp-evolution'),
+                            $filters[] = sprintf(
+                                __('Valor mínimo: R$ %s', 'wp-whatsevolution'),
 								number_format($min_total, 2, ',', '.')
 							);
 						}
@@ -890,15 +890,15 @@ class Bulk_Sender {
 				<table class="widefat striped">
 				<thead>
 					<tr>
-						<th><?php _e('Nome', 'wp-whatsapp-evolution'); ?></th>
-						<th><?php _e('Telefone', 'wp-whatsapp-evolution'); ?></th>
+                        <th><?php _e('Nome', 'wp-whatsevolution'); ?></th>
+                        <th><?php _e('Telefone', 'wp-whatsevolution'); ?></th>
 						<th>
-							<?php _e('Total de Pedidos', 'wp-whatsapp-evolution'); ?>
-							<span class="dashicons dashicons-info-outline" title="<?php esc_attr_e('Total de pedidos do cliente em todos os status', 'wp-whatsapp-evolution'); ?>"></span>
+                            <?php _e('Total de Pedidos', 'wp-whatsevolution'); ?>
+                            <span class="dashicons dashicons-info-outline" title="<?php esc_attr_e('Total de pedidos do cliente em todos os status', 'wp-whatsevolution'); ?>"></span>
 						</th>
-						<th><?php _e('Último Pedido', 'wp-whatsapp-evolution'); ?></th>
-						<th><?php _e('Status Atual', 'wp-whatsapp-evolution'); ?></th>
-						<th><?php _e('Valor', 'wp-whatsapp-evolution'); ?></th>
+                        <th><?php _e('Último Pedido', 'wp-whatsevolution'); ?></th>
+                        <th><?php _e('Status Atual', 'wp-whatsevolution'); ?></th>
+                        <th><?php _e('Valor', 'wp-whatsevolution'); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -922,7 +922,7 @@ class Bulk_Sender {
 								printf(
 									'<br><small class="description">%s</small>',
 									sprintf(
-										__('Pedido atual: #%s', 'wp-whatsapp-evolution'),
+                                        __('Pedido atual: #%s', 'wp-whatsevolution'),
 										$customer['order_id']
 									)
 								);
@@ -951,11 +951,11 @@ class Bulk_Sender {
 
 				<div class="wpwevo-preview-notes">
 					<p class="description">
-						<?php _e('Notas:', 'wp-whatsapp-evolution'); ?>
+                        <?php _e('Notas:', 'wp-whatsevolution'); ?>
 						<ul>
-							<li><?php _e('* Os números de telefone foram formatados para o padrão WhatsApp internacional.', 'wp-whatsapp-evolution'); ?></li>
-							<li><?php _e('* Clientes com múltiplos pedidos são mostrados apenas uma vez, com o status do pedido mais recente.', 'wp-whatsapp-evolution'); ?></li>
-							<li><?php _e('* O total de pedidos inclui todos os pedidos do cliente, independente do status.', 'wp-whatsapp-evolution'); ?></li>
+                            <li><?php _e('* Os números de telefone foram formatados para o padrão WhatsApp internacional.', 'wp-whatsevolution'); ?></li>
+                            <li><?php _e('* Clientes com múltiplos pedidos são mostrados apenas uma vez, com o status do pedido mais recente.', 'wp-whatsevolution'); ?></li>
+                            <li><?php _e('* O total de pedidos inclui todos os pedidos do cliente, independente do status.', 'wp-whatsevolution'); ?></li>
 						</ul>
 					</p>
 		</div>
@@ -1034,12 +1034,12 @@ class Bulk_Sender {
 	public function handle_bulk_send() {
 		try {
 			// Verifica nonce com o nome correto do campo
-			if (!isset($_POST['wpwevo_bulk_send_nonce']) || !wp_verify_nonce($_POST['wpwevo_bulk_send_nonce'], 'wpwevo_bulk_send')) {
-				wp_send_json_error(__('Verificação de segurança falhou.', 'wp-whatsapp-evolution'), 403);
+            if (!isset($_POST['wpwevo_bulk_send_nonce']) || !wp_verify_nonce($_POST['wpwevo_bulk_send_nonce'], 'wpwevo_bulk_send')) {
+                wp_send_json_error(__('Verificação de segurança falhou.', 'wp-whatsevolution'), 403);
 			}
 
-			if (!current_user_can('manage_options')) {
-				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            if (!current_user_can('manage_options')) {
+                throw new \Exception(__('Permissão negada.', 'wp-whatsevolution'));
 			}
 
 			// Verifica conexão com a API de forma segura
@@ -1049,16 +1049,16 @@ class Bulk_Sender {
 				}
 			} catch (\Exception $e) {
 				// Se a API falhar, retorna erro mas não quebra o site
-				wp_send_json_error(__('Erro na configuração da API. Verifique as configurações.', 'wp-whatsapp-evolution'));
+                wp_send_json_error(__('Erro na configuração da API. Verifique as configurações.', 'wp-whatsevolution'));
 			}
 
 			$active_tab = isset($_POST['active_tab']) ? sanitize_text_field($_POST['active_tab']) : '';
 			$message = isset($_POST['wpwevo_bulk_message']) ? sanitize_textarea_field($_POST['wpwevo_bulk_message']) : '';
 			$interval = isset($_POST['wpwevo_interval']) ? absint($_POST['wpwevo_interval']) : 5;
 
-		if (empty($message)) {
-				throw new \Exception(__('A mensagem é obrigatória.', 'wp-whatsapp-evolution'));
-		}
+        if (empty($message)) {
+                throw new \Exception(__('A mensagem é obrigatória.', 'wp-whatsevolution'));
+        }
 
 			// Obtém a lista de números com base na aba ativa
 		$numbers = [];
@@ -1068,8 +1068,8 @@ class Bulk_Sender {
 					$statuses = isset($_POST['status']) ? (array)$_POST['status'] : [];
 					$statuses = array_unique(array_filter($statuses, 'strlen')); // Remove duplicatas e valores vazios
 					
-					if (empty($statuses)) {
-						throw new \Exception(__('Selecione pelo menos um status.', 'wp-whatsapp-evolution'));
+                    if (empty($statuses)) {
+                        throw new \Exception(__('Selecione pelo menos um status.', 'wp-whatsevolution'));
 					}
 
 					$date_from = isset($_POST['wpwevo_date_from']) ? sanitize_text_field($_POST['wpwevo_date_from']) : '';
@@ -1080,27 +1080,27 @@ class Bulk_Sender {
 				break;
 
 			case 'csv':
-					if (!isset($_FILES['wpwevo_csv_file']) || empty($_FILES['wpwevo_csv_file']['tmp_name'])) {
-						throw new \Exception(__('Arquivo CSV não enviado ou está vazio.', 'wp-whatsapp-evolution'));
+                    if (!isset($_FILES['wpwevo_csv_file']) || empty($_FILES['wpwevo_csv_file']['tmp_name'])) {
+                        throw new \Exception(__('Arquivo CSV não enviado ou está vazio.', 'wp-whatsevolution'));
 				}
 					$numbers = $this->process_csv_file($_FILES['wpwevo_csv_file']);
 				break;
 
 			case 'manual':
 					$manual_numbers = isset($_POST['wpwevo_manual_numbers']) ? sanitize_textarea_field($_POST['wpwevo_manual_numbers']) : '';
-				if (empty($manual_numbers)) {
-						throw new \Exception(__('Lista de números vazia.', 'wp-whatsapp-evolution'));
+                if (empty($manual_numbers)) {
+                        throw new \Exception(__('Lista de números vazia.', 'wp-whatsevolution'));
 				}
 					$numbers = array_filter(array_map('trim', explode("\n", $manual_numbers)));
 				break;
 
 			default:
-					throw new \Exception(__('Origem dos números inválida.', 'wp-whatsapp-evolution'));
+                    throw new \Exception(__('Origem dos números inválida.', 'wp-whatsevolution'));
 		}
 
-		if (empty($numbers)) {
-				throw new \Exception(__('Nenhum número encontrado para envio.', 'wp-whatsapp-evolution'));
-		}
+        if (empty($numbers)) {
+                throw new \Exception(__('Nenhum número encontrado para envio.', 'wp-whatsevolution'));
+        }
 
 			$total = count($numbers);
 			$sent = 0;
@@ -1116,8 +1116,8 @@ class Bulk_Sender {
 					// Valida o número de telefone antes de enviar
 					$validated_phone = wpwevo_validate_phone($phone_number);
 					if (!$validated_phone) {
-						$errors[] = sprintf(
-							__('Número com formato inválido para %s (%s)', 'wp-whatsapp-evolution'),
+                        $errors[] = sprintf(
+                            __('Número com formato inválido para %s (%s)', 'wp-whatsevolution'),
 							$contact_name ?: 'desconhecido',
 							$phone_number
 						);
@@ -1132,8 +1132,8 @@ class Bulk_Sender {
 						$result = $this->api->send_message($validated_phone, $prepared_message);
 
 						if (!$result['success']) {
-							$errors[] = sprintf(
-								__('Erro ao enviar para %s: %s', 'wp-whatsapp-evolution'),
+                            $errors[] = sprintf(
+                                __('Erro ao enviar para %s: %s', 'wp-whatsevolution'),
 								$contact_name ?: $validated_phone,
 								$result['message']
 							);
@@ -1142,16 +1142,16 @@ class Bulk_Sender {
 						}
 					} catch (\Exception $api_error) {
 						// Se a API falhar, registra o erro mas continua
-						$errors[] = sprintf(
-							__('Erro na API ao enviar para %s: %s', 'wp-whatsapp-evolution'),
+                        $errors[] = sprintf(
+                            __('Erro na API ao enviar para %s: %s', 'wp-whatsevolution'),
 							$contact_name ?: $validated_phone,
 							$api_error->getMessage()
 						);
 					}
 
 				} catch (\Exception $e) {
-					$errors[] = sprintf(
-						__('Erro ao processar %s: %s', 'wp-whatsapp-evolution'),
+                    $errors[] = sprintf(
+                        __('Erro ao processar %s: %s', 'wp-whatsevolution'),
 						$contact_name ?: $phone_number,
 						$e->getMessage()
 					);
@@ -1173,8 +1173,8 @@ class Bulk_Sender {
 				'success' => $success,
 				'errors' => count($errors),
 				'source' => $active_tab,
-				'status' => sprintf(
-					__('%d enviados com sucesso, %d erros', 'wp-whatsapp-evolution'),
+                'status' => sprintf(
+                    __('%d enviados com sucesso, %d erros', 'wp-whatsevolution'),
 					$success,
 					count($errors)
 				)
@@ -1189,9 +1189,9 @@ class Bulk_Sender {
 
 			// Envia e-mail com relatório
 			$admin_email = get_option('admin_email');
-			$subject = __('Relatório de Envio em Massa - WhatsApp Evolution', 'wp-whatsapp-evolution');
+            $subject = __('Relatório de Envio em Massa - WhatsApp Evolution', 'wp-whatsevolution');
 			$report = sprintf(
-				__("Envio em massa concluído!\n\nTotal enviado: %d\nSucesso: %d\nErros: %d\n\nDetalhes dos erros:\n%s", 'wp-whatsapp-evolution'),
+                __("Envio em massa concluído!\n\nTotal enviado: %d\nSucesso: %d\nErros: %d\n\nDetalhes dos erros:\n%s", 'wp-whatsevolution'),
 				$sent,
 				$success,
 				count($errors),
@@ -1207,8 +1207,8 @@ class Bulk_Sender {
 				'success' => $success,
 				'errors' => $errors,
 				'progress' => 100,
-				'message' => sprintf(
-					__('Envio concluído! %d mensagens enviadas com sucesso, %d erros.', 'wp-whatsapp-evolution'),
+                'message' => sprintf(
+                    __('Envio concluído! %d mensagens enviadas com sucesso, %d erros.', 'wp-whatsevolution'),
 					$success,
 					count($errors)
 				),
@@ -1253,7 +1253,7 @@ class Bulk_Sender {
 
 	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total) {
 		if (!class_exists('WooCommerce')) {
-			throw new \Exception(__('WooCommerce não está ativo.', 'wp-whatsapp-evolution'));
+            throw new \Exception(__('WooCommerce não está ativo.', 'wp-whatsevolution'));
 		}
 
 		// Remove duplicatas e valores vazios
@@ -1336,7 +1336,7 @@ class Bulk_Sender {
 
 	private function process_csv_file($file) {
 		if ($file['error'] !== UPLOAD_ERR_OK) {
-			throw new \Exception(__('Erro no upload do arquivo.', 'wp-whatsapp-evolution'));
+            throw new \Exception(__('Erro no upload do arquivo.', 'wp-whatsevolution'));
 		}
 
 		$file_path = $file['tmp_name'];
@@ -1353,7 +1353,7 @@ class Bulk_Sender {
 		$lines = array_filter(array_map('trim', $lines));
 
 		if (count($lines) < 2) {
-			throw new \Exception(__('Arquivo CSV precisa de um cabeçalho e pelo menos uma linha de dados.', 'wp-whatsapp-evolution'));
+            throw new \Exception(__('Arquivo CSV precisa de um cabeçalho e pelo menos uma linha de dados.', 'wp-whatsevolution'));
 		}
 
 		// Etapa 3: Extrai o cabeçalho, detecta o delimitador e encontra as colunas
@@ -1371,7 +1371,7 @@ class Bulk_Sender {
 			
 			// Valida se o índice está dentro dos limites
 			if ($phone_col_index < 0 || $phone_col_index >= count($header)) {
-				throw new \Exception(__('Coluna selecionada não existe no arquivo CSV.', 'wp-whatsapp-evolution'));
+                throw new \Exception(__('Coluna selecionada não existe no arquivo CSV.', 'wp-whatsevolution'));
 			}
 		} else {
 			// Se não enviado, tenta encontrar coluna chamada telefone, celular, fone, ou usa a primeira
@@ -1439,7 +1439,7 @@ class Bulk_Sender {
 		}
 
 		if (empty($contacts)) {
-			throw new \Exception(__('Nenhum contato com número de telefone válido foi encontrado no arquivo CSV.', 'wp-whatsapp-evolution'));
+            throw new \Exception(__('Nenhum contato com número de telefone válido foi encontrado no arquivo CSV.', 'wp-whatsevolution'));
 		}
 		
 		// **NOVO: Log de sucesso**
@@ -1452,7 +1452,7 @@ class Bulk_Sender {
 		check_ajax_referer('wpwevo_bulk_send', 'nonce');
 		
 		if (!current_user_can('manage_options')) {
-			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
 		}
 
 		delete_option('wpwevo_bulk_history');
@@ -1463,7 +1463,7 @@ class Bulk_Sender {
 	public function ajax_get_history() {
 		check_ajax_referer('wpwevo_bulk_send', 'nonce');
 		if (!current_user_can('manage_options')) {
-			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
 		}
 
 		wp_send_json_success(['historyHtml' => $this->get_history_html()]);

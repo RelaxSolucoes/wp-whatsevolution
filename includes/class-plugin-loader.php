@@ -17,19 +17,17 @@ class Plugin_Loader {
 	}
 
 	private function setup_hooks() {
-		// Hooks de ativação/desativação
-		register_activation_hook(WPWEVO_PATH . 'wp-whatsapp-evolution.php', [$this, 'activate']);
-		register_deactivation_hook(WPWEVO_PATH . 'wp-whatsapp-evolution.php', [$this, 'deactivate']);
+        // Hooks de ativação/desativação movidos para o arquivo principal do plugin para evitar duplicação
 
 		// Carrega traduções e inicializa módulos
 		add_action('init', [$this, 'load_textdomain'], 0);
 		add_action('init', [$this, 'init_modules'], 1);
 
 		// Adiciona intervalos de cron personalizados
-		add_filter('cron_schedules', [$this, 'add_cron_schedules']);
+        add_filter('cron_schedules', [$this, 'add_cron_schedules']);
 
-		// Adiciona link de configurações
-		add_filter('plugin_action_links_' . plugin_basename(WPWEVO_PATH . 'wp-whatsapp-evolution.php'), 
+        // Adiciona link de configurações
+        add_filter('plugin_action_links_' . plugin_basename(WPWEVO_PATH . 'wp-whatsevolution.php'), 
 			[$this, 'add_settings_link']
 		);
 	}
@@ -58,26 +56,26 @@ class Plugin_Loader {
 	}
 
 	public function add_cron_schedules($schedules) {
-		$schedules['every_5_minutes'] = [
+        $schedules['every_5_minutes'] = [
 			'interval' => 300, // 5 minutes
-			'display' => __('A cada 5 minutos', 'wp-whatsapp-evolution')
+            'display' => __('A cada 5 minutos', 'wp-whatsevolution')
 		];
 		return $schedules;
 	}
 
 	public function load_textdomain() {
-		load_plugin_textdomain(
-			'wp-whatsapp-evolution',
-			false,
-			dirname(plugin_basename(WPWEVO_PATH . 'wp-whatsapp-evolution.php')) . '/languages'
+        load_plugin_textdomain(
+            'wp-whatsevolution',
+            false,
+            dirname(plugin_basename(WPWEVO_PATH . 'wp-whatsevolution.php')) . '/languages'
 		);
 	}
 
 	public function add_settings_link($links) {
-		$settings_link = sprintf(
+        $settings_link = sprintf(
 			'<a href="%s">%s</a>',
 			admin_url('admin.php?page=wpwevo-settings'),
-			__('Configurações', 'wp-whatsapp-evolution')
+            __('Configurações', 'wp-whatsevolution')
 		);
 		array_unshift($links, $settings_link);
 		return $links;

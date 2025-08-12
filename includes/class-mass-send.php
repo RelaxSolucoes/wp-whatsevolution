@@ -10,8 +10,8 @@ class Mass_Send {
 	public static function add_submenu() {
 		add_submenu_page(
 			'wpwevo-settings',
-			__( 'Envio em Massa', 'wp-whatsapp-evolution' ),
-			__( 'Envio em Massa', 'wp-whatsapp-evolution' ),
+            __( 'Envio em Massa', 'wp-whatsevolution' ),
+            __( 'Envio em Massa', 'wp-whatsevolution' ),
 			'manage_options',
 			'wpwevo-mass-send',
 			[ __CLASS__, 'render_page' ]
@@ -21,15 +21,15 @@ class Mass_Send {
 	public static function render_page() {
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'Envio em Massa de WhatsApp', 'wp-whatsapp-evolution' ); ?></h1>
-			<p><?php _e( 'Selecione clientes, importe CSV ou filtre para enviar mensagens em massa. Agende e acompanhe o progresso.', 'wp-whatsapp-evolution' ); ?></p>
+            <h1><?php _e( 'Envio em Massa de WhatsApp', 'wp-whatsevolution' ); ?></h1>
+            <p><?php _e( 'Selecione clientes, importe CSV ou filtre para enviar mensagens em massa. Agende e acompanhe o progresso.', 'wp-whatsevolution' ); ?></p>
 			<!-- Interface simplificada, implementação completa recomendada para produção -->
 			<form method="post" enctype="multipart/form-data">
 				<?php wp_nonce_field( 'wpwevo_mass_send', 'wpwevo_mass_send_nonce' ); ?>
 				<p><input type="file" name="wpwevo_csv"></p>
 				<p><textarea name="wpwevo_numbers" rows="3" placeholder="Números separados por vírgula"></textarea></p>
 				<p><textarea name="wpwevo_message" rows="4" placeholder="Mensagem"></textarea></p>
-				<?php submit_button( __( 'Enviar em Massa', 'wp-whatsapp-evolution' ) ); ?>
+                <?php submit_button( __( 'Enviar em Massa', 'wp-whatsevolution' ) ); ?>
 			</form>
 		</div>
 		<?php
@@ -53,7 +53,7 @@ class Mass_Send {
 					$count++;
 				}
 			}
-			echo '<div class="notice notice-success"><p>' . sprintf( esc_html__( '%d mensagens enviadas.', 'wp-whatsapp-evolution' ), $count ) . '</p></div>';
+            echo '<div class="notice notice-success"><p>' . sprintf( esc_html__( '%d mensagens enviadas.', 'wp-whatsevolution' ), $count ) . '</p></div>';
 		}
 	}
 } 

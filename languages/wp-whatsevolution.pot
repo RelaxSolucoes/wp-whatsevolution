@@ -1,0 +1,15 @@
+# Copyright (C) 2024 Relax Soluções
+# This file is distributed under the same license as the WP WhatsEvolution plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP WhatsEvolution 1.0.0\n"
+"Report-Msgid-Bugs-To: https://relaxsolucoes.online/contato\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-03-20T12:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.8.1\n"
+"X-Domain: wp-whatsevolution\n"

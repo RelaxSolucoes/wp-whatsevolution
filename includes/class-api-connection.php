@@ -74,7 +74,7 @@ class Api_Connection {
         if (!$this->is_configured()) {
             return [
                 'success' => false,
-                'message' => __('Configuração da API incompleta.', 'wp-whatsapp-evolution')
+                'message' => __('Configuração da API incompleta.', 'wp-whatsevolution')
             ];
         }
 
@@ -91,8 +91,7 @@ class Api_Connection {
                 'apikey' => $this->api_key,
                 'Content-Type' => 'application/json'
             ],
-            'timeout' => 15,
-            'sslverify' => false // Temporário para debug
+            'timeout' => 15
         ];
 
         $response = wp_remote_get($url, $args);
@@ -103,7 +102,7 @@ class Api_Connection {
                 return [
                     'success' => false,
                     'message' => sprintf(
-                        __('Não foi possível conectar ao servidor %s. Verifique se a URL da API está correta.', 'wp-whatsapp-evolution'),
+                        __('Não foi possível conectar ao servidor %s. Verifique se a URL da API está correta.', 'wp-whatsevolution'),
                         parse_url($this->api_url, PHP_URL_HOST)
                     )
                 ];
@@ -112,7 +111,7 @@ class Api_Connection {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro ao verificar conexão: %s', 'wp-whatsapp-evolution'),
+                    __('Erro ao verificar conexão: %s', 'wp-whatsevolution'),
                     $response->get_error_message()
                 )
             ];
@@ -128,7 +127,7 @@ class Api_Connection {
                 return [
                     'success' => false,
                     'message' => sprintf(
-                        __('A instância "%s" não existe.', 'wp-whatsapp-evolution'),
+                        __('A instância "%s" não existe.', 'wp-whatsevolution'),
                         $this->instance_name
                     )
                 ];
@@ -136,7 +135,7 @@ class Api_Connection {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('A instância "%s" não existe.', 'wp-whatsapp-evolution'),
+                    __('A instância "%s" não existe.', 'wp-whatsevolution'),
                     $this->instance_name
                 )
             ];
@@ -146,7 +145,7 @@ class Api_Connection {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro na API (código %d)', 'wp-whatsapp-evolution'),
+                    __('Erro na API (código %d)', 'wp-whatsevolution'),
                     $status_code
                 )
             ];
@@ -155,7 +154,7 @@ class Api_Connection {
         if (!is_array($data) || !isset($data['instance']) || !isset($data['instance']['state'])) {
             return [
                 'success' => false,
-                'message' => __('Resposta da API em formato inválido.', 'wp-whatsapp-evolution')
+                'message' => __('Resposta da API em formato inválido.', 'wp-whatsevolution')
             ];
         }
 
@@ -163,11 +162,11 @@ class Api_Connection {
         $is_connected = $state === 'open';
         
         $state_messages = [
-            'open' => __('Conexão estabelecida com sucesso!', 'wp-whatsapp-evolution'),
-            'connecting' => __('Instância está se conectando...', 'wp-whatsapp-evolution'),
-            'close' => __('Instância está desconectada.', 'wp-whatsapp-evolution'),
-            'disconnecting' => __('Instância está se desconectando...', 'wp-whatsapp-evolution'),
-            'default' => __('Estado desconhecido da instância.', 'wp-whatsapp-evolution')
+            'open' => __('Conexão estabelecida com sucesso!', 'wp-whatsevolution'),
+            'connecting' => __('Instância está se conectando...', 'wp-whatsevolution'),
+            'close' => __('Instância está desconectada.', 'wp-whatsevolution'),
+            'disconnecting' => __('Instância está se desconectando...', 'wp-whatsevolution'),
+            'default' => __('Estado desconhecido da instância.', 'wp-whatsevolution')
         ];
 
         return [
@@ -186,7 +185,7 @@ class Api_Connection {
         if (empty($api_key)) {
             return [
                 'success' => false,
-                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsapp-evolution')
+                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsevolution')
             ];
         }
 
@@ -203,15 +202,14 @@ class Api_Connection {
         $response = wp_remote_post($url, [
             'headers' => $headers,
             'body' => $body,
-            'timeout' => WHATSEVOLUTION_STATUS_TIMEOUT,
-            'sslverify' => false
+            'timeout' => WHATSEVOLUTION_STATUS_TIMEOUT
         ]);
 
         if (is_wp_error($response)) {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro ao verificar status: %s', 'wp-whatsapp-evolution'),
+                    __('Erro ao verificar status: %s', 'wp-whatsevolution'),
                     $response->get_error_message()
                 )
             ];
@@ -224,7 +222,7 @@ class Api_Connection {
         if ($status_code !== 200 || !is_array($data) || !isset($data['success']) || !$data['success']) {
             return [
                 'success' => false,
-                'message' => __('Erro ao verificar status da instância.', 'wp-whatsapp-evolution')
+                'message' => __('Erro ao verificar status da instância.', 'wp-whatsevolution')
             ];
         }
 
@@ -233,12 +231,12 @@ class Api_Connection {
         $is_connected = $current_status === 'connected';
         
         $status_messages = [
-            'connected' => __('Status da Instância: Conectado', 'wp-whatsapp-evolution'),
-            'connecting' => __('Status da Instância: Conectando...', 'wp-whatsapp-evolution'),
-            'disconnected' => __('Status da Instância: Desconectado', 'wp-whatsapp-evolution'),
-            'disconnecting' => __('Status da Instância: Desconectando...', 'wp-whatsapp-evolution'),
-            'qrcode' => __('Status da Instância: Aguardando QR Code', 'wp-whatsapp-evolution'),
-            'unknown' => __('Status da Instância: Desconhecido', 'wp-whatsapp-evolution')
+            'connected' => __('Status da Instância: Conectado', 'wp-whatsevolution'),
+            'connecting' => __('Status da Instância: Conectando...', 'wp-whatsevolution'),
+            'disconnected' => __('Status da Instância: Desconectado', 'wp-whatsevolution'),
+            'disconnecting' => __('Status da Instância: Desconectando...', 'wp-whatsevolution'),
+            'qrcode' => __('Status da Instância: Aguardando QR Code', 'wp-whatsevolution'),
+            'unknown' => __('Status da Instância: Desconhecido', 'wp-whatsevolution')
         ];
 
         return [
@@ -292,7 +290,7 @@ class Api_Connection {
         if ($formatted_phone === false) {
             return [
                 'success' => false,
-                'message' => __('Número de telefone inválido. Use formato: DDD + número (ex: 11999999999)', 'wp-whatsapp-evolution')
+                'message' => __('Número de telefone inválido. Use formato: DDD + número (ex: 11999999999)', 'wp-whatsevolution')
             ];
         }
         
@@ -336,7 +334,7 @@ class Api_Connection {
         if (!$this->is_configured()) {
             return [
                 'success' => false,
-                'message' => __('API não configurada.', 'wp-whatsapp-evolution')
+                'message' => __('API não configurada.', 'wp-whatsevolution')
             ];
         }
 
@@ -359,7 +357,7 @@ class Api_Connection {
         if (empty($api_key)) {
             return [
                 'success' => false,
-                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsapp-evolution')
+                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsevolution')
             ];
         }
 
@@ -390,15 +388,14 @@ class Api_Connection {
         $response = wp_remote_post($url, [
             'headers' => $headers,
             'body' => $body,
-            'timeout' => 15,
-            'sslverify' => false
+            'timeout' => 15
         ]);
 
         if (is_wp_error($response)) {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro ao enviar mensagem: %s', 'wp-whatsapp-evolution'),
+                    __('Erro ao enviar mensagem: %s', 'wp-whatsevolution'),
                     $response->get_error_message()
                 )
             ];
@@ -411,20 +408,20 @@ class Api_Connection {
         if ($status_code !== 200 || !isset($data['success'])) {
             return [
                 'success' => false,
-                'message' => __('Erro ao enviar mensagem via Edge Function.', 'wp-whatsapp-evolution')
+                'message' => __('Erro ao enviar mensagem via Edge Function.', 'wp-whatsevolution')
             ];
         }
 
         if (!$data['success']) {
             return [
                 'success' => false,
-                'message' => $data['error'] ?? __('Erro ao enviar mensagem.', 'wp-whatsapp-evolution')
+                'message' => $data['error'] ?? __('Erro ao enviar mensagem.', 'wp-whatsevolution')
             ];
         }
 
         return [
             'success' => true,
-            'message' => __('Mensagem enviada com sucesso!', 'wp-whatsapp-evolution'),
+            'message' => __('Mensagem enviada com sucesso!', 'wp-whatsevolution'),
             'data' => $data
         ];
     }
@@ -462,8 +459,7 @@ class Api_Connection {
                 'Content-Type' => 'application/json'
             ],
             'body' => json_encode($body),
-            'timeout' => 15,
-            'sslverify' => false // Temporário para debug
+            'timeout' => 15
         ];
 
         $response = wp_remote_post($url, $args);
@@ -472,7 +468,7 @@ class Api_Connection {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro ao enviar mensagem: %s', 'wp-whatsapp-evolution'),
+                    __('Erro ao enviar mensagem: %s', 'wp-whatsevolution'),
                     $response->get_error_message()
                 )
             ];
@@ -498,13 +494,13 @@ class Api_Connection {
         if (!isset($data['key']) || !isset($data['status'])) {
             return [
                 'success' => false,
-                'message' => __('Resposta da API em formato inválido.', 'wp-whatsapp-evolution')
+                'message' => __('Resposta da API em formato inválido.', 'wp-whatsevolution')
             ];
         }
 
         return [
             'success' => true,
-            'message' => __('Mensagem enviada com sucesso!', 'wp-whatsapp-evolution'),
+            'message' => __('Mensagem enviada com sucesso!', 'wp-whatsevolution'),
             'data' => $data
         ];
     }
@@ -557,7 +553,7 @@ class Api_Connection {
         if (!$this->is_configured()) {
             return [
                 'success' => false,
-                'message' => __('Configuração da API incompleta.', 'wp-whatsapp-evolution')
+                'message' => __('Configuração da API incompleta.', 'wp-whatsevolution')
             ];
         }
 
@@ -580,7 +576,7 @@ class Api_Connection {
         if (empty($api_key)) {
             return [
                 'success' => false,
-                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsapp-evolution')
+                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsevolution')
             ];
         }
 
@@ -615,7 +611,7 @@ class Api_Connection {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro ao validar número: %s', 'wp-whatsapp-evolution'),
+                    __('Erro ao validar número: %s', 'wp-whatsevolution'),
                     $response->get_error_message()
                 )
             ];
@@ -628,7 +624,7 @@ class Api_Connection {
         if ($status_code !== 200 || !isset($data['success'])) {
             return [
                 'success' => false,
-                'message' => __('Erro ao validar número via Edge Function.', 'wp-whatsapp-evolution')
+                'message' => __('Erro ao validar número via Edge Function.', 'wp-whatsevolution')
             ];
         }
 
@@ -639,7 +635,7 @@ class Api_Connection {
                     'is_whatsapp' => false,
                     'exists' => false
                 ],
-                'message' => $data['error'] ?? __('O número informado não é um WhatsApp válido.', 'wp-whatsapp-evolution')
+                'message' => $data['error'] ?? __('O número informado não é um WhatsApp válido.', 'wp-whatsevolution')
             ];
         }
 
@@ -650,7 +646,7 @@ class Api_Connection {
                 'exists' => true,
                 'name' => $data['data']['name'] ?? null
             ],
-            'message' => __('Número válido!', 'wp-whatsapp-evolution')
+            'message' => __('Número válido!', 'wp-whatsevolution')
         ];
     }
 
@@ -676,15 +672,14 @@ class Api_Connection {
             'body' => json_encode([
                 'numbers' => [$number]
             ]),
-            'timeout' => 15,
-            'sslverify' => false
+            'timeout' => 15
         ]);
 
         if (is_wp_error($response)) {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro ao validar número: %s', 'wp-whatsapp-evolution'),
+                    __('Erro ao validar número: %s', 'wp-whatsevolution'),
                     $response->get_error_message()
                 )
             ];
@@ -697,7 +692,7 @@ class Api_Connection {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    __('Erro na API (código %d)', 'wp-whatsapp-evolution'),
+                    __('Erro na API (código %d)', 'wp-whatsevolution'),
                     $status_code
                 )
             ];
@@ -709,7 +704,7 @@ class Api_Connection {
         if (!is_array($data) || empty($data) || !isset($data[0]['exists'])) {
             return [
                 'success' => false,
-                'message' => __('Resposta inválida da API ao validar número.', 'wp-whatsapp-evolution')
+                'message' => __('Resposta inválida da API ao validar número.', 'wp-whatsevolution')
             ];
         }
 
@@ -721,7 +716,7 @@ class Api_Connection {
                     'is_whatsapp' => false,
                     'exists' => false
                 ],
-                'message' => __('O número informado não é um WhatsApp válido.', 'wp-whatsapp-evolution')
+                'message' => __('O número informado não é um WhatsApp válido.', 'wp-whatsevolution')
             ];
         }
 
@@ -732,7 +727,7 @@ class Api_Connection {
                 'exists' => true,
                 'name' => isset($data[0]['name']) ? $data[0]['name'] : null
             ],
-            'message' => __('Número válido!', 'wp-whatsapp-evolution')
+            'message' => __('Número válido!', 'wp-whatsevolution')
         ];
     }
 

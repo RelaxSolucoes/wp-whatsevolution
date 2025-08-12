@@ -32,15 +32,15 @@ class Send_By_Status {
 		self::$hooks_initialized = true;
 
 		// Define as propriedades ANTES dos hooks
-		$this->menu_title = __('Envio por Status', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio por Status', 'wp-whatsapp-evolution');
+        $this->menu_title = __('Envio por Status', 'wp-whatsevolution');
+        $this->page_title = __('Envio por Status', 'wp-whatsevolution');
 		
 		$this->i18n = [
-			'saving' => __('Salvando...', 'wp-whatsapp-evolution'),
-			'saved' => __('Configurações salvas com sucesso!', 'wp-whatsapp-evolution'),
-			'error' => __('Erro ao salvar: ', 'wp-whatsapp-evolution'),
-			'preview' => __('Visualizando...', 'wp-whatsapp-evolution'),
-			'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsapp-evolution'),
+            'saving' => __('Salvando...', 'wp-whatsevolution'),
+            'saved' => __('Configurações salvas com sucesso!', 'wp-whatsevolution'),
+            'error' => __('Erro ao salvar: ', 'wp-whatsevolution'),
+            'preview' => __('Visualizando...', 'wp-whatsevolution'),
+            'networkError' => __('Erro de conexão. Tente novamente.', 'wp-whatsevolution'),
 		];
 
 		// Declara compatibilidade com HPOS
@@ -79,7 +79,7 @@ Recebemos seu pedido #{order_id} no valor de *{order_total}*.
 🔗 Acompanhe seu pedido em:
 {order_url}
 
-Obrigado por comprar conosco! 😊', 'wp-whatsapp-evolution')
+Obrigado por comprar conosco! 😊', 'wp-whatsevolution')
 			],
 			'on-hold' => [
 				'enabled' => true,
@@ -95,7 +95,7 @@ Recebemos seu pedido #{order_id} no valor de *{order_total}*.
 🔗 Acompanhe seu pedido em:
 {order_url}
 
-Obrigado por comprar conosco! 😊', 'wp-whatsapp-evolution')
+Obrigado por comprar conosco! 😊', 'wp-whatsevolution')
 			],
 			'processing' => [
 				'enabled' => true,
@@ -108,7 +108,7 @@ Seu pedido #{order_id} foi aprovado e já estamos preparando tudo! 📦
 🚚 *Envio:* {shipping_method}
 📍 *Endereço:* {shipping_address_full}
 
-Obrigado pela confiança! 🙏', 'wp-whatsapp-evolution')
+Obrigado pela confiança! 🙏', 'wp-whatsevolution')
 			],
 			'completed' => [
 				'enabled' => true,
@@ -123,7 +123,7 @@ Esperamos que tenha gostado dos produtos! ⭐
 🔗 Acompanhe outros pedidos em:
 {order_url}
 
-Agradecemos a preferência! 💚', 'wp-whatsapp-evolution')
+Agradecemos a preferência! 💚', 'wp-whatsevolution')
 			],
 			'cancelled' => [
 				'enabled' => true,
@@ -136,7 +136,7 @@ Seu pedido #{order_id} foi cancelado.
 ❓ Se houver alguma dúvida, acesse:
 {order_url}
 
-Ou entre em contato conosco! 📞', 'wp-whatsapp-evolution')
+Ou entre em contato conosco! 📞', 'wp-whatsevolution')
 			],
 			'refunded' => [
 				'enabled' => true,
@@ -148,7 +148,7 @@ O reembolso do seu pedido #{order_id} no valor de *{order_total}* foi processado
 
 💳 O valor será creditado via {payment_method}.
 
-Em breve aparecerá na sua conta! ⏰', 'wp-whatsapp-evolution')
+Em breve aparecerá na sua conta! ⏰', 'wp-whatsevolution')
 			],
 			'failed' => [
 				'enabled' => true,
@@ -161,7 +161,7 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 🔗 Acesse para mais detalhes:
 {order_url}
 
-📞 Ou entre em contato conosco para resolvermos juntos!', 'wp-whatsapp-evolution')
+📞 Ou entre em contato conosco para resolvermos juntos!', 'wp-whatsevolution')
 			]
 		];
 	}
@@ -318,9 +318,9 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 		);
 
 		$localize_data = [
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('wpwevo_status_messages'),
-			'previewNonce' => wp_create_nonce('wpwevo_preview_message'),
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('wpwevo_status_messages'),
+            'previewNonce' => wp_create_nonce('wpwevo_preview_message'),
 			'i18n' => $this->i18n
 		];
 
@@ -531,7 +531,7 @@ Valor: {order_total}
 
 		// Verifica permissões
 		if (!current_user_can('manage_options')) {
-			wp_send_json_error(['message' => __('Permissão negada.', 'wp-whatsapp-evolution')]);
+            wp_send_json_error(['message' => __('Permissão negada.', 'wp-whatsevolution')]);
 			return;
 		}
 
@@ -553,14 +553,14 @@ Valor: {order_total}
 		$saved = update_option('wpwevo_status_messages', $status_messages);
 
 		if ($saved) {
-			wp_send_json_success(['message' => __('Configurações salvas com sucesso!', 'wp-whatsapp-evolution')]);
+            wp_send_json_success(['message' => __('Configurações salvas com sucesso!', 'wp-whatsevolution')]);
 		} else {
 			// Verifica se os dados são diferentes dos já salvos
 			$current_data = get_option('wpwevo_status_messages', []);
 			if ($current_data == $status_messages) {
-				wp_send_json_success(['message' => __('Configurações salvas com sucesso!', 'wp-whatsapp-evolution')]);
+                wp_send_json_success(['message' => __('Configurações salvas com sucesso!', 'wp-whatsevolution')]);
 			} else {
-				wp_send_json_error(['message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsapp-evolution')]);
+                wp_send_json_error(['message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsevolution')]);
 			}
 		}
 	}
@@ -569,13 +569,13 @@ Valor: {order_total}
 		check_ajax_referer('wpwevo_preview_message', 'nonce');
 
 		if (!current_user_can('manage_options')) {
-			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
 		}
 
 		$message = isset($_POST['message']) ? sanitize_textarea_field($_POST['message']) : '';
 
 		if (empty($message)) {
-			wp_send_json_error(__('Por favor, digite uma mensagem para visualizar.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Por favor, digite uma mensagem para visualizar.', 'wp-whatsevolution'));
 			return;
 		}
 

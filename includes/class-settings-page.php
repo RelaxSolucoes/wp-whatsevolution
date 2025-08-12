@@ -26,8 +26,8 @@ class Settings_Page {
 	}
 
 	public function setup() {
-		self::$menu_title = __('Whats Evolution', 'wp-whatsapp-evolution');
-		self::$page_title = __('Whats Evolution', 'wp-whatsapp-evolution');
+        self::$menu_title = __('Whats Evolution', 'wp-whatsevolution');
+        self::$page_title = __('Whats Evolution', 'wp-whatsevolution');
 	}
 
 	public function add_menu() {
@@ -85,21 +85,21 @@ class Settings_Page {
 		try {
 			check_ajax_referer('wpwevo_validate_settings', 'nonce');
 
-			if (!current_user_can('manage_options')) {
-				throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            if (!current_user_can('manage_options')) {
+                throw new \Exception(__('Permissão negada.', 'wp-whatsevolution'));
 			}
 
 			$api_url = isset($_POST['api_url']) ? esc_url_raw($_POST['api_url']) : '';
 			$api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
 			$instance = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : '';
 
-			if (empty($api_url) || empty($api_key) || empty($instance)) {
-				throw new \Exception(__('Todos os campos são obrigatórios.', 'wp-whatsapp-evolution'));
+            if (empty($api_url) || empty($api_key) || empty($instance)) {
+                throw new \Exception(__('Todos os campos são obrigatórios.', 'wp-whatsevolution'));
 			}
 
 			// Valida formato da URL
-			if (!filter_var($api_url, FILTER_VALIDATE_URL)) {
-				throw new \Exception(__('URL da API inválida.', 'wp-whatsapp-evolution'));
+            if (!filter_var($api_url, FILTER_VALIDATE_URL)) {
+                throw new \Exception(__('URL da API inválida.', 'wp-whatsevolution'));
 			}
 
 			// A Evolution API que valida a chave - não fazemos validação local
@@ -120,12 +120,12 @@ class Settings_Page {
 
 			if ($result['success']) {
 				wp_send_json_success([
-					'message' => __('Configurações salvas com sucesso!', 'wp-whatsapp-evolution'),
+                    'message' => __('Configurações salvas com sucesso!', 'wp-whatsevolution'),
 					'connection_status' => $result
 				]);
 			} else {
 				throw new \Exception(sprintf(
-					__('Configurações salvas, mas %s', 'wp-whatsapp-evolution'),
+                    __('Configurações salvas, mas %s', 'wp-whatsevolution'),
 					strtolower($result['message'])
 				));
 			}
@@ -169,7 +169,7 @@ class Settings_Page {
 		wp_localize_script('wpwevo-admin', 'wpwevo_admin', [
 			'ajax_url' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_validate_settings'),
-			'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsapp-evolution'),
+            'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsevolution'),
 			'saved_api_url' => get_option('wpwevo_api_url', ''),
 			'saved_api_key' => get_option('wpwevo_managed_api_key', ''),
 			'saved_instance' => get_option('wpwevo_instance', '')
@@ -181,11 +181,11 @@ class Settings_Page {
 			'nonce' => wp_create_nonce('wpwevo_quick_signup'),
 			'api_key' => get_option('wpwevo_managed_api_key', ''),
 			'messages' => [
-				'validating' => __('Validando dados...', 'wp-whatsapp-evolution'),
-				'creating_account' => __('Criando conta...', 'wp-whatsapp-evolution'),
-				'configuring_plugin' => __('Configurando plugin...', 'wp-whatsapp-evolution'),
-				'success' => __('Pronto!', 'wp-whatsapp-evolution'),
-				'error' => __('Erro ao criar conta. Tente novamente.', 'wp-whatsapp-evolution')
+                'validating' => __('Validando dados...', 'wp-whatsevolution'),
+                'creating_account' => __('Criando conta...', 'wp-whatsevolution'),
+                'configuring_plugin' => __('Configurando plugin...', 'wp-whatsevolution'),
+                'success' => __('Pronto!', 'wp-whatsevolution'),
+                'error' => __('Erro ao criar conta. Tente novamente.', 'wp-whatsevolution')
 			]
 		]);
 	}
@@ -199,9 +199,9 @@ class Settings_Page {
 		}
 		
 		$tabs = [
-			'quick-signup' => __('🚀 Teste Grátis', 'wp-whatsapp-evolution'),
-			'connection' => __('Conexão', 'wp-whatsapp-evolution'),
-			'help' => __('Ajuda', 'wp-whatsapp-evolution'),
+            'quick-signup' => __('🚀 Teste Grátis', 'wp-whatsevolution'),
+            'connection' => __('Conexão', 'wp-whatsevolution'),
+            'help' => __('Ajuda', 'wp-whatsevolution'),
 		];
 
 		if (isset($_GET['connection'])) {
@@ -212,12 +212,12 @@ class Settings_Page {
 
 		// 🚀 NOVO: Mensagem de sucesso para restauração de configurações manuais
 		if (isset($_GET['restored']) && $_GET['restored'] === '1') {
-			echo '<div class="notice notice-success"><p>' . esc_html__('Configurações manuais restauradas com sucesso!', 'wp-whatsapp-evolution') . '</p></div>';
+            echo '<div class="notice notice-success"><p>' . esc_html__('Configurações manuais restauradas com sucesso!', 'wp-whatsevolution') . '</p></div>';
 		}
 
 		// 🚀 NOVO: Mensagem para ativação do modo manual
 		if (isset($_GET['manual_activated']) && $_GET['manual_activated'] === '1') {
-			echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__('Modo de configuração manual ativado. Você pode agora inserir suas próprias credenciais da API.', 'wp-whatsapp-evolution') . '</p></div>';
+            echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__('Modo de configuração manual ativado. Você pode agora inserir suas próprias credenciais da API.', 'wp-whatsevolution') . '</p></div>';
 		}
 		?>
 		<div class="wrap wpwevo-panel" style="max-width: none;">
@@ -428,8 +428,8 @@ class Settings_Page {
 											🔙 Restaurar configuração manual anterior
 										</a>
 									<?php endif; ?>
-									<a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&force_manual_mode=1'), 'wpwevo_force_manual')); ?>" 
-									   onclick="return confirm('<?php _e('Tem certeza que deseja mudar para o modo manual? Isso pode desconectar sua instância atual se não for reconfigurado corretamente.', 'wp-whatsapp-evolution'); ?>');"
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&force_manual_mode=1'), 'wpwevo_force_manual')); ?>" 
+                                   onclick="return confirm('<?php _e('Tem certeza que deseja mudar para o modo manual? Isso pode desconectar sua instância atual se não for reconfigurado corretamente.', 'wp-whatsevolution'); ?>');"
 									   style="color: #1d4ed8; font-size: 12px; text-decoration: underline;">
 										⚙️ Configurar manualmente
 									</a>
@@ -442,10 +442,10 @@ class Settings_Page {
 								<p style="margin: 0; color: #15803d; font-size: 14px;">
 									O plugin foi configurado automaticamente através da aba "Teste Grátis". As configurações abaixo não podem ser editadas.
 								</p>
-								 <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&force_manual_mode=1'), 'wpwevo_force_manual')); ?>" 
-								   onclick="return confirm('<?php _e('Tem certeza que deseja mudar para o modo manual? Isso pode desconectar sua instância atual se não for reconfigurado corretamente.', 'wp-whatsapp-evolution'); ?>');"
+                                 <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=wpwevo-settings&force_manual_mode=1'), 'wpwevo_force_manual')); ?>" 
+                                   onclick="return confirm('<?php _e('Tem certeza que deseja mudar para o modo manual? Isso pode desconectar sua instância atual se não for reconfigurado corretamente.', 'wp-whatsevolution'); ?>');"
 								   style="color: #1d4ed8; font-size: 12px; text-decoration: underline; margin-top: 10px; display: inline-block;">
-									<?php _e('Clique aqui para configurar manualmente', 'wp-whatsapp-evolution'); ?>
+                                    <?php _e('Clique aqui para configurar manualmente', 'wp-whatsevolution'); ?>
 								</a>
 							</div>
 						<?php endif; ?>

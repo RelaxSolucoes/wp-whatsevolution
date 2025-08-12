@@ -35,43 +35,45 @@ class Abandoned_Cart {
 		add_action('init', [$this, 'setup']);
 		add_action('admin_menu', [$this, 'add_submenu']);
 		add_action('woocommerce_init', [$this, 'track_cart']);
-		add_action('wpwevo_abandoned_cart_cron', [$this, 'process_abandoned_carts']);
+        // Removido: processamento via CRON desativado conforme decisão de enviar somente com a tela aberta
+        // add_action('wpwevo_abandoned_cart_cron', [$this, 'process_abandoned_carts']);
 		add_action('woocommerce_after_checkout_billing_form', [$this, 'add_phone_field']);
 		
 		// Registra o cron se não existir
-		if (!wp_next_scheduled('wpwevo_abandoned_cart_cron')) {
-			wp_schedule_event(time(), 'minute', 'wpwevo_abandoned_cart_cron');
-		}
+        // Removido o agendamento de cron: envio agora só ocorre com a tela aberta (não agenda cron)
+        // if (!wp_next_scheduled('wpwevo_abandoned_cart_cron')) {
+        //     wp_schedule_event(time(), 'every_5_minutes', 'wpwevo_abandoned_cart_cron');
+        // }
 	}
 
 	public function setup() {
-		$this->menu_title = __('Carrinho Abandonado', 'wp-whatsapp-evolution');
-		$this->page_title = __('Carrinho Abandonado', 'wp-whatsapp-evolution');
+        $this->menu_title = __('Carrinho Abandonado', 'wp-whatsevolution');
+        $this->page_title = __('Carrinho Abandonado', 'wp-whatsevolution');
 		
-		$this->i18n = [
-			'connection_error' => __('A conexão com o WhatsApp não está ativa. Verifique as configurações.', 'wp-whatsapp-evolution'),
-			'settings_saved' => __('Configurações salvas!', 'wp-whatsapp-evolution'),
+        $this->i18n = [
+            'connection_error' => __('A conexão com o WhatsApp não está ativa. Verifique as configurações.', 'wp-whatsevolution'),
+            'settings_saved' => __('Configurações salvas!', 'wp-whatsevolution'),
 			'variables' => [
-				'title' => __('Variáveis Disponíveis', 'wp-whatsapp-evolution'),
-				'customer_name' => __('Nome do cliente', 'wp-whatsapp-evolution'),
-				'cart_total' => __('Valor total do carrinho', 'wp-whatsapp-evolution'),
-				'cart_items' => __('Lista de produtos no carrinho', 'wp-whatsapp-evolution'),
-				'cart_url' => __('Link para recuperar o carrinho', 'wp-whatsapp-evolution')
+                'title' => __('Variáveis Disponíveis', 'wp-whatsevolution'),
+                'customer_name' => __('Nome do cliente', 'wp-whatsevolution'),
+                'cart_total' => __('Valor total do carrinho', 'wp-whatsevolution'),
+                'cart_items' => __('Lista de produtos no carrinho', 'wp-whatsevolution'),
+                'cart_url' => __('Link para recuperar o carrinho', 'wp-whatsevolution')
 			],
 			'form' => [
-				'enable_recovery' => __('Ativar Recuperação', 'wp-whatsapp-evolution'),
-				'enable_help' => __('Ative para enviar mensagens automáticas para carrinhos abandonados.', 'wp-whatsapp-evolution'),
-				'wait_time' => __('Tempo de Espera', 'wp-whatsapp-evolution'),
-				'wait_help' => __('minutos antes de considerar o carrinho abandonado', 'wp-whatsapp-evolution'),
-				'message' => __('Mensagem', 'wp-whatsapp-evolution'),
-				'message_placeholder' => __('Olá {customer_name}! Notamos que você deixou alguns produtos no carrinho...', 'wp-whatsapp-evolution'),
-				'message_help' => __('Mensagem que será enviada para recuperar o carrinho abandonado.', 'wp-whatsapp-evolution'),
-				'save_settings' => __('Salvar Configurações', 'wp-whatsapp-evolution')
+                'enable_recovery' => __('Ativar Recuperação', 'wp-whatsevolution'),
+                'enable_help' => __('Ative para enviar mensagens automáticas para carrinhos abandonados.', 'wp-whatsevolution'),
+                'wait_time' => __('Tempo de Espera', 'wp-whatsevolution'),
+                'wait_help' => __('minutos antes de considerar o carrinho abandonado', 'wp-whatsevolution'),
+                'message' => __('Mensagem', 'wp-whatsevolution'),
+                'message_placeholder' => __('Olá {customer_name}! Notamos que você deixou alguns produtos no carrinho...', 'wp-whatsevolution'),
+                'message_help' => __('Mensagem que será enviada para recuperar o carrinho abandonado.', 'wp-whatsevolution'),
+                'save_settings' => __('Salvar Configurações', 'wp-whatsevolution')
 			],
 			'stats' => [
-				'title' => __('Estatísticas', 'wp-whatsapp-evolution'),
-				'monitored_carts' => __('Carrinhos Monitorados', 'wp-whatsapp-evolution'),
-				'recovered_carts' => __('Carrinhos Recuperados', 'wp-whatsapp-evolution')
+                'title' => __('Estatísticas', 'wp-whatsevolution'),
+                'monitored_carts' => __('Carrinhos Monitorados', 'wp-whatsevolution'),
+                'recovered_carts' => __('Carrinhos Recuperados', 'wp-whatsevolution')
 			]
 		];
 	}

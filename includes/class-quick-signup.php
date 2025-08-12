@@ -46,8 +46,8 @@ class Quick_Signup {
 
 			$status_data = $this->get_sanitized_status_data();
 			
-			if (empty($status_data)) {
-				throw new \Exception(__('Dados de status ausentes ou em formato incorreto.', 'wp-whatsapp-evolution'));
+            if (empty($status_data)) {
+                throw new \Exception(__('Dados de status ausentes ou em formato incorreto.', 'wp-whatsevolution'));
 			}
 
 			$this->sync_status_to_options($status_data);
@@ -70,8 +70,8 @@ class Quick_Signup {
 	private function validate_ajax_request() {
 		check_ajax_referer('wpwevo_quick_signup', 'nonce');
 
-		if (!current_user_can('manage_options')) {
-			throw new \Exception(__('Permissão negada.', 'wp-whatsapp-evolution'));
+        if (!current_user_can('manage_options')) {
+            throw new \Exception(__('Permissão negada.', 'wp-whatsevolution'));
 		}
 	}
 
@@ -203,13 +203,13 @@ class Quick_Signup {
 	 */
 	private function get_messages() {
 		return [
-			'validating' => __('Validando dados...', 'wp-whatsapp-evolution'),
-			'creating_account' => __('Criando conta...', 'wp-whatsapp-evolution'),
-			'configuring_plugin' => __('Configurando plugin...', 'wp-whatsapp-evolution'),
-			'success' => __('Pronto! ✅', 'wp-whatsapp-evolution'),
-			'error' => __('Ops! Algo deu errado.', 'wp-whatsapp-evolution'),
-			'retry' => __('Tentar novamente', 'wp-whatsapp-evolution'),
-			'copied' => __('Copiado!', 'wp-whatsapp-evolution')
+            'validating' => __('Validando dados...', 'wp-whatsevolution'),
+            'creating_account' => __('Criando conta...', 'wp-whatsevolution'),
+            'configuring_plugin' => __('Configurando plugin...', 'wp-whatsevolution'),
+            'success' => __('Pronto! ✅', 'wp-whatsevolution'),
+            'error' => __('Ops! Algo deu errado.', 'wp-whatsevolution'),
+            'retry' => __('Tentar novamente', 'wp-whatsevolution'),
+            'copied' => __('Copiado!', 'wp-whatsevolution')
 		];
 	}
 
@@ -265,12 +265,12 @@ class Quick_Signup {
 	 * ✅ NOVO: Validar dados do formulário
 	 */
 	private function validate_form_data($form_data) {
-		if (empty($form_data['name']) || empty($form_data['email']) || empty($form_data['whatsapp'])) {
-			throw new \Exception(__('Todos os campos são obrigatórios.', 'wp-whatsapp-evolution'));
+        if (empty($form_data['name']) || empty($form_data['email']) || empty($form_data['whatsapp'])) {
+            throw new \Exception(__('Todos os campos são obrigatórios.', 'wp-whatsevolution'));
 		}
 
-		if (!is_email($form_data['email'])) {
-			throw new \Exception(__('Email inválido.', 'wp-whatsapp-evolution'));
+        if (!is_email($form_data['email'])) {
+            throw new \Exception(__('Email inválido.', 'wp-whatsevolution'));
 		}
 	}
 
@@ -302,7 +302,7 @@ class Quick_Signup {
 	 */
 	private function validate_edge_response($response) {
 		if ($response['success'] === false || !isset($response['data'])) {
-			$error_message = $response['message'] ?? __('Erro desconhecido ao criar conta.', 'wp-whatsapp-evolution');
+            $error_message = $response['message'] ?? __('Erro desconhecido ao criar conta.', 'wp-whatsevolution');
 			throw new \Exception($error_message);
 		}
 	}
@@ -436,8 +436,8 @@ class Quick_Signup {
 	 * ✅ NOVO: Validar API key
 	 */
 	private function validate_api_key($api_key) {
-		if (empty($api_key)) {
-			throw new \Exception(__('Plugin não configurado.', 'wp-whatsapp-evolution'));
+        if (empty($api_key)) {
+            throw new \Exception(__('Plugin não configurado.', 'wp-whatsevolution'));
 		}
 	}
 
@@ -445,8 +445,8 @@ class Quick_Signup {
 	 * ✅ NOVO: Validar resposta de status
 	 */
 	private function validate_status_response($response) {
-		if (!$response['success'] || !isset($response['data']['success']) || !$response['data']['success']) {
-			$error_message = $response['data']['error'] ?? $response['error'] ?? __('Erro ao verificar status.', 'wp-whatsapp-evolution');
+        if (!$response['success'] || !isset($response['data']['success']) || !$response['data']['success']) {
+            $error_message = $response['data']['error'] ?? $response['error'] ?? __('Erro ao verificar status.', 'wp-whatsevolution');
 			$this->log_error('Erro na resposta da Edge Function: ' . $error_message);
 			throw new \Exception($error_message);
 		}
@@ -539,11 +539,10 @@ class Quick_Signup {
 		$this->log_debug("URL: {$url}");
 		$this->log_debug("Body: {$body}");
 
-		$response = wp_remote_post($url, [
+        $response = wp_remote_post($url, [
 			'headers' => $headers,
 			'body' => $body,
-			'timeout' => $timeout,
-			'sslverify' => false
+            'timeout' => $timeout
 		]);
 
 		return $this->process_edge_response($response, $function_name);
@@ -575,10 +574,10 @@ class Quick_Signup {
 		}
 
 		if (json_last_error() !== JSON_ERROR_NONE) {
-			return [
-				'success' => false,
-				'error' => __('Resposta inválida do servidor.', 'wp-whatsapp-evolution')
-			];
+            return [
+                'success' => false,
+                'error' => __('Resposta inválida do servidor.', 'wp-whatsevolution')
+            ];
 		}
 
 		return [
@@ -592,7 +591,7 @@ class Quick_Signup {
 	 * ✅ NOVO: Tratar resposta de erro
 	 */
 	private function handle_error_response($status_code, $decoded_body, $body) {
-		$error_message = sprintf(__('Erro HTTP %d', 'wp-whatsapp-evolution'), $status_code);
+        $error_message = sprintf(__('Erro HTTP %d', 'wp-whatsevolution'), $status_code);
 		
 		if (isset($decoded_body['error'])) {
 			$error_message .= ': ' . $decoded_body['error'];
@@ -614,8 +613,8 @@ class Quick_Signup {
 		try {
 			$this->validate_ajax_request();
 
-			if (!self::is_auto_configured()) {
-				throw new \Exception(__('Apenas usuários do teste grátis podem fazer upgrade.', 'wp-whatsapp-evolution'));
+            if (!self::is_auto_configured()) {
+                throw new \Exception(__('Apenas usuários do teste grátis podem fazer upgrade.', 'wp-whatsevolution'));
 			}
 
 			$user_data = $this->get_user_data_for_payment();
@@ -670,9 +669,9 @@ class Quick_Signup {
 	 * ✅ NOVO: Validar dados do usuário
 	 */
 	private function validate_user_data($user_data) {
-		if (empty($user_data['user_id']) || empty($user_data['email']) || 
-			empty($user_data['name']) || empty($user_data['whatsapp'])) {
-			throw new \Exception(__('Dados do usuário não encontrados. Por favor, tente resetar a configuração de teste e refazer o onboarding.', 'wp-whatsapp-evolution'));
+        if (empty($user_data['user_id']) || empty($user_data['email']) || 
+            empty($user_data['name']) || empty($user_data['whatsapp'])) {
+            throw new \Exception(__('Dados do usuário não encontrados. Por favor, tente resetar a configuração de teste e refazer o onboarding.', 'wp-whatsevolution'));
 		}
 	}
 
@@ -746,15 +745,47 @@ class Quick_Signup {
 		$is_auto_configured = Quick_Signup::is_auto_configured();
 		$is_trial_expired = self::should_show_upgrade_modal();
 		$current_user_email = get_option('wpwevo_user_email', '');
-		
-		include WPWEVO_PATH . 'templates/quick-signup-form.php';
+        
+        $template = WPWEVO_PATH . 'templates/quick-signup-form.php';
+        if (file_exists($template)) {
+            include $template;
+            return;
+        }
+        // Fallback mínimo quando o template não está disponível
+        echo '<div class="wrap" style="max-width: 800px">';
+        echo '<h1 style="margin:16px 0">' . esc_html__('Onboarding - Quick Signup', 'wp-whatsevolution') . '</h1>';
+        echo '<p>' . esc_html__('O template de interface não foi encontrado. Exibindo formulário mínimo para continuar.', 'wp-whatsevolution') . '</p>';
+        echo '<form id="wpwevo-quick-signup" method="post" style="background:#fff;padding:16px;border:1px solid #e2e8f0;border-radius:6px">';
+        echo '<p><label>' . esc_html__('Nome', 'wp-whatsevolution') . '<br><input type="text" name="name" class="regular-text" required></label></p>';
+        echo '<p><label>' . esc_html__('Email', 'wp-whatsevolution') . '<br><input type="email" name="email" class="regular-text" value="' . esc_attr($current_user_email) . '" required></label></p>';
+        echo '<p><label>' . esc_html__('WhatsApp', 'wp-whatsevolution') . '<br><input type="text" name="whatsapp" class="regular-text" placeholder="5511999999999" required></label></p>';
+        echo '<p><button type="button" class="button button-primary" id="wpwevo-quick-signup-submit">' . esc_html__('Criar conta gratuita', 'wp-whatsevolution') . '</button></p>';
+        echo '</form>';
+        echo '<script>jQuery(function($){$("#wpwevo-quick-signup-submit").on("click",function(){var d={action:"wpwevo_quick_signup",nonce:"'+ wp_create_nonce('wpwevo_quick_signup') +'",name:$("[name=name]").val(),email:$("[name=email]").val(),whatsapp:$("[name=whatsapp]").val()};$.post(ajaxurl,d,function(r){alert(r && r.success?"OK":"Erro: "+(r&&r.data&&r.data.message?r.data.message:""));});});});</script>';
+        echo '</div>';
 	}
 
 	/**
 	 * ✅ MELHORADO: Renderizar view de status
 	 */
 	private function render_status_view() {
-		include WPWEVO_PATH . 'templates/quick-signup-status.php';
+        $template = WPWEVO_PATH . 'templates/quick-signup-status.php';
+        if (file_exists($template)) {
+            include $template;
+            return;
+        }
+        // Fallback mínimo quando o template não está disponível
+        $is_connected = false;
+        echo '<div class="wrap" style="max-width: 800px">';
+        echo '<h1 style="margin:16px 0">' . esc_html__('Status da Conexão', 'wp-whatsevolution') . '</h1>';
+        echo '<p>' . esc_html__('O template de status não foi encontrado. Exibindo painel mínimo.', 'wp-whatsevolution') . '</p>';
+        echo '<div style="background:#fff;padding:16px;border:1px solid #e2e8f0;border-radius:6px">';
+        echo '<p><strong>' . esc_html__('Conexão com WhatsApp:', 'wp-whatsevolution') . '</strong> ' . ($is_connected? '✅' : '⏳') . '</p>';
+        echo '<p><button class="button" id="wpwevo-request-qr">' . esc_html__('Solicitar QR Code', 'wp-whatsevolution') . '</button></p>';
+        echo '<div id="wpwevo-qr-area"></div>';
+        echo '</div>';
+        echo '<script>jQuery(function($){$("#wpwevo-request-qr").on("click",function(){var d={action:"wpwevo_request_qr_code",nonce:"'+ wp_create_nonce('wpwevo_quick_signup') +'"};$.post(ajaxurl,d,function(r){if(r&&r.success){$("#wpwevo-qr-area").text("QR OK");}else{alert("Erro: "+(r&&r.data&&r.data.message?r.data.message:""));}});});});</script>';
+        echo '</div>';
 	}
 
 	/**
@@ -792,8 +823,8 @@ class Quick_Signup {
 			$this->validate_api_key($api_key);
 
 			// Verifica se está no modo managed
-			if (get_option('wpwevo_connection_mode') !== 'managed') {
-				throw new \Exception(__('Apenas usuários do teste grátis podem usar esta funcionalidade.', 'wp-whatsapp-evolution'));
+        if (get_option('wpwevo_connection_mode') !== 'managed') {
+            throw new \Exception(__('Apenas usuários do teste grátis podem usar esta funcionalidade.', 'wp-whatsevolution'));
 			}
 
 			// ✅ CORREÇÃO: Usa a Edge Function plugin-status que já existe
@@ -812,8 +843,8 @@ class Quick_Signup {
 			$status_data = $response['data']['data'] ?? $response['data'];
 			
 			// Verifica se temos QR Code disponível
-			if (empty($status_data['qr_code_url']) && empty($status_data['qr_code'])) {
-				throw new \Exception(__('QR Code não disponível no momento. Tente novamente em alguns segundos.', 'wp-whatsapp-evolution'));
+            if (empty($status_data['qr_code_url']) && empty($status_data['qr_code'])) {
+                throw new \Exception(__('QR Code não disponível no momento. Tente novamente em alguns segundos.', 'wp-whatsevolution'));
 			}
 			
 			// Retorna os dados do QR Code

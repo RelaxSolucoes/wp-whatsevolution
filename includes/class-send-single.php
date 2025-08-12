@@ -19,16 +19,16 @@ class Send_Single {
 
 	private function __construct() {
 		// Define as propriedades ANTES dos hooks
-		$this->menu_title = __('Envio Único', 'wp-whatsapp-evolution');
-		$this->page_title = __('Envio Único', 'wp-whatsapp-evolution');
+        $this->menu_title = __('Envio Único', 'wp-whatsevolution');
+        $this->page_title = __('Envio Único', 'wp-whatsevolution');
 		
 		$this->i18n = [
-			'sending' => __('Enviando...', 'wp-whatsapp-evolution'),
-			'validating' => __('Validando...', 'wp-whatsapp-evolution'),
-			'success' => __('Mensagem enviada com sucesso!', 'wp-whatsapp-evolution'),
-			'error' => __('Erro ao enviar mensagem: ', 'wp-whatsapp-evolution'),
-			'invalidNumber' => __('Número inválido', 'wp-whatsapp-evolution'),
-			'validNumber' => __('Número válido', 'wp-whatsapp-evolution')
+            'sending' => __('Enviando...', 'wp-whatsevolution'),
+            'validating' => __('Validando...', 'wp-whatsevolution'),
+            'success' => __('Mensagem enviada com sucesso!', 'wp-whatsevolution'),
+            'error' => __('Erro ao enviar mensagem: ', 'wp-whatsevolution'),
+            'invalidNumber' => __('Número inválido', 'wp-whatsevolution'),
+            'validNumber' => __('Número válido', 'wp-whatsevolution')
 		];
 
 		add_action('admin_menu', [$this, 'add_menu']);
@@ -270,14 +270,14 @@ Obrigado! 😊</pre>
 		check_ajax_referer('wpwevo_send_single', 'nonce');
 
 		if (!current_user_can('manage_options')) {
-			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
 		}
 
 		$number = isset($_POST['number']) ? sanitize_text_field($_POST['number']) : '';
 		$message = isset($_POST['message']) ? sanitize_textarea_field($_POST['message']) : '';
 
 		if (empty($number) || empty($message)) {
-			wp_send_json_error(__('Número e mensagem são obrigatórios.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Número e mensagem são obrigatórios.', 'wp-whatsevolution'));
 		}
 
 		// Processa as variáveis na mensagem
@@ -298,13 +298,13 @@ Obrigado! 😊</pre>
 		check_ajax_referer('wpwevo_validate_number', 'nonce');
 
 		if (!current_user_can('manage_options')) {
-			wp_send_json_error(__('Permissão negada.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
 		}
 
 		$number = isset($_POST['number']) ? sanitize_text_field($_POST['number']) : '';
 
 		if (empty($number)) {
-			wp_send_json_error(__('Número é obrigatório.', 'wp-whatsapp-evolution'));
+            wp_send_json_error(__('Número é obrigatório.', 'wp-whatsevolution'));
 		}
 
 		// Valida o número

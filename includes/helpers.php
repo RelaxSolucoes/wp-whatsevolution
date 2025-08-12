@@ -21,14 +21,13 @@ function wpwevo_check_instance() {
 			return false;
 		}
 		
-		$response = wp_remote_post('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/plugin-status', [
+        $response = wp_remote_post('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/plugin-status', [
 			'headers' => [
 				'Content-Type' => 'application/json',
 				'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
 			],
 			'body' => json_encode(['api_key' => $api_key]),
-			'timeout' => 10,
-			'sslverify' => false
+            'timeout' => 10
 		]);
 		
 		if (is_wp_error($response)) {
@@ -82,7 +81,7 @@ function wpwevo_send_message($number, $message) {
 		// Formata o número
 		$number = preg_replace('/[^0-9]/', '', $number);
 		
-		$response = wp_remote_post('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/send-message', [
+        $response = wp_remote_post('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/send-message', [
 			'headers' => [
 				'Content-Type' => 'application/json',
 				'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
@@ -92,8 +91,7 @@ function wpwevo_send_message($number, $message) {
 				'number' => $number,
 				'message' => $message
 			]),
-			'timeout' => 15,
-			'sslverify' => false
+            'timeout' => 15
 		]);
 		
 		if (is_wp_error($response)) {
