@@ -1,5 +1,23 @@
 # Changelog - WP WhatsEvolution
 
+## [1.3.2] - 2025-08-12
+### 🔧 Padronização, Compatibilidade e Estabilidade
+
+**I18n & Slug**
+* Padronizado o text domain para `wp-whatsevolution` em todo o plugin
+* Renomeado o arquivo principal para `wp-whatsevolution.php`
+
+**Execução & UX**
+* Removido o agendamento via CRON (envio ocorre apenas com a tela aberta)
+* Checkout: valida apenas campos de telefone (ignora CPF/CNPJ)
+* Compatibilidade com Cart Abandonment Recovery mantida sem exibir aviso ao usuário
+* Fallback para telas do Quick Signup quando templates não existirem
+
+**Traduções**
+* Geração automática do `.mo` a partir do `.po` quando ausente
+
+---
+
 ## [1.3.1] - 2025-01-27
 ### 🚀 Novas Funcionalidades e Correções
 

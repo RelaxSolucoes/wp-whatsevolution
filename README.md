@@ -1,8 +1,20 @@
-# WP WhatsEvolution v1.3.0
+# WP WhatsEvolution v1.3.2
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
-## 🆕 **NOVO na v1.3.0: Envio em Massa Reescrito do Zero!**
+## 🆕 **NOVO na v1.3.2: Padronização e Estabilidade**
+
+### 🔧 Padronizações e Melhorias
+- **I18n**: Text domain padronizado para `wp-whatsevolution`
+- **Arquivo Principal**: Renomeado para `wp-whatsevolution.php`
+- **Checkout**: Validação apenas de telefone (CPF/CNPJ ignorados)
+- **Compatibilidade**: Cart Abandonment Recovery silenciosa (sem aviso na UI)
+- **Templates**: Fallback automático quando ausentes (Quick Signup)
+- **Traduções**: Geração automática de `.mo` quando faltar
+
+---
+
+## 🆕 **Destaques da v1.3.0: Envio em Massa Reescrito do Zero!**
 
 ### ✨ **Revolução do Envio em Massa**
 - **📊 Interface Intuitiva** - Abas organizadas (WooCommerce, CSV, Manual)
