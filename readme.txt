@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,6 +15,11 @@ Integração completa com WooCommerce usando Evolution API. Envio automático pa
 🚀 **WP WhatsEvolution** é o plugin mais completo para integração de mensagens com WooCommerce usando a poderosa Evolution API.
 
 ### ✨ Funcionalidades Principais
+
+**🤖 Integração com Agentes de IA (n8n)**
+* Conecte fluxos do n8n para gerar mensagens dinâmicas com IA
+* Use dados do WooCommerce como contexto para respostas
+* Ideal para suporte, upsell e recuperação
 
 **🛒 Carrinho Abandonado (NOVO!)**
 * Integração automática com plugin "WooCommerce Cart Abandonment Recovery"
@@ -110,6 +115,11 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
+= 1.4.0 - 2025-08-12 =
+*   **NOVO**: Integração com agentes de IA do n8n para automações conversacionais
+*   Suporte a mensagens dinâmicas com contexto do WooCommerce
+*   Documentação atualizada (README e exemplos)
+
 = 1.3.2 - 2025-08-12 =
 *   Padronização completa do text domain para `wp-whatsevolution`
 *   Renomeio do arquivo principal para `wp-whatsevolution.php`
@@ -171,6 +181,9 @@ Sim, 100% gratuito e open source.
 *   I18n: Adicionada a tradução para Português do Brasil.
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Esta versão adiciona integração com agentes de IA do n8n para fluxos conversacionais e mensagens dinâmicas com contexto do WooCommerce. Recomendamos a atualização para aproveitar as novas automações de IA.
 
 = 1.3.1 =
 Esta versão adiciona o sistema automático de notas nos pedidos, garantindo rastreabilidade completa de todas as mensagens enviadas. Recomendamos a atualização para ter acesso ao novo sistema de auditoria e as correções de bugs implementadas.

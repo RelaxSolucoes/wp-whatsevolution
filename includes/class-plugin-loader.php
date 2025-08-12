@@ -41,6 +41,7 @@ class Plugin_Loader {
 		Bulk_Sender::init();
 		Checkout_Validator::init();
 		Quick_Signup::init();
+		AI_Agent::init();
 	}
 
 	public function activate() {

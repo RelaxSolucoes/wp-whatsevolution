@@ -1,6 +1,15 @@
-# WP WhatsEvolution v1.3.2
+# WP WhatsEvolution v1.4.0
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
+
+## 🆕 **NOVO na v1.4.0: Integração com Agentes de IA do n8n**
+
+### 🤖 Integração n8n (AI Agents)
+- Conecte fluxos do n8n para gerar e refinar mensagens com IA
+- Use dados do WooCommerce (pedidos, clientes, carrinho) como contexto
+- Ideal para suporte, upsell, recuperação e fluxos conversacionais
+
+---
 
 ## 🆕 **NOVO na v1.3.2: Padronização e Estabilidade**
 

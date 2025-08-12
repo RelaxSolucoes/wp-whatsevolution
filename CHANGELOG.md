@@ -1,5 +1,16 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.0] - 2025-08-12
+### 🤖 Integração com Agentes de IA do n8n
+
+**Novidades**
+* Integração com agentes de IA do n8n para automações conversacionais
+* Mensagens dinâmicas com contexto do WooCommerce (pedidos e clientes)
+
+**Outros**
+* Documentação atualizada (`README.md`, `readme.txt`)
+* Pequenas melhorias e ajustes de estabilidade
+
 ## [1.3.2] - 2025-08-12
 ### 🔧 Padronização, Compatibilidade e Estabilidade
 
