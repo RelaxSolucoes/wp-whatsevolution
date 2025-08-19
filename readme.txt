@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -31,6 +31,7 @@ Integração completa com WooCommerce usando Evolution API. Envio automático pa
 * Configure mensagens automáticas para qualquer status (processando, concluído, etc)
 * Templates personalizados para cada status
 * Suporte a shortcodes dinâmicos (nome, valor, produtos, etc)
+* **NOVO**: Sistema inteligente de fallback para endereços de envio
 
 **📱 Envio Individual**
 * Envie mensagens para clientes específicos
@@ -40,6 +41,8 @@ Integração completa com WooCommerce usando Evolution API. Envio automático pa
 **📢 Envio em Massa**
 * Envie para múltiplos clientes simultaneamente
 * Filtros por pedidos, produtos, datas
+* **NOVO**: Sistema de variáveis dinâmicas por aba
+* **NOVO**: Interface melhorada com variáveis sempre visíveis
 * Controle de velocidade e logs completos
 
 **✅ Validação no Checkout**
@@ -81,6 +84,23 @@ O sistema intercepta automaticamente os carrinhos abandonados e envia mensagens 
 * `{coupon_code}` - Código do cupom
 * E muito mais!
 
+### 🆕 Novidades da Versão 1.4.1
+
+**🐛 Correções Críticas:**
+* **Submenus funcionando**: Corrigido problema de submenus ausentes
+* **Variáveis dinâmicas**: Sistema robusto de exibição por aba
+* **Fallback inteligente**: Endereços de envio sempre funcionam
+
+**🚀 Melhorias de Interface:**
+* Variáveis WooCommerce sempre visíveis por padrão
+* Sistema de fallback para sessionStorage
+* Interface mais intuitiva e responsiva
+
+**⚡ Performance:**
+* Código otimizado e organizado
+* Melhor compatibilidade com WordPress
+* Suporte completo a HPOS (WooCommerce)
+
 == Instalação ==
 
 1. Faça upload do plugin para `/wp-content/plugins/`
@@ -115,19 +135,22 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
-= 1.4.0 - 2025-08-12 =
-*   **NOVO**: Integração com agentes de IA do n8n para automações conversacionais
-*   Suporte a mensagens dinâmicas com contexto do WooCommerce
-*   Documentação atualizada (README e exemplos)
+= 1.4.1 =
+* **CORREÇÃO CRÍTICA**: Submenus agora funcionam perfeitamente
+* **NOVO**: Sistema de variáveis dinâmicas por aba no envio em massa
+* **NOVO**: Fallback inteligente para endereços de envio
+* **MELHORIA**: Interface mais intuitiva e responsiva
+* **CORREÇÃO**: Propriedades de menu definidas corretamente
+* **OTIMIZAÇÃO**: Código reorganizado e otimizado
+* **COMPATIBILIDADE**: Suporte completo a HPOS WooCommerce
 
-= 1.3.2 - 2025-08-12 =
-*   Padronização completa do text domain para `wp-whatsevolution`
-*   Renomeio do arquivo principal para `wp-whatsevolution.php`
-*   Remoção do agendamento CRON (envio apenas com tela aberta)
-*   Validação de checkout agora ignora CPF/CNPJ e foca apenas em telefone
-*   Compatibilidade com Cart Abandonment Recovery sem exibir aviso ao usuário
-*   Fallback para telas de Quick Signup quando templates não existirem
-*   Geração automática de arquivo .mo se ausente
+= 1.4.0 =
+* Integração com Agentes de IA (n8n)
+* Sistema de Carrinho Abandonado
+* Envio por Status de Pedido
+* Envio Individual e em Massa
+* Validação no Checkout
+* Interface moderna e responsiva
 
 = 1.3.1 - 2025-01-27 =
 *   **NOVO**: Sistema automático de adição de notas nos pedidos ao enviar mensagens de WhatsApp
@@ -138,47 +161,12 @@ Sim, 100% gratuito e open source.
 *   **Otimização**: Melhorias de performance no sistema de envio de mensagens
 *   **Compatibilidade**: Garantida compatibilidade total com WooCommerce 8.0+
 
-= 1.3.0 - 2024-06-21 =
-*   **REVOLUÇÃO NO ENVIO EM MASSA**: A funcionalidade de Envio em Massa foi completamente reconstruída do zero para ser mais poderosa, intuitiva e à prova de falhas.
-*   **Melhoria - Interface de Importação CSV Inteligente:** A tela de importação de CSV agora é visualmente clara, com uma tabela de exemplo que elimina a confusão entre colunas e vírgulas.
-*   **Melhoria - Robustez do CSV:** O sistema agora detecta automaticamente se o separador é vírgula (,) ou ponto e vírgula (;), garantindo compatibilidade com Excel de diferentes regiões. Também corrige problemas de codificação de caracteres (acentos).
-*   **Melhoria - Personalização com Variáveis:** Agora é possível usar `{customer_name}` e `{customer_phone}` em mensagens para contatos importados via CSV. Para clientes WooCommerce, a lista de variáveis foi expandida.
-*   **Melhoria - UI Dinâmica:** A seção "Variáveis Disponíveis" agora é inteligente e mostra apenas as variáveis que se aplicam à aba selecionada (WooCommerce, CSV ou Manual).
-*   **Melhoria - Relatórios de Erro Detalhados:** As mensagens de erro agora são específicas, informando exatamente qual número falhou e por quê (ex: "Formato inválido").
-*   **Correção:** Inúmeros bugs de lógica e validação foram corrigidos, garantindo que cada aba (WooCommerce, CSV, Manual) funcione de forma independente e correta.
-*   **Correção:** Resolvido o problema no download do arquivo de exemplo, que agora é gerado em um formato 100% compatível com Excel (incluindo o BOM para UTF-8).
-
-= 1.2.8 =
-*   Fix: Corrigido o problema do seletor de mensagem no envio em massa.
-
-= 1.2.7 =
-*   Fix: Removidos arquivos de teste e logs desnecessários.
-
-= 1.2.6 =
-*   Fix: Corrigido o problema dos submenus que não apareciam.
-
-= 1.2.5 =
-*   Fix: Corrigido o problema de fallback de endereço de entrega.
-
-= 1.2.4 =
-*   Fix: Corrigido o problema da barra de progresso no envio em massa.
-
-= 1.2.3 =
-*   Fix: Melhorias na interface do envio em massa.
-
-= 1.2.2 =
-*   Fix: Correção na validação de números de telefone.
-
-= 1.2.1 =
-*   Fix: Correção no trigger de amostra do abandono de carrinho.
-
-= 1.2.0 =
-*   Feature: Adicionado o sistema de signup rápido.
-*   Feature: Adicionado o sistema de status do plugin.
-*   Feature: Adicionado o sistema de checagem de atualizações.
-*   Fix: Melhorias gerais de performance e usabilidade.
-*   Fix: Correção de bugs menores.
-*   I18n: Adicionada a tradução para Português do Brasil.
+1. Dashboard principal com todas as funcionalidades
+2. Configuração da Evolution API
+3. Sistema de Carrinho Abandonado
+4. Envio por Status de Pedido
+5. Interface de Envio em Massa
+6. Validação no Checkout
 
 == Upgrade Notice ==
 

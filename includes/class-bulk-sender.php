@@ -191,7 +191,7 @@ class Bulk_Sender {
 								</a>
 							</nav>
 
-					<div class="wpwevo-tab-content active" id="tab-customers">
+							<div class="wpwevo-tab-content active" id="tab-customers">
 						<table class="form-table">
 							<tr>
 								<th scope="row"><?php echo esc_html($this->i18n['form']['order_status']); ?></th>
@@ -334,7 +334,7 @@ class Bulk_Sender {
 						<div id="wpwevo-customers-preview"></div>
 					</div>
 
-					<div class="wpwevo-tab-content" id="tab-csv">
+							<div class="wpwevo-tab-content" id="tab-csv">
 						<table class="form-table">
 							<tr>
 								<th scope="row">Arquivo CSV</th>
@@ -388,7 +388,7 @@ class Bulk_Sender {
 						</table>
 					</div>
 
-					<div class="wpwevo-tab-content" id="tab-manual">
+							<div class="wpwevo-tab-content" id="tab-manual">
 						<table class="form-table">
 							<tr>
 								<th scope="row"><?php echo esc_html($this->i18n['form']['number_list']); ?></th>
@@ -409,6 +409,87 @@ class Bulk_Sender {
 										  rows="4" required
 										  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
 										  placeholder="Digite sua mensagem aqui..."></textarea>
+								
+								<!-- Variáveis Disponíveis -->
+								<div style="margin-top: 15px; padding: 15px; background: #f0fff4; border-radius: 8px; border-left: 4px solid #48bb78;">
+									<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px; display: flex; align-items: center;">
+										<span style="margin-right: 8px;">🏷️</span> Variáveis Disponíveis
+									</h4>
+									<p style="margin: 0 0 12px 0; color: #4a5568; font-size: 12px;">Copie e cole as variáveis nas mensagens:</p>
+									
+									<!-- Aba Clientes WooCommerce -->
+									<div id="wpwevo-variables-woo" class="wpwevo-variables-section" style="display: block;">
+										<div style="margin-bottom: 8px; padding: 6px 10px; background: #e6fffa; border-radius: 4px; border-left: 3px solid #319795;">
+											<small style="color: #2c7a7b; font-weight: 600;">🛒 Clientes WooCommerce</small>
+										</div>
+										<div style="display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+											<?php 
+											$woo_variables = [
+												'{customer_name}' => 'Nome do cliente',
+												'{customer_phone}' => 'Telefone do cliente',
+												'{order_id}' => 'ID do pedido',
+												'{order_total}' => 'Total do pedido',
+												'{billing_first_name}' => 'Nome de cobrança',
+												'{billing_last_name}' => 'Sobrenome de cobrança',
+												'{shipping_method}' => 'Método de envio',
+												'{last_order_date}' => 'Data do último pedido'
+											];
+											
+											foreach ($woo_variables as $var => $desc) : ?>
+												<div style="background: #e6fffa; padding: 8px; border-radius: 6px; border: 1px solid #b2f5ea;">
+													<div style="margin-bottom: 4px;">
+														<code style="background: #319795; color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; user-select: all; cursor: text;"><?php echo esc_html($var); ?></code>
+													</div>
+													<div style="color: #2d3748; font-size: 11px; line-height: 1.3; user-select: none;"><?php echo esc_html($desc); ?></div>
+												</div>
+											<?php endforeach; ?>
+										</div>
+									</div>
+									
+									<!-- Aba CSV -->
+									<div id="wpwevo-variables-csv" class="wpwevo-variables-section" style="display: none;">
+										<div style="margin-bottom: 8px; padding: 6px 10px; background: #e6fffa; border-radius: 4px; border-left: 3px solid #319795;">
+											<small style="color: #2c7a7b; font-weight: 600;">📄 Importação CSV</small>
+										</div>
+										<div style="display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+											<?php 
+											$csv_variables = [
+												'{nome}' => 'Nome do contato',
+												'{name}' => 'Nome do contato (alternativo)',
+												'{customer_name}' => 'Nome do cliente',
+												'{customer_phone}' => 'Telefone do cliente'
+											];
+											
+											foreach ($csv_variables as $var => $desc) : ?>
+												<div style="background: #e6fffa; padding: 8px; border-radius: 6px; border: 1px solid #b2f5ea;">
+													<div style="margin-bottom: 4px;">
+														<code style="background: #319795; color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; user-select: all; cursor: text;"><?php echo esc_html($var); ?></code>
+													</div>
+													<div style="color: #2d3748; font-size: 11px; line-height: 1.3; user-select: none;"><?php echo esc_html($desc); ?></div>
+												</div>
+											<?php endforeach; ?>
+										</div>
+									</div>
+									
+									<!-- Aba Manual -->
+									<div id="wpwevo-variables-manual" class="wpwevo-variables-section" style="display: none;">
+										<div style="background: #fff5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #f56565;">
+											<p style="margin: 0; color: #c53030; font-size: 12px; text-align: center;">
+												⚠️ <strong>Lista Manual:</strong> Variáveis não se aplicam. Use apenas texto fixo.
+											</p>
+										</div>
+									</div>
+									
+									<!-- Dicas de Uso -->
+									<div style="margin-top: 12px; padding: 10px; background: #fef5e7; border-radius: 6px; border-left: 4px solid #ed8936;">
+										<h5 style="margin: 0 0 6px 0; color: #2d3748; font-size: 12px;">💡 Dicas:</h5>
+										<ul style="margin: 0; padding-left: 15px; color: #744210; font-size: 11px; line-height: 1.3;">
+											<li>Use emojis para tornar as mensagens mais atrativas</li>
+											<li>Personalize conforme seu tipo de negócio</li>
+											<li>Teste as mensagens antes de enviar em massa</li>
+										</ul>
+									</div>
+								</div>
 							</div>
 
 						<!-- Configurações de Envio -->
@@ -1236,10 +1317,12 @@ class Bulk_Sender {
 			/** @var \WC_Order $order */
 			$order = $contact_data['order'];
 			$replacements['{order_id}'] = $order->get_id();
-			$replacements['{order_total}'] = $order->get_formatted_order_total();
+			$replacements['{order_total}'] = html_entity_decode(strip_tags(wc_price($order->get_total())));
+			$replacements['{order_status}'] = wc_get_order_status_name($order->get_status());
 			$replacements['{billing_first_name}'] = $order->get_billing_first_name();
 			$replacements['{billing_last_name}'] = $order->get_billing_last_name();
 			$replacements['{shipping_method}'] = $order->get_shipping_method();
+			$replacements['{last_order_date}'] = date_i18n('d/m/Y', strtotime($order->get_date_created()));
 		}
 
 		// **NOVO: Adiciona placeholders específicos para CSV**

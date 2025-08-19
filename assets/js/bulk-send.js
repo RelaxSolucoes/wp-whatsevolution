@@ -34,8 +34,8 @@ jQuery(document).ready(function($) {
             $('#tab-' + tab).addClass('active');
             
             // **NOVO: Troca a exibição das variáveis dinamicamente**
-            $('.wpwevo-variables').hide();
-            $('.wpwevo-variables[data-source="' + tab + '"]').show();
+            $('.wpwevo-variables-section').hide();
+            $('#wpwevo-variables-' + tab).show();
 
             // Armazena a aba ativa na sessão
             if (typeof(Storage) !== "undefined") {
@@ -43,14 +43,39 @@ jQuery(document).ready(function($) {
             }
         });
 
+        // **CORRIGIDO: Garante que as variáveis WooCommerce sejam exibidas por padrão**
+        // Primeiro, esconde todas as seções de variáveis
+        $('.wpwevo-variables-section').hide();
+        
         // Restaura a última aba ativa ao carregar a página
         if (typeof(Storage) !== "undefined") {
             var lastTab = sessionStorage.getItem('wpwevo_bulk_send_active_tab');
             if (lastTab) {
                 // Simula o clique para acionar toda a lógica, incluindo a troca de variáveis
                 $('.wpwevo-tab-button[data-tab="' + lastTab + '"]').trigger('click');
+            } else {
+                // Se não há aba salva, mostra as variáveis da aba WooCommerce por padrão
+                $('#wpwevo-variables-woo').show();
+                console.log('Variáveis WooCommerce exibidas por padrão');
             }
+        } else {
+            // Se não há suporte a sessionStorage, mostra as variáveis WooCommerce por padrão
+            $('#wpwevo-variables-woo').show();
+            console.log('Variáveis WooCommerce exibidas por padrão (sem sessionStorage)');
         }
+        
+        // **GARANTIA EXTRA: Verifica se a aba customers está ativa e mostra as variáveis WooCommerce**
+        setTimeout(function() {
+            if ($('#tab-customers').hasClass('active')) {
+                $('#wpwevo-variables-woo').show();
+                console.log('Garantia extra: Variáveis WooCommerce exibidas para aba customers ativa');
+            }
+        }, 100);
+    }
+
+    // **REMOVIDO: Funcionalidade de variáveis clicáveis - agora é copy/paste simples**
+    function initVariables() {
+        // Função vazia - variáveis agora funcionam por copy/paste
     }
 
     // **NOVO: Processamento de arquivo CSV**
@@ -494,6 +519,11 @@ jQuery(document).ready(function($) {
     initCsvProcessing();
     initHistoryActions();
     updateHistory(); // Carrega o histórico inicial
+    
+    // **NOVO: Inicializa as variáveis clicáveis após um pequeno delay para garantir que o DOM esteja pronto**
+    setTimeout(() => {
+        initVariables();
+    }, 100);
 
     function updateHistory() {
         $.ajax({

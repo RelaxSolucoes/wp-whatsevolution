@@ -1,6 +1,26 @@
-# WP WhatsEvolution v1.4.0
+# WP WhatsEvolution v1.4.1
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
+
+## 🆕 **NOVO na v1.4.1: Correções Críticas e Melhorias Significativas**
+
+### 🐛 **Correções Críticas Implementadas**
+- **✅ Submenus Funcionando**: Corrigido problema de submenus ausentes que afetava toda a navegação
+- **✅ Variáveis Dinâmicas**: Sistema robusto de exibição por aba no envio em massa
+- **✅ Fallback Inteligente**: Endereços de envio sempre funcionam, mesmo com configurações WooCommerce complexas
+
+### 🚀 **Melhorias de Interface e Performance**
+- **🎨 Interface Intuitiva**: Variáveis WooCommerce sempre visíveis por padrão
+- **⚡ Sistema Robusto**: Fallbacks múltiplos para sessionStorage e compatibilidade
+- **🔧 Código Otimizado**: Reorganização completa seguindo boas práticas WordPress
+- **📱 Responsividade**: Interface moderna e adaptável a todos os dispositivos
+
+### 🏗️ **Arquitetura WordPress Corrigida**
+- **⏰ Timing dos Hooks**: Propriedades de menu definidas ANTES dos hooks WordPress
+- **🔗 Compatibilidade HPOS**: Suporte completo ao novo sistema de pedidos WooCommerce
+- **📚 Boas Práticas**: Código seguindo padrões WordPress e PHP modernos
+
+---
 
 ## 🆕 **NOVO na v1.4.0: Integração com Agentes de IA do n8n**
 

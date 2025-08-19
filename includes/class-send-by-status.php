@@ -216,22 +216,55 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 		$shipping_address_full = implode(', ', $shipping_address_parts);
 
 		$variables = [
+			// Cliente/Customer
 			'{customer_name}' => $order->get_billing_first_name(),
+			'{customer_email}' => $order->get_billing_email(),
+			'{customer_phone}' => $order->get_billing_phone(),
+			
+			// Pedido/Order
 			'{order_id}' => $order->get_order_number(),
+			'{order_status}' => wc_get_order_status_name($order->get_status()),
 			'{order_total}' => $total,
+			'{order_date}' => date_i18n('d/m/Y', strtotime($order->get_date_created())),
 			'{payment_method}' => $order->get_payment_method_title(),
 			'{shipping_method}' => $order->get_shipping_method(),
 			'{order_url}' => $order->get_view_order_url(),
 			'{payment_url}' => $order->get_checkout_payment_url(),
+			
+			// Produtos
 			'{first_product}' => $first_product,
 			'{all_products}' => implode(', ', $all_products),
+			
+			// Dados de Cobrança
+			'{billing_first_name}' => $order->get_billing_first_name(),
+			'{billing_last_name}' => $order->get_billing_last_name(),
+			'{billing_company}' => $order->get_billing_company(),
+			'{billing_address_line_1}' => $order->get_billing_address_1(),
+			'{billing_address_line_2}' => $order->get_billing_address_2(),
+			'{billing_city}' => $order->get_billing_city(),
+			'{billing_state}' => $order->get_billing_state(),
+			'{billing_postcode}' => $order->get_billing_postcode(),
+			'{billing_country}' => $order->get_billing_country(),
+			'{billing_address_full}' => implode(', ', array_filter([
+				$order->get_billing_address_1(),
+				$order->get_billing_city(),
+				$order->get_billing_state(),
+				$order->get_billing_postcode()
+			])),
+			
+			// Dados de Envio
 			'{shipping_name}' => $shipping_name,
+			'{shipping_company}' => $order->get_shipping_company(),
 			'{shipping_address_line_1}' => $shipping_address_1,
 			'{shipping_address_line_2}' => $order->get_shipping_address_2(),
 			'{shipping_city}' => $shipping_city,
 			'{shipping_state}' => $shipping_state,
-			'{shipping_postcode}' => $shipping_postcode,
-			'{shipping_address_full}' => $shipping_address_full
+			'{shipping_postcode}' => $order->get_shipping_postcode(),
+			'{shipping_country}' => $order->get_shipping_country(),
+			'{shipping_address_full}' => $shipping_address_full,
+			
+			// Data do último pedido (alias para order_date)
+			'{last_order_date}' => date_i18n('d/m/Y', strtotime($order->get_date_created()))
 		];
 
 		foreach ($variables as $key => $value) {
@@ -434,43 +467,63 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 							<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Variáveis Disponíveis</h3>
 						</div>
 						
-						<p style="color: #4a5568; font-size: 14px; margin-bottom: 15px;">📝 Clique nas variáveis para adicioná-las na mensagem:</p>
+						<p style="color: #4a5568; font-size: 14px; margin-bottom: 15px;">📝 Copie e cole as variáveis nas mensagens:</p>
 						
 						<div style="display: grid; gap: 8px;">
 							<?php 
 							$variables = [
+								// Cliente/Customer
 								'{customer_name}' => 'Nome do cliente',
+								'{customer_email}' => 'Email do cliente',
+								'{customer_phone}' => 'Telefone do cliente',
+								
+								// Pedido/Order
 								'{order_id}' => 'Número do pedido',
+								'{order_status}' => 'Status do pedido',
 								'{order_total}' => 'Valor total do pedido',
+								'{order_date}' => 'Data do pedido',
 								'{payment_method}' => 'Método de pagamento',
 								'{shipping_method}' => 'Método de envio',
 								'{order_url}' => 'URL do pedido',
 								'{payment_url}' => 'URL de pagamento',
+								
+								// Produtos
 								'{first_product}' => 'Primeiro produto',
 								'{all_products}' => 'Todos os produtos',
+								
+								// Dados de Cobrança
+								'{billing_first_name}' => 'Nome de cobrança',
+								'{billing_last_name}' => 'Sobrenome de cobrança',
+								'{billing_company}' => 'Empresa de cobrança',
+								'{billing_address_line_1}' => 'Endereço cobrança linha 1',
+								'{billing_address_line_2}' => 'Endereço cobrança linha 2',
+								'{billing_city}' => 'Cidade de cobrança',
+								'{billing_state}' => 'Estado de cobrança',
+								'{billing_postcode}' => 'CEP de cobrança',
+								'{billing_country}' => 'País de cobrança',
+								'{billing_address_full}' => 'Endereço completo de cobrança',
+								
+								// Dados de Envio
 								'{shipping_name}' => 'Nome destinatário',
-								'{shipping_address_line_1}' => 'Endereço linha 1 (com número)',
-								'{shipping_address_line_2}' => 'Endereço linha 2',
-								'{shipping_address_full}' => 'Endereço completo de entrega',
+								'{shipping_company}' => 'Empresa de envio',
+								'{shipping_address_line_1}' => 'Endereço entrega linha 1',
+								'{shipping_address_line_2}' => 'Endereço entrega linha 2',
 								'{shipping_city}' => 'Cidade de entrega',
 								'{shipping_state}' => 'Estado de entrega',
 								'{shipping_postcode}' => 'CEP de entrega',
-								'{billing_address_line_1}' => 'Endereço cobrança linha 1',
-								'{billing_address_line_2}' => 'Endereço cobrança linha 2',
-								'{billing_address_full}' => 'Endereço completo de cobrança',
-								'{billing_city}' => 'Cidade de cobrança',
-								'{billing_state}' => 'Estado de cobrança',
-								'{billing_postcode}' => 'CEP de cobrança'
+								'{shipping_country}' => 'País de entrega',
+								'{shipping_address_full}' => 'Endereço completo de entrega',
+								
+								// Data (compatibilidade)
+								'{last_order_date}' => 'Data do último pedido'
 							];
 							
 							foreach ($variables as $var => $desc) : ?>
-								<div class="wpwevo-variable" 
-									 data-variable="<?php echo esc_attr($var); ?>"
-									 style="background: #e6fffa; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #b2f5ea; transition: all 0.2s;" 
-									 onmouseover="this.style.background='#b2f5ea'; this.style.transform='translateY(-1px)'" 
-									 onmouseout="this.style.background='#e6fffa'; this.style.transform='translateY(0)'">
-									<code class="wpwevo-variable-code" style="background: #319795; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; margin-right: 8px;"><?php echo esc_html($var); ?></code>
-									<span style="color: #2d3748; font-size: 12px;"><?php echo esc_html($desc); ?></span>
+								<div style="background: #e6fffa; padding: 10px; border-radius: 6px; border: 1px solid #b2f5ea;">
+									<div style="margin-bottom: 4px;">
+										<code style="background: #319795; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; user-select: all; cursor: text;"><?php echo esc_html($var); ?></code>
+									</div>
+									<div style="color: #2d3748; font-size: 12px; line-height: 1.3; user-select: none;"><?php echo esc_html($desc); ?></div>
 								</div>
 							<?php endforeach; ?>
 						</div>
@@ -502,15 +555,17 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px;">📝 Template</h4>
 							<pre style="background: #2d3748; color: #e2e8f0; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; line-height: 1.4; margin: 0; white-space: pre-wrap;">Olá {customer_name}, seu pedido #{order_id} foi aprovado e já estamos preparando tudo para o envio via {shipping_method}. 
 
+Data do pedido: {last_order_date}
 Endereço: {shipping_address_full}
 
 Valor: {order_total}
-🎯 {order_url}</pre>
+�� {order_url}</pre>
 						</div>
 						<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #fcb69f;">
 							<h4 style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px;">📲 Resultado Final</h4>
 							<div style="background: #25d366; color: white; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.4; font-family: system-ui;">
 								Olá João Silva, seu pedido #12345 foi aprovado e já estamos preparando tudo para o envio via PAC.<br><br>
+								Data do pedido: 15/12/2024<br><br>
 								Endereço: Rua das Flores, 123, São Paulo-SP<br><br>
 								Valor: R$ 150,00<br>
 								🎯 https://seusite.com.br/pedido/12345
@@ -593,7 +648,8 @@ Valor: {order_total}
 				'{shipping_address_line_2}',
 				'{shipping_city}',
 				'{shipping_state}',
-				'{shipping_postcode}'
+				'{shipping_postcode}',
+				'{last_order_date}'
 			],
 			[
 				'João Silva',
@@ -607,7 +663,8 @@ Valor: {order_total}
 				'Apto 45',
 				'São Paulo',
 				'SP',
-				'01234-567'
+				'01234-567',
+				'15/12/2024'
 			],
 			$message
 		);

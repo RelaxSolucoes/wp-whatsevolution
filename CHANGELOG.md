@@ -1,5 +1,35 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.1] - 2025-01-27
+### 🐛 Correções Críticas e Melhorias Significativas
+
+**🔧 Correções Críticas**
+* **CORREÇÃO CRÍTICA**: Submenus agora funcionam perfeitamente em todas as funcionalidades
+* **CORREÇÃO**: Propriedades de menu definidas corretamente no timing dos hooks WordPress
+* **CORREÇÃO**: Sistema de variáveis dinâmicas funcionando por aba no envio em massa
+
+**🚀 Novas Funcionalidades**
+* **NOVO**: Sistema inteligente de fallback para endereços de envio
+* **NOVO**: Variáveis WooCommerce sempre visíveis por padrão
+* **NOVO**: Sistema robusto de fallbacks para sessionStorage e compatibilidade
+
+**⚡ Melhorias de Performance**
+* **OTIMIZAÇÃO**: Código reorganizado seguindo boas práticas WordPress
+* **OTIMIZAÇÃO**: Interface mais intuitiva e responsiva
+* **COMPATIBILIDADE**: Suporte completo a HPOS (WooCommerce Custom Order Tables)
+
+**📱 Melhorias de Interface**
+* Interface de envio em massa com variáveis dinâmicas por aba
+* Sistema de fallback para garantir que variáveis sejam sempre exibidas
+* Melhor organização visual e responsividade
+
+**🏗️ Arquitetura**
+* Propriedades de menu movidas para `__construct()` ANTES dos hooks
+* Sistema de hooks WordPress corrigido e otimizado
+* Código seguindo padrões modernos de desenvolvimento
+
+---
+
 ## [1.4.0] - 2025-08-12
 ### 🤖 Integração com Agentes de IA do n8n
 
@@ -10,6 +40,8 @@
 **Outros**
 * Documentação atualizada (`README.md`, `readme.txt`)
 * Pequenas melhorias e ajustes de estabilidade
+
+---
 
 ## [1.3.2] - 2025-08-12
 ### 🔧 Padronização, Compatibilidade e Estabilidade
