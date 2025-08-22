@@ -508,12 +508,20 @@ class Settings_Page {
 							<span class="spinner"></span>
 						</div>
 						
-						<?php if ($connection_status): ?>
-							<div style="margin-top: 15px; padding: 12px; border-radius: 8px; background: <?php echo $connection_status['success'] ? '#d4edda' : '#f8d7da'; ?>; border: 1px solid <?php echo $connection_status['success'] ? '#c3e6cb' : '#f5c6cb'; ?>; color: <?php echo $connection_status['success'] ? '#155724' : '#721c24'; ?>;">
-								<span style="font-size: 16px; margin-right: 8px;"><?php echo $connection_status['success'] ? '✅' : '❌'; ?></span>
-								<?php echo esc_html($connection_status['message']); ?>
-							</div>
-						<?php endif; ?>
+										<?php if ($connection_status): ?>
+					<div style="margin-top: 15px; padding: 12px; border-radius: 8px; background: <?php echo $connection_status['success'] ? '#d4edda' : '#f8d7da'; ?>; border: 1px solid <?php echo $connection_status['success'] ? '#c3e6cb' : '#f5c6cb'; ?>; color: <?php echo $connection_status['success'] ? '#155724' : '#721c24'; ?>;">
+						<span style="font-size: 16px; margin-right: 8px;"><?php echo $connection_status['success'] ? '✅' : '❌'; ?></span>
+						<?php echo esc_html($connection_status['message']); ?>
+					</div>
+					
+					<?php if ($connection_status['success'] && isset($connection_status['api_version']) && !$connection_status['api_version']['is_v2']): ?>
+						<div style="margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff3cd; border: 1px solid #ffc107; color: #856404;">
+							<span style="font-size: 16px; margin-right: 8px;">⚠️</span>
+							<strong>ATENÇÃO:</strong> NOSSO PLUGIN NÃO É COMPATÍVEL com Evolution API V1 (versão <?php echo esc_html($connection_status['api_version']['version']); ?>). 
+							Atualize para a V2 para garantir funcionamento completo.
+						</div>
+					<?php endif; ?>
+				<?php endif; ?>
 						
 						<div id="wpwevo-validation-result" style="display: none; margin-top: 15px;"></div>
 					</form>

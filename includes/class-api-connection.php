@@ -68,6 +68,51 @@ class Api_Connection {
     }
 
     /**
+     * Verifica a versão da Evolution API (apenas modo manual)
+     */
+    public function check_api_version() {
+        if (empty($this->api_url)) {
+            return null;
+        }
+
+        // Constrói a URL base da API
+        $url = rtrim($this->api_url, '/') . '/';
+
+        $args = [
+            'headers' => [
+                'Content-Type' => 'application/json'
+            ],
+            'timeout' => 15
+        ];
+
+        $response = wp_remote_get($url, $args);
+
+        if (is_wp_error($response)) {
+            return null;
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        if ($status_code !== 200) {
+            return null;
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (!is_array($data) || !isset($data['version'])) {
+            return null;
+        }
+
+        $version = $data['version'];
+        $is_v2 = version_compare($version, '2.0.0', '>=');
+
+        return [
+            'version' => $version,
+            'is_v2' => $is_v2
+        ];
+    }
+
+    /**
      * Verifica o estado da conexão da instância
      */
     public function check_connection() {
@@ -169,10 +214,17 @@ class Api_Connection {
             'default' => __('Estado desconhecido da instância.', 'wp-whatsevolution')
         ];
 
+        // Verifica a versão da API apenas se a conexão foi bem-sucedida
+        $api_version = null;
+        if ($is_connected) {
+            $api_version = $this->check_api_version();
+        }
+
         return [
             'success' => $is_connected,
             'message' => $state_messages[$state] ?? $state_messages['default'],
-            'state' => $state
+            'state' => $state,
+            'api_version' => $api_version
         ];
     }
 

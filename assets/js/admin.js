@@ -33,6 +33,14 @@ jQuery(document).ready(function($) {
                 if (typeof response === 'object') {
                     isSuccess = response.success;
                     message = response.data ? response.data.message || response.message : response.message;
+                    
+                    // Adiciona aviso de versão se for V1
+                    if (response.data && response.data.connection_status && response.data.connection_status.api_version) {
+                        const apiVersion = response.data.connection_status.api_version;
+                        if (!apiVersion.is_v2) {
+                            message += `\n\n⚠️ ATENÇÃO: NOSSO PLUGIN NÃO É COMPATÍVEL com Evolution API V1 (versão ${apiVersion.version}). Atualize para a V2 para garantir funcionamento completo.`;
+                        }
+                    }
                 } else {
                     message = wpwevo_admin.error_message;
                 }

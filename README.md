@@ -88,6 +88,23 @@ O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagen
 - **Custo**: Zero (usa sua Evolution API)
 - **Ideal para**: Quem já tem Evolution API configurada
 
+## 🔍 **Compatibilidade de Versões da Evolution API**
+
+### ✅ **Versões Suportadas**
+- **Evolution API V2.x.x**: ✅ **Totalmente compatível** - Todas as funcionalidades funcionam perfeitamente
+- **Evolution API V1.x.x**: ⚠️ **Compatibilidade limitada** - Sistema funciona mas com avisos de incompatibilidade
+
+### 🚨 **Avisos Automáticos**
+- **Detecção Inteligente**: Sistema verifica automaticamente a versão da sua API
+- **Avisos Visuais**: Interface mostra claramente quando há incompatibilidade
+- **Recomendações**: Orientações para atualização quando necessário
+
+### 📱 **Como Funciona**
+1. **Configuração**: Insira URL, API Key e Nome da Instância
+2. **Verificação**: Sistema testa conexão e verifica versão automaticamente
+3. **Feedback**: Interface mostra status e avisos de compatibilidade
+4. **Ação**: Atualize para V2 se necessário ou continue usando V1 com limitações
+
 ---
 
 ## 🚀 **Quick Signup - Comece em 30 Segundos**

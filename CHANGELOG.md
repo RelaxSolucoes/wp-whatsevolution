@@ -1,6 +1,26 @@
 # Changelog - WP WhatsEvolution
 
 ## [1.4.1] - 2025-01-27
+
+### ✨ Novas Funcionalidades
+- **Detecção Automática de Versão da Evolution API**: Sistema agora verifica automaticamente a versão da Evolution API configurada
+- **Validação de Compatibilidade**: Detecta se a API é V2.x.x (compatível) ou V1.x.x (pode ter problemas)
+- **Avisos Inteligentes**: Mostra avisos apropriados baseados na versão detectada da API
+
+### 🔧 Melhorias
+- **Verificação de Versão**: Antes de testar conexão da instância, verifica a versão da API via endpoint raiz
+- **Interface Informativa**: Exibe versão da API e status de compatibilidade na página de configurações
+- **Avisos Visuais**: Cards de aviso sobre compatibilidade de versões da Evolution API
+
+### 🐛 Correções
+- **Compatibilidade V1**: Sistema continua funcionando com V1.x.x mas mostra avisos apropriados
+- **Validação Robusta**: Verificação de versão apenas quando conexão da instância é bem-sucedida
+- **Modo Managed**: Funcionalidade não afeta o modo de configuração automática
+
+### 📚 Documentação
+- **Guia de Compatibilidade**: Documentação sobre versões suportadas da Evolution API
+- **Avisos de Incompatibilidade**: Explicação sobre mensagens de aviso para versões V1
+
 ### 🐛 Correções Críticas e Melhorias Significativas
 
 **🔧 Correções Críticas**
