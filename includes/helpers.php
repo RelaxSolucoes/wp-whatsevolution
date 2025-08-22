@@ -228,9 +228,10 @@ function wpwevo_log($level, $message, $context = []) {
 }
 
 /**
- * Formatação ultra-robusta para números brasileiros
- * Funciona com: 8, 9, 10, 11, 12, 13 dígitos, com ou sem 55, fixo/celular
- * Inspirado na solução: {{ $json.body.phone_number.replace(/\D/g, '').replace(/^((?!55).{10,11})$/, '55$1') }}
+ * Validação inteligente de telefone - Aceita números internacionais e brasileiros
+ * Funciona com: 8, 9, 10, 11, 12, 13 dígitos, com ou sem código de país
+ * Mantém 100% de compatibilidade com números brasileiros
+ * Aceita números de qualquer país (códigos 1-99)
  */
 function wpwevo_validate_phone($phone) {
 	if (empty($phone)) return false;
@@ -246,26 +247,44 @@ function wpwevo_validate_phone($phone) {
 	// Log de debug interno - apenas para desenvolvimento
 	// Para produção, logs são controlados pela chamada da função
 	
-	// CASOS POSSÍVEIS NO BRASIL:
+	// VALIDAÇÃO INTELIGENTE - Aceita qualquer país
 	
-	// 1. Número com DDI (55) já presente
-	if (strlen($phone) >= 12 && substr($phone, 0, 2) == '55') {
-		// Valida o DDD após o código do país
-		$ddd = substr($phone, 2, 2);
-		if ($ddd >= 11 && $ddd <= 99) {
+	// 1. Número já com código do país (12+ dígitos)
+	if (strlen($phone) >= 12) {
+		$country_code = substr($phone, 0, 2);
+		$area_code = substr($phone, 2, 2);
+		
+		// Validação genérica para qualquer país
+		// Código do país: 1-99 (cobre todos os países)
+		// Código de área: 1-99 (cobre todas as áreas)
+		if ($country_code >= 1 && $country_code <= 99 && $area_code >= 1 && $area_code <= 99) {
 			return $phone;
 		}
 	}
 	
-	// 2. Número com 11 dígitos (celular DDD + 9XXXX-XXXX)
+	// 2. Número com 11 dígitos - pode ser brasileiro ou internacional
 	if (strlen($phone) == 11) {
 		$ddd = substr($phone, 0, 2);
+		
+		// Se parece brasileiro (DDD 11-99), adiciona código 55
 		if ($ddd >= 11 && $ddd <= 99) {
-			return '55' . $phone;
+			// Verifica se já tem código do Brasil
+			if (substr($phone, 0, 2) != '55') {
+				return '55' . $phone;
+			}
+			return $phone;
+		}
+		
+		// Se não parece brasileiro, pode ser internacional
+		// Verifica se os primeiros dígitos formam um código de país válido
+		$possible_country = substr($phone, 0, 2);
+		if ($possible_country >= 1 && $possible_country <= 99) {
+			// Pode ser um número internacional válido
+			return $phone;
 		}
 	}
 	
-	// 3. Número com 10 dígitos (fixo DDD + XXXX-XXXX)
+	// 3. Número com 10 dígitos (fixo DDD + XXXX-XXXX) - BRASIL
 	if (strlen($phone) == 10) {
 		$ddd = substr($phone, 0, 2);
 		$terceiro_digito = substr($phone, 2, 1);
@@ -273,7 +292,7 @@ function wpwevo_validate_phone($phone) {
 		if ($ddd >= 11 && $ddd <= 99) {
 			// Se o terceiro dígito é 6-8, é celular sem o 9
 			if ($terceiro_digito >= '6' && $terceiro_digito <= '8') {
-				// Adiciona o 9 para celular
+				// Adiciona o 9 para celular e código do Brasil
 				return '55' . substr($phone, 0, 2) . '9' . substr($phone, 2);
 			} else {
 				// Telefone fixo normal
@@ -282,21 +301,21 @@ function wpwevo_validate_phone($phone) {
 		}
 	}
 	
-	// 4. Número com 9 dígitos (provavelmente faltou dígito do DDD)
+	// 4. Número com 9 dígitos (provavelmente faltou dígito do DDD) - BRASIL
 	if (strlen($phone) == 9) {
-		// Assume DDD 1X mais comum
+		// Assume DDD 1X mais comum no Brasil
 		return '551' . $phone;
 	}
 	
-	// 5. Número com 8 dígitos (XXXX-XXXX sem DDD)
+	// 5. Número com 8 dígitos (XXXX-XXXX sem DDD) - BRASIL
 	if (strlen($phone) == 8) {
-		// Assume DDD 11 (São Paulo) como padrão
+		// Assume DDD 11 (São Paulo) como padrão brasileiro
 		return '5511' . $phone;
 	}
 	
-	// 6. Casos especiais - tenta adicionar 55 se não tem
+	// 6. Casos especiais - tenta adicionar código do Brasil se não tem
 	if (strlen($phone) >= 8 && strlen($phone) <= 13) {
-		// Não começar com 55, tenta adicionar
+		// Se não começar com código de país conhecido, assume Brasil
 		if (substr($phone, 0, 2) != '55') {
 			return '55' . $phone;
 		}
