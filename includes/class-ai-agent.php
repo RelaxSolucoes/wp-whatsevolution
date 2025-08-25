@@ -23,6 +23,8 @@ class AI_Agent {
 
         // Frontend
         add_action('wp_enqueue_scripts', [$this, 'conditionally_enqueue_front_assets']);
+        
+
 
         // AJAX proxy (logged and guest)
         add_action('wp_ajax_wpwevo_ai_proxy', [$this, 'handle_ai_proxy']);
@@ -39,6 +41,8 @@ class AI_Agent {
             delete_option('wpwevo_ai_footer_text');
         }
     }
+    
+
 
     public function register_settings() {
         // Modalidade do chat (AI Agent ou Chat Simples)
@@ -59,7 +63,7 @@ class AI_Agent {
         register_setting('wpwevo_ai_agent', 'wpwevo_ai_auto_inject_chat', [
             'type' => 'boolean',
             'sanitize_callback' => function ($val) { return (bool)$val; },
-            'default' => false
+            'default' => true
         ]);
 
         register_setting('wpwevo_ai_agent', 'wpwevo_ai_welcome_message', [
@@ -131,7 +135,7 @@ class AI_Agent {
      * Retorna as respostas padrão para o chat simples
      */
     private function get_default_simple_responses() {
-        return json_encode([
+        $responses = [
             [
                 'keywords' => ['oi', 'olá', 'ola', 'hey', 'hi', 'hello', 'bom dia', 'boa tarde', 'boa noite'],
                 'response' => 'Olá! 👋 Como posso ajudar você hoje?'
@@ -152,7 +156,9 @@ class AI_Agent {
                 'keywords' => ['entrega', 'frete', 'envio', 'prazo'],
                 'response' => 'Oferecemos diferentes opções de entrega! 🚚 Qual é sua localização?'
             ]
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        ];
+        
+        return json_encode($responses, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
     public function render_settings_page() {
@@ -295,206 +301,387 @@ class AI_Agent {
                 <?php settings_fields('wpwevo_ai_agent'); ?>
                 <input type="hidden" name="wpwevo_ai_mode" id="wpwevo_ai_mode" value="<?php echo esc_attr($mode); ?>" />
                 <div style="display: grid; gap: 16px;">
-                    <div class="ai-agent-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px;">
-                        <label style="display:block; font-weight: 600; margin-bottom: 6px;">
-                            🌐 <?php echo esc_html(__('Webhook do n8n', 'wp-whatsevolution')); ?>
-                        </label>
-                        <textarea id="wpwevo-ai-webhook-url" name="wpwevo_ai_webhook_url" rows="1" placeholder="https://seu-n8n/webhook/ID"><?php echo esc_textarea($webhook); ?></textarea>
-                        <script>
-                        document.addEventListener('DOMContentLoaded', function(){
-                            const ta = document.getElementById('wpwevo-ai-webhook-url');
-                            if(!ta) return;
-                            const adjust = ()=>{ ta.style.height='auto'; ta.style.height=Math.max(40, ta.scrollHeight)+'px'; };
-                            adjust();
-                            ta.addEventListener('input', adjust);
-                            ta.addEventListener('paste', ()=> setTimeout(adjust, 10));
-                        });
-                        </script>
-                        <p style="margin:8px 0 0 0; color:#4a5568; font-size:12px;">
-                            <?php echo esc_html(__('URL pública do webhook que recebe as mensagens do widget/formulário.', 'wp-whatsevolution')); ?>
+                    
+                    <!-- ===== SEÇÃO: CONFIGURAÇÕES GERAIS DO WIDGET (SEMPRE VISÍVEL) ===== -->
+                    <div style="background: #f0f9ff; padding: 20px; border-left: 4px solid #0ea5e9; border-radius: 8px;">
+                        <h3 style="margin: 0 0 16px 0; color: #0369a1;">⚙️ <?php echo esc_html(__('Configurações Gerais do Widget', 'wp-whatsevolution')); ?></h3>
+                        <p style="margin: 0 0 16px 0; color: #0369a1; font-size: 14px;">
+                            <?php echo esc_html(__('Estas configurações se aplicam a ambas as modalidades (Chat Simples e Agente de IA).', 'wp-whatsevolution')); ?>
                         </p>
-                    </div>
-
-                    <div style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px;">
-                        <label style="display:block; font-weight: 600; margin-bottom: 6px;">
-                            💬 <?php echo esc_html(__('Mensagem de boas-vindas', 'wp-whatsevolution')); ?>
-                        </label>
-                        <textarea name="wpwevo_ai_welcome_message" rows="2" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical;" placeholder="<?php echo esc_attr(__('Olá! 👋 Como posso ajudar hoje?', 'wp-whatsevolution')); ?>"><?php echo esc_textarea($welcome); ?></textarea>
-                    </div>
-
-                    <div style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px; display:grid; gap:10px;">
-                        <div>
-                            <label style="display:block; font-weight: 600; margin-bottom: 6px;">🧩 <?php echo esc_html(__('Textos do Widget', 'wp-whatsevolution')); ?></label>
-                        </div>
-                        <div style="display:grid; gap:10px; grid-template-columns:1fr 1fr;">
+                        
+                        <div style="display: grid; gap: 16px;">
+                            <!-- Mensagem de boas-vindas -->
                             <div>
-                                <small style="display:block; color:#4a5568; margin-bottom:4px;">Título</small>
-                                <input type="text" name="wpwevo_ai_title" value="<?php echo esc_attr($title); ?>" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                <label style="display:block; font-weight: 600; margin-bottom: 6px;">
+                                    💬 <?php echo esc_html(__('Mensagem de boas-vindas', 'wp-whatsevolution')); ?>
+                                </label>
+                                <textarea name="wpwevo_ai_welcome_message" rows="2" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical;" placeholder="<?php echo esc_attr(__('Olá! 👋 Como posso ajudar hoje?', 'wp-whatsevolution')); ?>"><?php echo esc_textarea($welcome); ?></textarea>
                             </div>
+
+                            <!-- Textos do Widget -->
+                            <div style="display:grid; gap:10px;">
+                                <label style="display:block; font-weight: 600; margin-bottom: 6px;">🧩 <?php echo esc_html(__('Textos do Widget', 'wp-whatsevolution')); ?></label>
+                                <div style="display:grid; gap:10px; grid-template-columns:1fr 1fr;">
+                                    <div>
+                                        <small style="display:block; color:#4a5568; margin-bottom:4px;">Título</small>
+                                        <input type="text" name="wpwevo_ai_title" value="<?php echo esc_attr($title); ?>" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                    </div>
+                                    <div>
+                                        <small style="display:block; color:#4a5568; margin-bottom:4px;">Botão "New conversation"</small>
+                                        <input type="text" name="wpwevo_ai_get_started" value="<?php echo esc_attr($get_started); ?>" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                    </div>
+                                </div>
+                                <div>
+                                    <small style="display:block; color:#4a5568; margin-bottom:4px;">Subtítulo</small>
+                                    <textarea name="wpwevo_ai_subtitle" rows="2" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical;"><?php echo esc_textarea($subtitle); ?></textarea>
+                                </div>
+                                <div>
+                                    <small style="display:block; color:#4a5568; margin-bottom:4px;">Placeholder do input</small>
+                                    <input type="text" name="wpwevo_ai_input_placeholder" value="<?php echo esc_attr($input_ph); ?>" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                </div>
+                            </div>
+
+                            <!-- Cor do Widget -->
                             <div>
-                                <small style="display:block; color:#4a5568; margin-bottom:4px;">Botão “New conversation”</small>
-                                <input type="text" name="wpwevo_ai_get_started" value="<?php echo esc_attr($get_started); ?>" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                <label style="display:block; font-weight:600;">🎨 <?php echo esc_html(__('Cor do Widget', 'wp-whatsevolution')); ?> <span style="font-weight:400; color:#64748b;">(<?php echo esc_html(__('opcional', 'wp-whatsevolution')); ?>)</span></label>
+                                <?php $custom_color = get_option('wpwevo_ai_primary_color',''); ?>
+                                <input type="color" name="wpwevo_ai_primary_color" value="<?php echo esc_attr($custom_color); ?>" style="width:56px; height:36px; padding:0; border: none; background: transparent;" />
+                                <small style="color:#64748b;"><?php echo esc_html(__('Deixe em branco para usar o padrão do n8n.', 'wp-whatsevolution')); ?></small>
+                            </div>
+
+                            <!-- Injeção automática -->
+                            <div style="display:flex; gap: 10px; align-items:center;">
+                                <input type="checkbox" id="wpwevo_ai_auto_inject_chat" name="wpwevo_ai_auto_inject_chat" value="1" <?php checked($auto_inject, true); ?> />
+                                <label for="wpwevo_ai_auto_inject_chat" style="margin:0;"><?php echo esc_html(__('Injetar o widget de chat automaticamente no site (footer)', 'wp-whatsevolution')); ?></label>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- ===== SEÇÃO: AGENTE DE IA (SÓ QUANDO SELECIONADO) ===== -->
+                    <div class="ai-agent-section" style="background: #fef3c7; padding: 20px; border-left: 4px solid #f59e0b; border-radius: 8px;">
+                        <h3 style="margin: 0 0 16px 0; color: #92400e;">🤖 <?php echo esc_html(__('Configurações do Agente de IA', 'wp-whatsevolution')); ?></h3>
+                        <p style="margin: 0 0 16px 0; color: #92400e; font-size: 14px;">
+                            <?php echo esc_html(__('Configurações específicas para integração com n8n e respostas inteligentes.', 'wp-whatsevolution')); ?>
+                        </p>
+                        
+                        <!-- Webhook do n8n -->
                         <div>
-                            <small style="display:block; color:#4a5568; margin-bottom:4px;">Subtítulo</small>
-                            <textarea name="wpwevo_ai_subtitle" rows="2" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical;"><?php echo esc_textarea($subtitle); ?></textarea>
-                        </div>
-                        <div>
-                            <small style="display:block; color:#4a5568; margin-bottom:4px;">Placeholder do input</small>
-                            <input type="text" name="wpwevo_ai_input_placeholder" value="<?php echo esc_attr($input_ph); ?>" style="width:100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                        </div>
-                        <!-- Rodapé opcional removido a pedido do usuário -->
-                    </div>
-
-                    <div class="ai-agent-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px; display:flex; gap: 10px; align-items:center;">
-                        <input type="checkbox" id="wpwevo_ai_auto_inject_chat" name="wpwevo_ai_auto_inject_chat" value="1" <?php checked($auto_inject, true); ?> />
-                        <label for="wpwevo_ai_auto_inject_chat" style="margin:0;"><?php echo esc_html(__('Injetar o widget de chat automaticamente no site (footer)', 'wp-whatsevolution')); ?></label>
-                    </div>
-
-                    <div class="ai-agent-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px; display:grid; gap:10px;">
-                        <label style="display:block; font-weight:600;">🎨 <?php echo esc_html(__('Cor do Widget', 'wp-whatsevolution')); ?> <span style="font-weight:400; color:#64748b;">(<?php echo esc_html(__('opcional', 'wp-whatsevolution')); ?>)</span></label>
-                        <?php $custom_color = get_option('wpwevo_ai_primary_color',''); ?>
-                        <input type="color" name="wpwevo_ai_primary_color" value="<?php echo esc_attr($custom_color); ?>" style="width:56px; height:36px; padding:0; border: none; background: transparent;" />
-                        <small style="color:#4a5568;"><?php echo esc_html(__('Deixe em branco para usar o padrão do n8n.', 'wp-whatsevolution')); ?></small>
-                    </div>
-
-                    <!-- Seções do Chat Simples -->
-                    <div class="simple-chat-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #10b981; border-radius: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <label style="display:block; font-weight: 600; margin: 0;">
-                                💬 <?php echo esc_html(__('Respostas do Chat Simples', 'wp-whatsevolution')); ?>
+                            <label style="display:block; font-weight: 600; margin-bottom: 6px;">
+                                🌐 <?php echo esc_html(__('Webhook do n8n', 'wp-whatsevolution')); ?>
                             </label>
-                            <button type="button" onclick="addResponseRow()" style="background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                                ➕ <?php echo esc_html(__('Adicionar Resposta', 'wp-whatsevolution')); ?>
-                            </button>
-                        </div>
-                        
-                        <div id="responses-container">
-                            <!-- As respostas serão carregadas aqui via JavaScript -->
-                        </div>
-                        
-                        <!-- Campo hidden para armazenar o JSON -->
-                        <textarea name="wpwevo_ai_simple_responses" id="wpwevo_ai_simple_responses" style="display: none;"><?php echo esc_textarea($simple_responses); ?></textarea>
-                        
-                        <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px;">
-                            <strong>💡 <?php echo esc_html(__('Como funciona:', 'wp-whatsevolution')); ?></strong>
-                            <p style="margin: 8px 0 0 0; color: #0369a1; font-size: 14px;">
-                                <?php echo esc_html(__('Digite palavras-chave separadas por vírgula. Quando alguém usar uma dessas palavras, receberá a resposta configurada.', 'wp-whatsevolution')); ?>
+                            <textarea id="wpwevo-ai-webhook-url" name="wpwevo_ai_webhook_url" rows="1" placeholder="https://seu-n8n/webhook/ID"><?php echo esc_textarea($webhook); ?></textarea>
+                            <script>
+                            document.addEventListener('DOMContentLoaded', function(){
+                                const ta = document.getElementById('wpwevo-ai-webhook-url');
+                                if(!ta) return;
+                                const adjust = ()=>{ ta.style.height='auto'; ta.style.height=Math.max(40, ta.scrollHeight)+'px'; };
+                                adjust();
+                                ta.addEventListener('input', adjust);
+                                ta.addEventListener('paste', ()=> setTimeout(adjust, 10));
+                            });
+                            </script>
+                            <p style="margin:8px 0 0 0; color:#92400e; font-size:12px;">
+                                <?php echo esc_html(__('URL pública do webhook que recebe as mensagens do widget/formulário.', 'wp-whatsevolution')); ?>
                             </p>
                         </div>
-                        
-                        <script>
-                        // Carregar respostas existentes
-                        document.addEventListener('DOMContentLoaded', function() {
-                            loadExistingResponses();
-                        });
-                        
-                        function loadExistingResponses() {
-                            const container = document.getElementById('responses-container');
-                            const responses = <?php echo $simple_responses; ?>;
-                            
-                            if (Array.isArray(responses) && responses.length > 0) {
-                                responses.forEach(response => {
-                                    addResponseRow(response.keywords, response.response);
-                                });
-                            } else {
-                                // Adicionar pelo menos uma linha vazia
-                                addResponseRow();
-                            }
-                        }
-                        
-                        function addResponseRow(keywords = '', response = '') {
-                            const container = document.getElementById('responses-container');
-                            const rowId = 'response-' + Date.now();
-                            
-                            const row = document.createElement('div');
-                            row.id = rowId;
-                            row.style.cssText = 'display: grid; gap: 12px; grid-template-columns: 1fr 1fr auto; align-items: start; padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;';
-                            
-                            row.innerHTML = `
-                                <div>
-                                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">
-                                        🔑 <?php echo esc_js(__('Palavras-chave', 'wp-whatsevolution')); ?>
-                                    </label>
-                                    <input type="text" 
-                                           class="response-keywords" 
-                                           value="${keywords}" 
-                                           placeholder="<?php echo esc_js(__('oi, olá, hello, bom dia', 'wp-whatsevolution')); ?>"
-                                           style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                                    <small style="color: #6b7280; font-size: 12px;">
-                                        <?php echo esc_js(__('Separe por vírgula', 'wp-whatsevolution')); ?>
-                                    </small>
-                                </div>
-                                <div>
-                                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">
-                                        💬 <?php echo esc_js(__('Resposta', 'wp-whatsevolution')); ?>
-                                    </label>
-                                    <textarea class="response-text" 
-                                              rows="3" 
-                                              placeholder="<?php echo esc_js(__('Olá! Como posso ajudar você hoje?', 'wp-whatsevolution')); ?>"
-                                              style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;">${response}</textarea>
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    <button type="button" onclick="removeResponseRow('${rowId}')" 
-                                            style="background: #ef4444; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; min-width: 60px;">
-                                        🗑️
-                                    </button>
-                                </div>
-                            `;
-                            
-                            container.appendChild(row);
-                            updateHiddenField();
-                        }
-                        
-                        function removeResponseRow(rowId) {
-                            const row = document.getElementById(rowId);
-                            if (row) {
-                                row.remove();
-                                updateHiddenField();
-                            }
-                        }
-                        
-                        function updateHiddenField() {
-                            const container = document.getElementById('responses-container');
-                            const rows = container.querySelectorAll('[id^="response-"]');
-                            const responses = [];
-                            
-                            rows.forEach(row => {
-                                const keywords = row.querySelector('.response-keywords').value.trim();
-                                const response = row.querySelector('.response-text').value.trim();
-                                
-                                if (keywords && response) {
-                                    const keywordsArray = keywords.split(',').map(k => k.trim()).filter(k => k);
-                                    responses.push({
-                                        keywords: keywordsArray,
-                                        response: response
-                                    });
-                                }
-                            });
-                            
-                            document.getElementById('wpwevo_ai_simple_responses').value = JSON.stringify(responses, null, 2);
-                        }
-                        
-                        // Atualizar campo hidden quando os inputs mudarem
-                        document.addEventListener('input', function(e) {
-                            if (e.target.classList.contains('response-keywords') || e.target.classList.contains('response-text')) {
-                                updateHiddenField();
-                            }
-                        });
-                        </script>
                     </div>
 
-                    <div class="simple-chat-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #10b981; border-radius: 8px;">
-                        <label style="display:block; font-weight: 600; margin-bottom: 6px;">
-                            🤔 <?php echo esc_html(__('Mensagem de Fallback', 'wp-whatsevolution')); ?>
-                        </label>
-                        <textarea name="wpwevo_ai_simple_fallback_message" rows="2" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical;" placeholder="<?php echo esc_attr(__('Mensagem quando não encontrar resposta para a pergunta...', 'wp-whatsevolution')); ?>"><?php echo esc_textarea($simple_fallback); ?></textarea>
-                        <p style="margin:8px 0 0 0; color:#4a5568; font-size:12px;">
-                            <?php echo esc_html(__('Esta mensagem será exibida quando o sistema não encontrar uma resposta adequada para a pergunta do usuário.', 'wp-whatsevolution')); ?>
+                    <!-- ===== SEÇÃO: CHAT SIMPLES (SÓ QUANDO SELECIONADO) ===== -->
+                    <div class="simple-chat-section" style="background: #f0fdf4; padding: 20px; border-left: 4px solid #10b981; border-radius: 8px;">
+                        <h3 style="margin: 0 0 16px 0; color: #065f46;">💬 <?php echo esc_html(__('Configurações do Chat Simples', 'wp-whatsevolution')); ?></h3>
+                        <p style="margin: 0 0 16px 0; color: #065f46; font-size: 14px;">
+                            <?php echo esc_html(__('Respostas locais pré-definidas sem dependências externas.', 'wp-whatsevolution')); ?>
                         </p>
+                        
+                        <!-- Respostas do Chat Simples -->
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <label style="display:block; font-weight: 600; margin: 0;">
+                                    💬 <?php echo esc_html(__('Respostas do Chat Simples', 'wp-whatsevolution')); ?>
+                                </label>
+                                <button type="button" onclick="addResponseRow()" style="background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                                    ➕ <?php echo esc_html(__('Adicionar Resposta', 'wp-whatsevolution')); ?>
+                                </button>
+                            </div>
+                            
+                            <div id="responses-container">
+                                <!-- As respostas serão carregadas aqui via JavaScript -->
+                            </div>
+                            
+                            <!-- Campo hidden para armazenar o JSON -->
+                            <textarea name="wpwevo_ai_simple_responses" id="wpwevo_ai_simple_responses" style="display: none;"><?php echo esc_textarea($simple_responses); ?></textarea>
+                            
+                            <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px;">
+                                <strong>💡 <?php echo esc_html(__('Como funciona:', 'wp-whatsevolution')); ?></strong>
+                                <p style="margin: 8px 0 0 0; color: #0369a1; font-size: 14px;">
+                                    <?php echo esc_html(__('Digite palavras-chave separadas por vírgula. Quando alguém usar uma dessas palavras, receberá a resposta configurada.', 'wp-whatsevolution')); ?>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Mensagem de Fallback -->
+                        <div>
+                            <label style="display:block; font-weight: 600; margin-bottom: 6px;">
+                                🤔 <?php echo esc_html(__('Mensagem de Fallback', 'wp-whatsevolution')); ?>
+                            </label>
+                            <textarea name="wpwevo_ai_simple_fallback_message" rows="2" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical;" placeholder="<?php echo esc_attr(__('Mensagem quando não encontrar resposta para a pergunta...', 'wp-whatsevolution')); ?>"><?php echo esc_textarea($simple_fallback); ?></textarea>
+                            <p style="margin:8px 0 0 0; color:#065f46; font-size:12px;">
+                                <?php echo esc_html(__('Esta mensagem será exibida quando o sistema não encontrar uma resposta adequada para a pergunta do usuário.', 'wp-whatsevolution')); ?>
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+                <script>
+                // Contador global para IDs únicos
+                let responseCounter = 0;
+                
+                // Carregar respostas existentes
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadExistingResponses();
+                });
+                
+                function loadExistingResponses() {
+                    const container = document.getElementById('responses-container');
+                    const responses = <?php echo $simple_responses; ?>;
+                    
+                    if (Array.isArray(responses) && responses.length > 0) {
+                        responses.forEach(response => {
+                            addResponseRow(response.keywords, response.response);
+                        });
+                    } else {
+                        // Adicionar pelo menos uma linha vazia
+                        addResponseRow();
+                    }
+                }
+                
+                function addResponseRow(keywords = '', response = '') {
+                    const container = document.getElementById('responses-container');
+                    // Usar contador + timestamp para garantir IDs únicos
+                    const rowId = 'response-' + (++responseCounter) + '-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    
+                    const row = document.createElement('div');
+                    row.id = rowId;
+                    row.style.cssText = 'display: grid; gap: 12px; grid-template-columns: 1fr 1fr auto; align-items: start; padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; transition: all 0.2s ease;';
+                    
+                    row.innerHTML = `
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">
+                                🔑 <?php echo esc_js(__('Palavras-chave', 'wp-whatsevolution')); ?>
+                            </label>
+                            <input type="text" 
+                                   class="response-keywords" 
+                                   value="${keywords}" 
+                                   placeholder="<?php echo esc_js(__('oi, olá, hello, bom dia', 'wp-whatsevolution')); ?>"
+                                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; transition: border-color 0.2s ease;">
+                            <small style="color: #6b7280; font-size: 12px;">
+                                <?php echo esc_js(__('Separe por vírgula', 'wp-whatsevolution')); ?>
+                            </small>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">
+                                💬 <?php echo esc_js(__('Resposta', 'wp-whatsevolution')); ?>
+                            </label>
+                            <textarea class="response-text" 
+                                      rows="3" 
+                                      placeholder="<?php echo esc_js(__('Olá! Como posso ajudar você hoje?', 'wp-whatsevolution')); ?>"
+                                      style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical; transition: border-color 0.2s ease;">${response}</textarea>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button type="button" onclick="removeResponseRow('${rowId}')" 
+                                    style="background: #ef4444; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; min-width: 60px; transition: all 0.2s ease;"
+                                    title="<?php echo esc_js(__('Excluir esta resposta', 'wp-whatsevolution')); ?>">
+                                🗑️
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(row);
+                    updateHiddenField();
+                    
+                    // Destacar linha nova
+                    if (!keywords && !response) {
+                        row.style.border = '2px solid #10b981';
+                        row.style.background = '#f0fdf4';
+                        setTimeout(() => {
+                            row.style.border = '1px solid #e2e8f0';
+                            row.style.background = '#fff';
+                        }, 2000);
+                    }
+                }
+                
+                function removeResponseRow(rowId) {
+                    const row = document.getElementById(rowId);
+                    if (row) {
+                        // Destacar a linha que será excluída
+                        row.style.border = '2px solid #ef4444';
+                        row.style.background = '#fef2f2';
+                        
+                        // Obter informações da resposta para confirmação
+                        const keywords = row.querySelector('.response-keywords').value.trim();
+                        const response = row.querySelector('.response-text').value.trim();
+                        const shortResponse = response.length > 50 ? response.substring(0, 50) + '...' : response;
+                        
+                        const confirmMessage = `Tem certeza que deseja excluir esta resposta?\n\n` +
+                            `🔑 Palavras-chave: ${keywords}\n` +
+                            `💬 Resposta: ${shortResponse}`;
+                        
+                        if (confirm(confirmMessage)) {
+                            row.remove();
+                            updateHiddenField();
+                        } else {
+                            // Restaurar estilo original se cancelar
+                            row.style.border = '1px solid #e2e8f0';
+                            row.style.background = '#fff';
+                        }
+                    } else {
+                        console.error('Linha não encontrada para exclusão:', rowId);
+                        alert('Erro: Linha não encontrada. Recarregue a página e tente novamente.');
+                    }
+                }
+                
+                function updateHiddenField() {
+                    const container = document.getElementById('responses-container');
+                    const rows = container.querySelectorAll('[id^="response-"]');
+                    const responses = [];
+                    
+                    rows.forEach(row => {
+                        const keywords = row.querySelector('.response-keywords').value.trim();
+                        const response = row.querySelector('.response-text').value.trim();
+                        
+                        if (keywords && response) {
+                            const keywordsArray = keywords.split(',').map(k => k.trim()).filter(k => k);
+                            responses.push({
+                                keywords: keywordsArray,
+                                response: response
+                            });
+                        }
+                    });
+                    
+                    // Atualizar campo hidden
+                    document.getElementById('wpwevo_ai_simple_responses').value = JSON.stringify(responses, null, 2);
+                    
+                    // Atualizar contador de respostas
+                    updateResponseCounter(responses.length);
+                }
+                
+                function updateResponseCounter(count) {
+                    // Procurar por elemento de contador existente ou criar um novo
+                    let counterEl = document.getElementById('response-counter');
+                    if (!counterEl) {
+                        const container = document.getElementById('responses-container');
+                        counterEl = document.createElement('div');
+                        counterEl.id = 'response-counter';
+                        counterEl.style.cssText = 'margin-bottom: 16px; padding: 8px 12px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px; font-size: 14px; color: #0369a1;';
+                        container.parentNode.insertBefore(counterEl, container);
+                    }
+                    
+                    if (count === 0) {
+                        counterEl.textContent = '📝 Nenhuma resposta configurada. Adicione pelo menos uma resposta.';
+                        counterEl.style.background = '#fef3c7';
+                        counterEl.style.borderColor = '#f59e0b';
+                        counterEl.style.color = '#92400e';
+                    } else if (count === 1) {
+                        counterEl.textContent = `📝 ${count} resposta configurada`;
+                        counterEl.style.background = '#f0f9ff';
+                        counterEl.style.borderColor = '#0ea5e9';
+                        counterEl.style.color = '#0369a1';
+                    } else {
+                        counterEl.textContent = `📝 ${count} respostas configuradas`;
+                        counterEl.style.background = '#f0f9ff';
+                        counterEl.style.borderColor = '#0ea5e9';
+                        counterEl.style.color = '#0369a1';
+                    }
+                }
+                
+                // Atualizar campo hidden quando os inputs mudarem
+                document.addEventListener('input', function(e) {
+                    if (e.target.classList.contains('response-keywords') || e.target.classList.contains('response-text')) {
+                        updateHiddenField();
+                        
+                        // Destacar campos vazios
+                        const row = e.target.closest('[id^="response-"]');
+                        if (row) {
+                            const keywords = row.querySelector('.response-keywords').value.trim();
+                            const response = row.querySelector('.response-text').value.trim();
+                            
+                            if (!keywords || !response) {
+                                row.style.border = '1px solid #f59e0b';
+                                row.style.background = '#fffbeb';
+                            } else {
+                                row.style.border = '1px solid #e2e8f0';
+                                row.style.background = '#fff';
+                            }
+                        }
+                    }
+                });
+                
+                // Destacar linha quando estiver em foco
+                document.addEventListener('focusin', function(e) {
+                    if (e.target.classList.contains('response-keywords') || e.target.classList.contains('response-text')) {
+                        const row = e.target.closest('[id^="response-"]');
+                        if (row) {
+                            row.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+                            row.style.border = '1px solid #10b981';
+                        }
+                    }
+                });
+                
+                document.addEventListener('focusout', function(e) {
+                    if (e.target.classList.contains('response-keywords') || e.target.classList.contains('response-text')) {
+                        const row = e.target.closest('[id^="response-"]');
+                        if (row) {
+                            row.style.boxShadow = 'none';
+                            const keywords = row.querySelector('.response-keywords').value.trim();
+                            const response = row.querySelector('.response-text').value.trim();
+                            
+                            if (!keywords || !response) {
+                                row.style.border = '1px solid #f59e0b';
+                                row.style.background = '#fffbeb';
+                            } else {
+                                row.style.border = '1px solid #e2e8f0';
+                                row.style.background = '#fff';
+                            }
+                        }
+                    }
+                });
+                
+                // Adicionar validação antes de salvar
+                document.addEventListener('submit', function(e) {
+                    const container = document.getElementById('responses-container');
+                    const rows = container.querySelectorAll('[id^="response-"]');
+                    let hasValidResponses = false;
+                    
+                    rows.forEach(row => {
+                        const keywords = row.querySelector('.response-keywords').value.trim();
+                        const response = row.querySelector('.response-text').value.trim();
+                        
+                        if (keywords && response) {
+                            hasValidResponses = true;
+                        }
+                    });
+                    
+                    if (!hasValidResponses) {
+                        e.preventDefault();
+                        alert('⚠️ Adicione pelo menos uma resposta válida antes de salvar.');
+                        return false;
+                    }
+                    
+                    // Mostrar indicador de salvamento
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        const originalText = submitBtn.textContent;
+                        submitBtn.textContent = '💾 Salvando...';
+                        submitBtn.disabled = true;
+                        
+                        // Restaurar botão após um tempo (caso haja erro)
+                        setTimeout(() => {
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+                        }, 5000);
+                    }
+                });
+                </script>
 
                 <p style="margin-top: 12px;">
                     <button type="submit" class="button button-primary">💾 <?php echo esc_html(__('Salvar', 'wp-whatsevolution')); ?></button>
@@ -517,9 +704,20 @@ class AI_Agent {
 
     public function conditionally_enqueue_front_assets() {
         $auto_inject = (bool)get_option('wpwevo_ai_auto_inject_chat', false);
-        $webhook = get_option('wpwevo_ai_webhook_url', '');
-        if (!$auto_inject || empty($webhook)) {
+        $mode = get_option('wpwevo_ai_mode', 'simple_chat');
+        
+        // Só injeta se auto_inject estiver ativado
+        if (!$auto_inject) {
             return;
+        }
+        
+        // Para Chat Simples, não precisa de webhook
+        // Para Agente de IA, verifica se webhook está configurado
+        if ($mode === 'ai_agent') {
+            $webhook = get_option('wpwevo_ai_webhook_url', '');
+            if (empty($webhook)) {
+                return;
+            }
         }
 
         // CSS do widget oficial
@@ -531,7 +729,7 @@ class AI_Agent {
         );
 
         // Adiciona container + script module no footer
-        add_action('wp_footer', function () use ($webhook) {
+        add_action('wp_footer', function () use ($mode, $webhook) {
             $welcome = get_option('wpwevo_ai_welcome_message', __('Olá! 👋 Como posso ajudar hoje?', 'wp-whatsevolution'));
             $title = get_option('wpwevo_ai_title', 'Olá! 👋');
             $subtitle = get_option('wpwevo_ai_subtitle', 'Inicie um bate-papo. Estamos aqui para ajudar você 24 horas por dia, 7 dias por semana.');
@@ -546,6 +744,8 @@ class AI_Agent {
                 import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
                 // Usamos proxy AJAX para não expor o webhook
+                // Para Chat Simples, sempre usa o proxy local
+                // Para Agente de IA, usa o webhook configurado via proxy
                 const webhookUrl = '<?php echo esc_js($ajax_url); ?>?action=wpwevo_ai_proxy';
 
                 // Define cor primária apenas se o usuário escolheu uma cor
