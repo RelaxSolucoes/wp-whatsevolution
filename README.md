@@ -24,10 +24,36 @@
 
 ## 🆕 **NOVO na v1.4.0: Integração com Agentes de IA do n8n**
 
-### 🤖 Integração n8n (AI Agents)
-- Conecte fluxos do n8n para gerar e refinar mensagens com IA
-- Use dados do WooCommerce (pedidos, clientes, carrinho) como contexto
-- Ideal para suporte, upsell, recuperação e fluxos conversacionais
+### 🤖 **Sistema Completo de Agente de IA**
+
+#### **🎯 Modalidades Disponíveis**
+1. **Agente de IA**: Conecta com n8n para respostas personalizadas via IA
+2. **Chat Simples**: Respostas locais baseadas em palavras-chave
+3. **Fallback Inteligente**: Automaticamente usa Chat Simples quando webhook falha
+
+#### **🔧 Funcionalidades Avançadas**
+- **Webhook Proxy**: Seguro, não expõe URLs externas
+- **Metadados Ricos**: Inclui contexto da página, usuário e sessão
+- **Formatação Automática**: Adapta mensagens para diferentes canais
+- **Validação Inteligente**: Testa webhook e ativa fallback automaticamente
+
+#### **💬 Chat Simples (Sistema Local)**
+- **Respostas baseadas em keywords**: Sistema de palavras-chave → respostas
+- **Configurável**: Interface amigável para adicionar/editar respostas
+- **Fallback inteligente**: Mensagem padrão quando não encontra keywords
+- **Sem dependências externas**: Funciona offline
+
+#### **📱 Widget Inteligente**
+- **Chat integrado ao site**: Shortcode `[wpwevo_ai_chat]`
+- **Personalização completa**: Cores, textos e comportamento
+- **Injeção automática**: Opção de injetar no footer do site
+- **Responsivo**: Adapta-se a todos os dispositivos
+
+#### **🔄 Sistema de Fallback Automático**
+- **Transparente para o usuário**: Chat continua funcionando sem interrupções
+- **Detecção inteligente**: Identifica falhas de webhook automaticamente
+- **Recuperação automática**: Volta ao Agente de IA quando possível
+- **Aviso discreto**: Informa quando está usando Chat Simples
 
 ---
 
@@ -300,6 +326,183 @@ Cada status tem template personalizável com variáveis específicas do pedido.
 
 ---
 
+## 🤖 **Sistema de Agente de IA - Documentação Completa**
+
+### 🎯 **Configuração e Uso**
+
+#### **1. Configuração do Agente de IA**
+```
+1. Acesse: WP WhatsApp Evolution > Agente de IA
+2. Selecione "Agente de IA" como modalidade
+3. Configure o webhook do n8n
+4. Personalize textos e cores do widget
+5. Salve as configurações
+```
+
+#### **2. Configuração do Chat Simples**
+```
+1. Selecione "Chat Simples" como modalidade
+2. Adicione respostas personalizadas:
+   - Palavras-chave: "oi, olá, hello"
+   - Resposta: "Olá! Como posso ajudar?"
+3. Configure mensagem de fallback
+4. Salve as configurações
+```
+
+### 📱 **Shortcodes Disponíveis**
+
+#### **Widget de Chat**
+```php
+[wpwevo_ai_chat mode="window"]
+```
+**Parâmetros:**
+- `mode`: "window" (padrão) ou "inline"
+
+#### **Formulário de Contato**
+```php
+[wpwevo_ai_form title="Fale Conosco" button="Enviar" show_phone="true"]
+```
+**Parâmetros:**
+- `title`: Título do formulário
+- `button`: Texto do botão
+- `show_phone`: "true" ou "false"
+
+### 🔄 **Sistema de Fallback Automático**
+
+#### **Como Funciona**
+1. **Agente de IA ativo** → Tenta enviar para webhook n8n
+2. **Se webhook falhar** → Automaticamente ativa Chat Simples
+3. **Chat Simples ativo** → Responde com keywords locais
+4. **Quando webhook volta** → Retorna automaticamente ao Agente de IA
+
+#### **Detecção de Falhas**
+- ❌ **Erro de conexão**: `wp_remote_post` falha
+- ❌ **Erro HTTP 4xx/5xx**: Webhook retorna erro
+- ❌ **Timeout**: Webhook não responde em 20 segundos
+
+#### **Transparência**
+- ✅ **Usuário não percebe**: Chat continua funcionando
+- ✅ **Aviso discreto**: "💡 Chat Simples ativo - Agente de IA temporariamente indisponível"
+- ✅ **Recuperação automática**: Volta ao Agente de IA quando possível
+
+### 🌐 **Integração com n8n**
+
+#### **Payload Enviado**
+```json
+{
+  "chatInput": "mensagem do usuário",
+  "sessionId": "chat_123456",
+  "metadata": {
+    "source": "n8n_chat_widget",
+    "sourceType": "chat_widget",
+    "page_url": "https://seusite.com",
+    "page_title": "Título da Página",
+    "user_agent": "Mozilla/5.0...",
+    "timestamp": "2025-01-25T15:45:47+00:00",
+    "responseConfig": {
+      "shouldRespond": true,
+      "responseTarget": "chat_widget"
+    },
+    "wordpress": true,
+    "site_url": "https://seusite.com",
+    "ajax_proxy": true
+  }
+}
+```
+
+#### **Formulário Web (Canal Especial)**
+```json
+{
+  "channel": "web_form",
+  "chatInput": "**Nova solicitação via formulário:**\n\n**Nome:** João\n**E-mail:** joao@email.com\n**Telefone:** 5511999999999\n**Mensagem:** Preciso de ajuda\n**Página:** https://seusite.com/contato\n**Data:** 25/01/2025 12:45",
+  "sessionId": "5511999999999@s.whatsapp.net",
+  "remoteJid": "5511999999999@s.whatsapp.net",
+  "pushName": "João",
+  "contact": {
+    "nome": "João",
+    "email": "joao@email.com",
+    "telefone": "11999999999"
+  },
+  "provider": {
+    "instanceName": "sua_instancia",
+    "serverUrl": "https://seu-servidor.com",
+    "apiKey": "sua_api_key"
+  }
+}
+```
+
+### 🎨 **Personalização do Widget**
+
+#### **Cores Personalizadas**
+- **Cor primária**: Personalize a cor principal do widget
+- **CSS automático**: Aplica variáveis CSS para compatibilidade
+- **Temas**: Suporte a temas claro/escuro
+
+#### **Textos Personalizáveis**
+- **Título**: "Olá! 👋"
+- **Subtítulo**: Mensagem de boas-vindas
+- **Placeholder**: Texto do campo de input
+- **Botão**: "Nova conversa"
+
+### 📱 **Funcionalidades WhatsApp**
+
+#### **Validação de Números**
+- ✅ **Verificação em tempo real**: Valida números durante digitação
+- ✅ **Formato E.164**: Converte para formato internacional
+- ✅ **Validação AJAX**: Usa sistema de validação existente
+
+#### **Envio de Mensagens**
+- ✅ **Hooks WordPress**: Usa sistema existente do plugin
+- ✅ **Formatação automática**: Adapta mensagens para WhatsApp
+- ✅ **Rastreamento**: Inclui metadados da conversa
+
+### 🚨 **Solução de Problemas**
+
+#### **Chat Simples sempre ativo**
+```
+Verificar:
+1. Configuração: wpwevo_ai_mode = 'simple_chat'
+2. Webhook configurado corretamente
+3. Logs de erro no WordPress
+```
+
+#### **Webhook não recebe mensagens**
+```
+Verificar:
+1. URL do webhook está correta
+2. Fluxo n8n está ativo
+3. Permissões de CORS
+4. Logs do n8n
+```
+
+#### **Fallback não funciona**
+```
+Verificar:
+1. Função should_use_simple_chat()
+2. Configurações do Chat Simples
+3. Logs de erro PHP
+```
+
+### 📚 **Exemplos de Uso**
+
+#### **Resposta Simples com Keywords**
+```json
+{
+  "keywords": ["horario", "funcionamento", "aberto"],
+  "response": "Nosso horário é de segunda a sexta, das 8h às 18h! ⏰"
+}
+```
+
+#### **Resposta com Fallback**
+```json
+{
+  "keywords": ["produto", "preço", "comprar"],
+  "response": "Temos uma variedade de produtos! 🛍️ O que você está procurando?"
+}
+```
+
+---
+
 ## 📊 **Sistema Completo de Logs**
 
 ### 🔍 **Níveis de Log**
@@ -447,6 +650,16 @@ add_filter('wpwevo_validate_phone', function($phone, $original) {
 - ✅ Formatação automática
 - ✅ Modal de confirmação
 - ✅ Validação ultra-robusta
+
+### 🤖 **Agente de IA (v1.4.0)**
+- ✅ **Modalidades**: Agente de IA, Chat Simples e Fallback automático
+- ✅ **Webhook n8n**: Integração segura com fluxos de automação
+- ✅ **Chat Simples**: Sistema local de keywords → respostas
+- ✅ **Fallback inteligente**: Transição transparente quando webhook falha
+- ✅ **Widget integrado**: Chat responsivo com shortcode `[wpwevo_ai_chat]`
+- ✅ **Formulário web**: Conversão automática para formato WhatsApp
+- ✅ **Metadados ricos**: Contexto completo da página e usuário
+- ✅ **Personalização**: Cores, textos e comportamento configuráveis
 
 ### 🧠 **Sistema Inteligente**
 - ✅ Fallback automático de endereços

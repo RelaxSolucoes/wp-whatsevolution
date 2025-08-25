@@ -41,6 +41,15 @@ class AI_Agent {
     }
 
     public function register_settings() {
+        // Modalidade do chat (AI Agent ou Chat Simples)
+        register_setting('wpwevo_ai_agent', 'wpwevo_ai_mode', [
+            'type' => 'string',
+            'sanitize_callback' => function($val) { 
+                return in_array($val, ['ai_agent', 'simple_chat']) ? $val : 'simple_chat'; 
+            },
+            'default' => 'simple_chat'
+        ]);
+
         register_setting('wpwevo_ai_agent', 'wpwevo_ai_webhook_url', [
             'type' => 'string',
             'sanitize_callback' => 'esc_url_raw',
@@ -92,6 +101,19 @@ class AI_Agent {
             'sanitize_callback' => 'sanitize_hex_color',
             'default' => ''
         ]);
+
+        // Configurações para Chat Simples
+        register_setting('wpwevo_ai_agent', 'wpwevo_ai_simple_responses', [
+            'type' => 'string',
+            'sanitize_callback' => 'wp_kses_post',
+            'default' => $this->get_default_simple_responses()
+        ]);
+
+        register_setting('wpwevo_ai_agent', 'wpwevo_ai_simple_fallback_message', [
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => __('Desculpe, não entendi. Pode reformular sua pergunta? 🤔', 'wp-whatsevolution')
+        ]);
     }
 
     public function add_menu() {
@@ -105,11 +127,40 @@ class AI_Agent {
         );
     }
 
+    /**
+     * Retorna as respostas padrão para o chat simples
+     */
+    private function get_default_simple_responses() {
+        return json_encode([
+            [
+                'keywords' => ['oi', 'olá', 'ola', 'hey', 'hi', 'hello', 'bom dia', 'boa tarde', 'boa noite'],
+                'response' => 'Olá! 👋 Como posso ajudar você hoje?'
+            ],
+            [
+                'keywords' => ['produto', 'produtos', 'catalogo', 'loja', 'comprar', 'preço'],
+                'response' => 'Temos uma variedade de produtos! 🛍️ O que você está procurando?'
+            ],
+            [
+                'keywords' => ['contato', 'falar', 'atendimento', 'suporte', 'ajuda'],
+                'response' => 'Estamos aqui para ajudar! 📞 Pode me contar mais sobre o que precisa?'
+            ],
+            [
+                'keywords' => ['horario', 'horário', 'funcionamento', 'aberto', 'fechado'],
+                'response' => 'Nosso horário de atendimento é de segunda a sexta, das 8h às 18h! ⏰'
+            ],
+            [
+                'keywords' => ['entrega', 'frete', 'envio', 'prazo'],
+                'response' => 'Oferecemos diferentes opções de entrega! 🚚 Qual é sua localização?'
+            ]
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
     public function render_settings_page() {
         if (!current_user_can('manage_options')) {
             return;
         }
 
+        $mode = get_option('wpwevo_ai_mode', 'simple_chat');
         $webhook = get_option('wpwevo_ai_webhook_url', '');
         $auto_inject = (bool)get_option('wpwevo_ai_auto_inject_chat', false);
         $welcome = get_option('wpwevo_ai_welcome_message', __('Olá! 👋 Como posso ajudar hoje?', 'wp-whatsevolution'));
@@ -121,6 +172,10 @@ class AI_Agent {
         $color_mode = get_option('wpwevo_ai_color_mode', 'default');
         $primary_color = get_option('wpwevo_ai_primary_color', '');
         $footer_text = get_option('wpwevo_ai_footer_text', '');
+        
+        // Configurações do chat simples
+        $simple_responses = get_option('wpwevo_ai_simple_responses', $this->get_default_simple_responses());
+        $simple_fallback = get_option('wpwevo_ai_simple_fallback_message', __('Desculpe, não entendi. Pode reformular sua pergunta? 🤔', 'wp-whatsevolution'));
         ?>
         <div class="wrap wpwevo-panel" style="max-width: none; width: 100%;">
             <style>
@@ -142,7 +197,92 @@ class AI_Agent {
             </style>
             <h1>🤖 <?php echo esc_html(__('Agente de IA', 'wp-whatsevolution')); ?></h1>
 
-            <div style="margin:16px 0 24px 0; padding:16px 20px; border-left:6px solid #f59e0b; background:#fffbeb; border-radius:8px;">
+            <!-- Seletor de Modalidade -->
+            <div style="margin:16px 0 24px 0; background:#f7fafc; padding:20px; border-radius:12px;">
+                <h3 style="margin:0 0 16px 0; color:#1e293b;">🎯 <?php echo esc_html(__('Escolha a Modalidade do Chat', 'wp-whatsevolution')); ?></h3>
+                
+                <div style="display: grid; gap: 16px; grid-template-columns: 1fr 1fr;">
+                    <div style="padding: 20px; border: 3px solid <?php echo $mode === 'simple_chat' ? '#667eea' : '#e2e8f0'; ?>; border-radius: 12px; cursor: pointer; background: <?php echo $mode === 'simple_chat' ? '#f0f5ff' : '#fff'; ?>; transition: all 0.3s ease;" 
+                         onclick="selectMode('simple_chat')" id="mode-simple-chat">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <span style="font-size: 24px;">💬</span>
+                            <h4 style="margin: 0; color: #1e293b;"><?php echo esc_html(__('Chat Simples', 'wp-whatsevolution')); ?></h4>
+                        </div>
+                        <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">
+                            <?php echo esc_html(__('Respostas locais pré-definidas sem dependências externas.', 'wp-whatsevolution')); ?>
+                        </p>
+                        <?php if ($mode === 'simple_chat'): ?>
+                            <div style="margin-top: 12px; padding: 8px 12px; background: #667eea; color: #fff; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center;">
+                                ✅ <?php echo esc_html(__('ATIVO', 'wp-whatsevolution')); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div style="padding: 20px; border: 3px solid <?php echo $mode === 'ai_agent' ? '#667eea' : '#e2e8f0'; ?>; border-radius: 12px; cursor: pointer; background: <?php echo $mode === 'ai_agent' ? '#f0f5ff' : '#fff'; ?>; transition: all 0.3s ease;" 
+                         onclick="selectMode('ai_agent')" id="mode-ai-agent">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <span style="font-size: 24px;">🤖</span>
+                            <h4 style="margin: 0; color: #1e293b;"><?php echo esc_html(__('Agente de IA', 'wp-whatsevolution')); ?></h4>
+                        </div>
+                        <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">
+                            <?php echo esc_html(__('Integração com n8n para respostas inteligentes e personalizadas.', 'wp-whatsevolution')); ?>
+                        </p>
+                        <?php if ($mode === 'ai_agent'): ?>
+                            <div style="margin-top: 12px; padding: 8px 12px; background: #667eea; color: #fff; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center;">
+                                ✅ <?php echo esc_html(__('ATIVO', 'wp-whatsevolution')); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
+                <script>
+                function selectMode(mode) {
+                    // Atualizar visual dos cards
+                    document.querySelectorAll('[id^="mode-"]').forEach(card => {
+                        card.style.borderColor = '#e2e8f0';
+                        card.style.background = '#fff';
+                        card.querySelector('div:last-child')?.remove();
+                    });
+                    
+                    const selectedCard = document.getElementById('mode-' + mode.replace('_', '-'));
+                    selectedCard.style.borderColor = '#667eea';
+                    selectedCard.style.background = '#f0f5ff';
+                    
+                    // Adicionar badge de ativo
+                    const badge = document.createElement('div');
+                    badge.style.cssText = 'margin-top: 12px; padding: 8px 12px; background: #667eea; color: #fff; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center;';
+                    badge.textContent = '✅ <?php echo esc_js(__('ATIVO', 'wp-whatsevolution')); ?>';
+                    selectedCard.appendChild(badge);
+                    
+                    // Atualizar campo hidden
+                    document.getElementById('wpwevo_ai_mode').value = mode;
+                    
+                    // Mostrar/ocultar seções baseado na modalidade
+                    toggleModeSections(mode);
+                }
+                
+                function toggleModeSections(mode) {
+                    const aiSections = document.querySelectorAll('.ai-agent-section');
+                    const simpleSections = document.querySelectorAll('.simple-chat-section');
+                    
+                    if (mode === 'ai_agent') {
+                        aiSections.forEach(section => section.style.display = 'block');
+                        simpleSections.forEach(section => section.style.display = 'none');
+                    } else {
+                        aiSections.forEach(section => section.style.display = 'none');
+                        simpleSections.forEach(section => section.style.display = 'block');
+                    }
+                }
+                
+                // Inicializar seções
+                document.addEventListener('DOMContentLoaded', function() {
+                    toggleModeSections('<?php echo esc_js($mode); ?>');
+                });
+                </script>
+            </div>
+
+            <!-- Aviso importante (apenas para AI Agent) -->
+            <div class="ai-agent-section" style="margin:16px 0 24px 0; padding:16px 20px; border-left:6px solid #f59e0b; background:#fffbeb; border-radius:8px;">
                 <div style="font-size:16px; color:#92400e; font-weight:700; margin-bottom:6px;">⚠️ <?php echo esc_html(__('Importante', 'wp-whatsevolution')); ?></div>
                 <div style="font-size:15px; color:#78350f; line-height:1.5;">
                     <?php echo esc_html(__('Para usar respostas do Agente de IA, você precisa de um fluxo n8n para receber o webhook.', 'wp-whatsevolution')); ?>
@@ -153,12 +293,13 @@ class AI_Agent {
             </div>
             <form method="post" action="options.php" style="margin-top: 15px;">
                 <?php settings_fields('wpwevo_ai_agent'); ?>
+                <input type="hidden" name="wpwevo_ai_mode" id="wpwevo_ai_mode" value="<?php echo esc_attr($mode); ?>" />
                 <div style="display: grid; gap: 16px;">
-                    <div style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px;">
+                    <div class="ai-agent-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px;">
                         <label style="display:block; font-weight: 600; margin-bottom: 6px;">
                             🌐 <?php echo esc_html(__('Webhook do n8n', 'wp-whatsevolution')); ?>
                         </label>
-                        <textarea id="wpwevo-ai-webhook-url" name="wpwevo_ai_webhook_url" rows="1" placeholder="https://seu-n8n/webhook/ID" required><?php echo esc_textarea($webhook); ?></textarea>
+                        <textarea id="wpwevo-ai-webhook-url" name="wpwevo_ai_webhook_url" rows="1" placeholder="https://seu-n8n/webhook/ID"><?php echo esc_textarea($webhook); ?></textarea>
                         <script>
                         document.addEventListener('DOMContentLoaded', function(){
                             const ta = document.getElementById('wpwevo-ai-webhook-url');
@@ -206,16 +347,152 @@ class AI_Agent {
                         <!-- Rodapé opcional removido a pedido do usuário -->
                     </div>
 
-                    <div style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px; display:flex; gap: 10px; align-items:center;">
+                    <div class="ai-agent-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px; display:flex; gap: 10px; align-items:center;">
                         <input type="checkbox" id="wpwevo_ai_auto_inject_chat" name="wpwevo_ai_auto_inject_chat" value="1" <?php checked($auto_inject, true); ?> />
                         <label for="wpwevo_ai_auto_inject_chat" style="margin:0;"><?php echo esc_html(__('Injetar o widget de chat automaticamente no site (footer)', 'wp-whatsevolution')); ?></label>
                     </div>
 
-                    <div style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px; display:grid; gap:10px;">
+                    <div class="ai-agent-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #667eea; border-radius: 8px; display:grid; gap:10px;">
                         <label style="display:block; font-weight:600;">🎨 <?php echo esc_html(__('Cor do Widget', 'wp-whatsevolution')); ?> <span style="font-weight:400; color:#64748b;">(<?php echo esc_html(__('opcional', 'wp-whatsevolution')); ?>)</span></label>
                         <?php $custom_color = get_option('wpwevo_ai_primary_color',''); ?>
                         <input type="color" name="wpwevo_ai_primary_color" value="<?php echo esc_attr($custom_color); ?>" style="width:56px; height:36px; padding:0; border: none; background: transparent;" />
                         <small style="color:#4a5568;"><?php echo esc_html(__('Deixe em branco para usar o padrão do n8n.', 'wp-whatsevolution')); ?></small>
+                    </div>
+
+                    <!-- Seções do Chat Simples -->
+                    <div class="simple-chat-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #10b981; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <label style="display:block; font-weight: 600; margin: 0;">
+                                💬 <?php echo esc_html(__('Respostas do Chat Simples', 'wp-whatsevolution')); ?>
+                            </label>
+                            <button type="button" onclick="addResponseRow()" style="background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                                ➕ <?php echo esc_html(__('Adicionar Resposta', 'wp-whatsevolution')); ?>
+                            </button>
+                        </div>
+                        
+                        <div id="responses-container">
+                            <!-- As respostas serão carregadas aqui via JavaScript -->
+                        </div>
+                        
+                        <!-- Campo hidden para armazenar o JSON -->
+                        <textarea name="wpwevo_ai_simple_responses" id="wpwevo_ai_simple_responses" style="display: none;"><?php echo esc_textarea($simple_responses); ?></textarea>
+                        
+                        <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px;">
+                            <strong>💡 <?php echo esc_html(__('Como funciona:', 'wp-whatsevolution')); ?></strong>
+                            <p style="margin: 8px 0 0 0; color: #0369a1; font-size: 14px;">
+                                <?php echo esc_html(__('Digite palavras-chave separadas por vírgula. Quando alguém usar uma dessas palavras, receberá a resposta configurada.', 'wp-whatsevolution')); ?>
+                            </p>
+                        </div>
+                        
+                        <script>
+                        // Carregar respostas existentes
+                        document.addEventListener('DOMContentLoaded', function() {
+                            loadExistingResponses();
+                        });
+                        
+                        function loadExistingResponses() {
+                            const container = document.getElementById('responses-container');
+                            const responses = <?php echo $simple_responses; ?>;
+                            
+                            if (Array.isArray(responses) && responses.length > 0) {
+                                responses.forEach(response => {
+                                    addResponseRow(response.keywords, response.response);
+                                });
+                            } else {
+                                // Adicionar pelo menos uma linha vazia
+                                addResponseRow();
+                            }
+                        }
+                        
+                        function addResponseRow(keywords = '', response = '') {
+                            const container = document.getElementById('responses-container');
+                            const rowId = 'response-' + Date.now();
+                            
+                            const row = document.createElement('div');
+                            row.id = rowId;
+                            row.style.cssText = 'display: grid; gap: 12px; grid-template-columns: 1fr 1fr auto; align-items: start; padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;';
+                            
+                            row.innerHTML = `
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">
+                                        🔑 <?php echo esc_js(__('Palavras-chave', 'wp-whatsevolution')); ?>
+                                    </label>
+                                    <input type="text" 
+                                           class="response-keywords" 
+                                           value="${keywords}" 
+                                           placeholder="<?php echo esc_js(__('oi, olá, hello, bom dia', 'wp-whatsevolution')); ?>"
+                                           style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                    <small style="color: #6b7280; font-size: 12px;">
+                                        <?php echo esc_js(__('Separe por vírgula', 'wp-whatsevolution')); ?>
+                                    </small>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">
+                                        💬 <?php echo esc_js(__('Resposta', 'wp-whatsevolution')); ?>
+                                    </label>
+                                    <textarea class="response-text" 
+                                              rows="3" 
+                                              placeholder="<?php echo esc_js(__('Olá! Como posso ajudar você hoje?', 'wp-whatsevolution')); ?>"
+                                              style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;">${response}</textarea>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button type="button" onclick="removeResponseRow('${rowId}')" 
+                                            style="background: #ef4444; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; min-width: 60px;">
+                                        🗑️
+                                    </button>
+                                </div>
+                            `;
+                            
+                            container.appendChild(row);
+                            updateHiddenField();
+                        }
+                        
+                        function removeResponseRow(rowId) {
+                            const row = document.getElementById(rowId);
+                            if (row) {
+                                row.remove();
+                                updateHiddenField();
+                            }
+                        }
+                        
+                        function updateHiddenField() {
+                            const container = document.getElementById('responses-container');
+                            const rows = container.querySelectorAll('[id^="response-"]');
+                            const responses = [];
+                            
+                            rows.forEach(row => {
+                                const keywords = row.querySelector('.response-keywords').value.trim();
+                                const response = row.querySelector('.response-text').value.trim();
+                                
+                                if (keywords && response) {
+                                    const keywordsArray = keywords.split(',').map(k => k.trim()).filter(k => k);
+                                    responses.push({
+                                        keywords: keywordsArray,
+                                        response: response
+                                    });
+                                }
+                            });
+                            
+                            document.getElementById('wpwevo_ai_simple_responses').value = JSON.stringify(responses, null, 2);
+                        }
+                        
+                        // Atualizar campo hidden quando os inputs mudarem
+                        document.addEventListener('input', function(e) {
+                            if (e.target.classList.contains('response-keywords') || e.target.classList.contains('response-text')) {
+                                updateHiddenField();
+                            }
+                        });
+                        </script>
+                    </div>
+
+                    <div class="simple-chat-section" style="background: #f7fafc; padding: 16px; border-left: 4px solid #10b981; border-radius: 8px;">
+                        <label style="display:block; font-weight: 600; margin-bottom: 6px;">
+                            🤔 <?php echo esc_html(__('Mensagem de Fallback', 'wp-whatsevolution')); ?>
+                        </label>
+                        <textarea name="wpwevo_ai_simple_fallback_message" rows="2" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical;" placeholder="<?php echo esc_attr(__('Mensagem quando não encontrar resposta para a pergunta...', 'wp-whatsevolution')); ?>"><?php echo esc_textarea($simple_fallback); ?></textarea>
+                        <p style="margin:8px 0 0 0; color:#4a5568; font-size:12px;">
+                            <?php echo esc_html(__('Esta mensagem será exibida quando o sistema não encontrar uma resposta adequada para a pergunta do usuário.', 'wp-whatsevolution')); ?>
+                        </p>
                     </div>
                 </div>
 
@@ -337,6 +614,11 @@ class AI_Agent {
             $payload = $_POST;
         }
 
+        // Verificar se deve usar chat simples
+        if ($this->should_use_simple_chat()) {
+            return $this->handle_simple_chat_response($payload);
+        }
+
         $webhook = get_option('wpwevo_ai_webhook_url', '');
         if (empty($webhook)) {
             wp_send_json_error(['message' => __('Webhook do n8n não configurado.', 'wp-whatsevolution')], 400);
@@ -400,11 +682,19 @@ class AI_Agent {
         ]);
 
         if (is_wp_error($response)) {
-            wp_send_json_error(['message' => $response->get_error_message()], 500);
+            // Se webhook falhar, automaticamente usar chat simples como fallback
+            error_log('Webhook falhou: ' . $response->get_error_message());
+            return $this->handle_simple_chat_response($payload, true); // true = é fallback
         }
 
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
+
+        // Se webhook retornar erro 4xx ou 5xx, usar chat simples como fallback
+        if ($code >= 400) {
+            error_log('Webhook retornou erro ' . $code . ': ' . $body);
+            return $this->handle_simple_chat_response($payload, true); // true = é fallback
+        }
 
         // Encaminha a resposta do n8n
         status_header($code);
@@ -660,6 +950,112 @@ class AI_Agent {
         </script>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * Verifica se deve usar chat simples
+     */
+    private function should_use_simple_chat() {
+        $mode = get_option('wpwevo_ai_mode', 'simple_chat');
+        
+        // Se escolheu chat simples
+        if ($mode === 'simple_chat') {
+            return true;
+        }
+        
+        // Para Agente de IA, sempre tentar usar o webhook primeiro
+        // Só usar chat simples se explicitamente configurado
+        return false;
+    }
+
+
+
+
+
+    /**
+     * Processa resposta do chat simples
+     */
+    private function handle_simple_chat_response($payload, $is_fallback = false) {
+        $message = isset($payload['chatInput']) ? sanitize_text_field($payload['chatInput']) : '';
+        
+        if (empty($message)) {
+            wp_send_json_error(['message' => __('Mensagem vazia.', 'wp-whatsevolution')], 400);
+        }
+        
+        // Processar com IA local
+        $response = $this->process_simple_chat($message);
+        
+        // Se for formulário web, retornar resposta direta
+        if (isset($payload['channel']) && $payload['channel'] === 'web_form') {
+            wp_send_json_success([
+                'output' => $response,
+                'source' => 'simple_chat'
+            ]);
+        }
+        
+        // Se for WhatsApp, enviar via hooks existentes
+        if (isset($payload['remoteJid'])) {
+            $this->send_whatsapp_response($payload['remoteJid'], $response);
+        }
+        
+        // Para chat simples, retornar resposta direta
+        // Se estiver sendo usado como fallback, adicionar aviso discreto
+        if ($is_fallback) {
+            $response .= "\n\n💡 Chat Simples ativo - Agente de IA temporariamente indisponível";
+        }
+        
+        // Retornar resposta no formato que o widget n8n entende
+        // O widget espera um objeto com 'output' ou uma string simples
+        status_header(200);
+        header('Content-Type: application/json; charset=utf-8');
+        echo wp_json_encode([
+            'output' => trim($response), // Remove aspas e espaços extras
+            'source' => 'simple_chat'
+        ]);
+        wp_die();
+    }
+
+    /**
+     * Processa mensagem com IA local simples
+     */
+    private function process_simple_chat($message) {
+        $responses = get_option('wpwevo_ai_simple_responses', $this->get_default_simple_responses());
+        $fallback = get_option('wpwevo_ai_simple_fallback_message', __('Desculpe, não entendi. Pode reformular sua pergunta? 🤔', 'wp-whatsevolution'));
+        
+        // Decodificar respostas
+        $responses_array = json_decode($responses, true);
+        if (!is_array($responses_array)) {
+            return $fallback;
+        }
+        
+        $message_lower = strtolower(trim($message));
+        
+        // Buscar resposta baseada em keywords
+        foreach ($responses_array as $response_data) {
+            if (!isset($response_data['keywords']) || !isset($response_data['response'])) {
+                continue;
+            }
+            
+            foreach ($response_data['keywords'] as $keyword) {
+                if (strpos($message_lower, strtolower($keyword)) !== false) {
+                    return $response_data['response'];
+                }
+            }
+        }
+        
+        return $fallback;
+    }
+
+    /**
+     * Envia resposta via WhatsApp usando hooks existentes
+     */
+    private function send_whatsapp_response($remote_jid, $message) {
+        // Usar hooks existentes do WP WhatsEvolution para enviar mensagem
+        do_action('wpwevo_send_message', [
+            'to' => $remote_jid,
+            'message' => $message,
+            'type' => 'text'
+        ]);
     }
 }
 
