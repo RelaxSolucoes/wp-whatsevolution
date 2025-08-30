@@ -285,6 +285,48 @@ class Abandoned_Cart {
 				return;
 			}
 
+			// VERIFICAÇÃO ANTI-BUG: Remove carrinhos de clientes que já finalizaram pedidos
+			$carts_to_remove = [];
+			foreach ($carts as $phone => $data) {
+				// Verifica se existe pedido finalizado recente com o mesmo telefone
+				$recent_orders = wc_get_orders([
+					'limit' => 1,
+					'status' => ['completed', 'processing', 'on-hold', 'pending'],
+					'meta_query' => [
+						[
+							'key' => '_billing_phone',
+							'value' => $phone,
+							'compare' => '='
+						]
+					],
+					'date_created' => '>' . (time() - 7200), // Últimas 2 horas (7200 segundos)
+					'return' => 'ids'
+				]);
+
+				if (!empty($recent_orders)) {
+					$carts_to_remove[] = $phone;
+					error_log(sprintf(
+						'WP WhatsApp Evolution - Anti-bug: Carrinho removido para %s - Cliente já finalizou pedido recente (ID: %s)',
+						$phone,
+						implode(', ', $recent_orders)
+					));
+				}
+			}
+
+			// Remove carrinhos de clientes que já finalizaram pedidos
+			foreach ($carts_to_remove as $phone) {
+				unset($carts[$phone]);
+			}
+
+			// Atualiza a opção com os carrinhos filtrados
+			if (!empty($carts_to_remove)) {
+				update_option('wpwevo_abandoned_carts', $carts);
+				error_log(sprintf(
+					'WP WhatsApp Evolution - Anti-bug: %d carrinhos removidos por pedidos finalizados recentes',
+					count($carts_to_remove)
+				));
+			}
+
 			foreach ($carts as $phone => $data) {
 				// Verifica se já passou o tempo de espera
 				if (time() - $data['time'] > $minutes * 60) {
