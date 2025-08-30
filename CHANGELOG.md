@@ -1,5 +1,31 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.2] - 2025-01-27
+
+### 🐛 Correção Anti-Bug para Cart Abandonment Recovery v2.0
+- **Problema identificado**: Plugin Cart Abandonment Recovery v2.0 marca pedidos finalizados como abandonados
+- **Solução implementada**: Verificação automática que remove carrinhos de clientes que já finalizaram pedidos
+- **Critérios**: Remove carrinhos se cliente finalizou pedido nas últimas 2 horas
+- **Status considerados**: completed, processing, on-hold, pending
+- **Logs detalhados**: Rastreamento completo de carrinhos removidos por pedidos finalizados
+
+### 🔧 Melhorias Técnicas
+- **Busca otimizada**: Uso correto de meta_query para _billing_phone no WooCommerce
+- **Performance**: Verificação individual antes do processamento de carrinhos
+- **Auditoria**: Sistema de logs para monitoramento e debug
+
+### 📚 Documentação
+- **Arquivo**: ANTI-BUG-IMPLEMENTATION.md com detalhes técnicos completos
+- **Guia**: Instruções de teste e validação da funcionalidade
+
+### 🎯 Benefícios
+- **Sem spam**: Clientes não recebem mensagens desnecessárias
+- **Taxa de conversão**: Mensagens apenas para carrinhos realmente abandonados
+- **Experiência do cliente**: Evita confusão sobre status do pedido
+- **Eficiência**: Reduz custos de envio desnecessário
+
+---
+
 ## [1.4.1] - 2025-01-27
 
 ### ✨ Novas Funcionalidades

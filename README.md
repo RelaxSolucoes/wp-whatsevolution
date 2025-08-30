@@ -1,6 +1,28 @@
-# WP WhatsEvolution v1.4.1
+# WP WhatsEvolution v1.4.2
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
+
+## 🆕 **NOVO na v1.4.2: Correção Anti-Bug para Cart Abandonment Recovery v2.0**
+
+### 🐛 **Problema Identificado e Solucionado**
+- **✅ Bug Corrigido**: Plugin Cart Abandonment Recovery v2.0 marca pedidos finalizados como abandonados
+- **✅ Solução Implementada**: Verificação automática que remove carrinhos de clientes que já finalizaram pedidos
+- **✅ Critérios Inteligentes**: Remove apenas carrinhos com pedidos nas últimas 2 horas
+- **✅ Status Considerados**: completed, processing, on-hold, pending
+- **✅ Logs Detalhados**: Rastreamento completo de carrinhos removidos por pedidos finalizados
+
+### 🔧 **Melhorias Técnicas**
+- **🔍 Busca Otimizada**: Uso correto de meta_query para _billing_phone no WooCommerce
+- **⚡ Performance**: Verificação individual antes do processamento de carrinhos
+- **📊 Auditoria**: Sistema de logs para monitoramento e debug
+
+### 🎯 **Benefícios da Correção**
+- **🚫 Sem Spam**: Clientes não recebem mensagens desnecessárias
+- **📈 Taxa de Conversão**: Mensagens apenas para carrinhos realmente abandonados
+- **👥 Experiência do Cliente**: Evita confusão sobre status do pedido
+- **💰 Eficiência**: Reduz custos de envio desnecessário
+
+---
 
 ## 🆕 **NOVO na v1.4.1: Correções Críticas e Melhorias Significativas**
 

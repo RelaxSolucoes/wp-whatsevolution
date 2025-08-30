@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -84,7 +84,7 @@ O sistema intercepta automaticamente os carrinhos abandonados e envia mensagens 
 * `{coupon_code}` - Código do cupom
 * E muito mais!
 
-### 🆕 Novidades da Versão 1.4.1
+### 🆕 Novidades da Versão 1.4.2
 
 **🐛 Correções Críticas:**
 * **Submenus funcionando**: Corrigido problema de submenus ausentes
@@ -134,6 +134,13 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.4.2 =
+* **CORREÇÃO ANTI-BUG**: Plugin Cart Abandonment Recovery v2.0 - evita envio para clientes que já finalizaram pedidos
+* **VERIFICAÇÃO INTELIGENTE**: Remove carrinhos de clientes com pedidos nas últimas 2 horas
+* **LOGS DETALHADOS**: Rastreamento completo de carrinhos removidos por pedidos finalizados
+* **PERFORMANCE**: Verificação individual antes do processamento de carrinhos
+* **COMPATIBILIDADE**: Funciona com status completed, processing, on-hold, pending
 
 = 1.4.1 =
 * **CORREÇÃO CRÍTICA**: Submenus agora funcionam perfeitamente

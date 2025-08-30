@@ -74,6 +74,12 @@ class Cart_Abandonment {
                 return;
             }
 
+            // VERIFICAÇÃO ANTI-BUG: Verifica se cliente já finalizou pedido recente
+            if ($this->has_recent_completed_order($formatted_phone)) {
+                $this->log_info("🛡️ Anti-bug: Cliente {$formatted_phone} ignorado - pedido recente detectado");
+                return;
+            }
+
             // Gera mensagem personalizada
             $message = $this->generate_whatsapp_message($trigger_details, $checkout_details);
 
@@ -1145,6 +1151,39 @@ class Cart_Abandonment {
 
         $message = str_replace(array_keys($shortcodes), array_values($shortcodes), $template);
         return $message;
+    }
+
+    /**
+     * VERIFICAÇÃO ANTI-BUG: Verifica se cliente já finalizou pedido recente
+     * Evita enviar mensagens para clientes que já completaram compras
+     */
+    private function has_recent_completed_order($phone) {
+        if (empty($phone)) {
+            return false;
+        }
+
+        $args = array(
+            'limit'        => 1,
+            'status'       => array('completed', 'processing', 'on-hold', 'pending'),
+            'date_created' => '>' . (time() - 7200), // últimos 2h
+            'meta_query'   => array(
+                array(
+                    'key'     => '_billing_phone',
+                    'value'   => $phone,
+                    'compare' => '='
+                )
+            ),
+            'return'       => 'ids'
+        );
+
+        $recent_orders = wc_get_orders($args);
+
+        if (!empty($recent_orders)) {
+            $this->log_info("🛡️ Anti-bug: Pedido recente detectado para {$phone} (ID: " . implode(', ', $recent_orders) . ")");
+            return true;
+        }
+
+        return false;
     }
 }
 
