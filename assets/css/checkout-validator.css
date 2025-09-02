@@ -1,0 +1,98 @@
+.wpwevo-validation-feedback {
+    margin: 5px 0;
+    padding: 4px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.wpwevo-validation-feedback em {
+    color: #666;
+    font-style: italic;
+}
+
+.wpwevo-validation-feedback small {
+    color: #666;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Estilo base para campos de telefone */
+.wpwevo-phone-field,
+input[type="tel"].wpwevo-phone-field,
+input[type="text"].wpwevo-phone-field {
+    transition: all 0.3s ease !important;
+    border-width: 1px !important;
+    padding-right: 35px !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 16px !important;
+}
+
+/* Estado de validação */
+.wpwevo-phone-field.wpwevo-validating,
+input[type="tel"].wpwevo-phone-field.wpwevo-validating,
+input[type="text"].wpwevo-phone-field.wpwevo-validating {
+    border-color: #ffd700 !important;
+    background-color: #fffbe6 !important;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23ffd700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="18"/></svg>') !important;
+}
+
+/* Estado válido */
+.wpwevo-phone-field.wpwevo-valid,
+input[type="tel"].wpwevo-phone-field.wpwevo-valid,
+input[type="text"].wpwevo-phone-field.wpwevo-valid {
+    border-color: #4CAF50 !important;
+    background-color: #f7fff7 !important;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%234CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>') !important;
+}
+
+/* Estado inválido */
+.wpwevo-phone-field.wpwevo-invalid,
+input[type="tel"].wpwevo-phone-field.wpwevo-invalid,
+input[type="text"].wpwevo-phone-field.wpwevo-invalid {
+    border-color: #f44336 !important;
+    background-color: #fff6f6 !important;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>') !important;
+}
+
+/* Suporte para WooCommerce Blocks */
+.wc-block-components-text-input .wpwevo-phone-field,
+.wc-block-components-form .wc-block-components-text-input .wpwevo-phone-field {
+    margin: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Força os estilos mesmo com temas personalizados */
+.woocommerce-checkout .wpwevo-phone-field,
+.wc-block-checkout__form .wpwevo-phone-field {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Modal customizado */
+#wpwevo-confirmation-modal {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+#wpwevo-confirmation-modal h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+#wpwevo-confirmation-modal p {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #444;
+}
+
+#wpwevo-proceed-order {
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s ease;
+}
+
+#wpwevo-proceed-order:hover {
+    background-color: #45a049 !important;
+} 
