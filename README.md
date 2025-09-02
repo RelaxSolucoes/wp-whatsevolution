@@ -2,6 +2,10 @@
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
+[![Assista a atualização no YouTube](https://img.youtube.com/vi/YbCYfefnh3E/0.jpg)](https://www.youtube.com/watch?v=YbCYfefnh3E)
+
+---
+
 ## 🆕 **NOVO na v1.4.2: Correção Anti-Bug para Cart Abandonment Recovery v2.0**
 
 ### 🐛 **Problema Identificado e Solucionado**
