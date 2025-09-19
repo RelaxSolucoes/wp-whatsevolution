@@ -234,7 +234,7 @@ class Settings_Page {
 						<span class="wpwevo-cta-emoji">💡</span> <strong>Dica:</strong> Use a aba "🚀 Teste Grátis" para configuração automática em 1-click!
 					</p>
 				</div>
-				<a href="https://whats-evolution.vercel.app/" 
+				<a href="https://whats-evolution-v2.vercel.app/" 
 				   class="wpwevo-cta-button" target="_blank" rel="noopener noreferrer">
 					<span class="wpwevo-cta-emoji">🚀</span> Teste Grátis Agora Mesmo!
 				</a>
