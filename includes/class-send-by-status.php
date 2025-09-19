@@ -206,9 +206,15 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			$shipping_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 		}
 
-		// Monta o endereço completo
+		// Captura campos customizados do Brazilian Market (se existirem)
+		$shipping_number = $order->get_meta('_shipping_number');
+		$shipping_neighborhood = $order->get_meta('_shipping_neighborhood');
+
+		// Monta o endereço completo incluindo campos customizados
 		$shipping_address_parts = [];
 		if (!empty($shipping_address_1)) $shipping_address_parts[] = $shipping_address_1;
+		if (!empty($shipping_number)) $shipping_address_parts[] = $shipping_number;
+		if (!empty($shipping_neighborhood)) $shipping_address_parts[] = $shipping_neighborhood;
 		if (!empty($shipping_city)) $shipping_address_parts[] = $shipping_city;
 		if (!empty($shipping_state)) $shipping_address_parts[] = $shipping_state;
 		if (!empty($shipping_postcode)) $shipping_address_parts[] = $shipping_postcode;
@@ -245,12 +251,14 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			'{billing_state}' => $order->get_billing_state(),
 			'{billing_postcode}' => $order->get_billing_postcode(),
 			'{billing_country}' => $order->get_billing_country(),
-			'{billing_address_full}' => implode(', ', array_filter([
+			'{billing_address_full}' => $this->build_address_full(
 				$order->get_billing_address_1(),
+				$order->get_meta('_billing_number'),
+				$order->get_meta('_billing_neighborhood'),
 				$order->get_billing_city(),
 				$order->get_billing_state(),
 				$order->get_billing_postcode()
-			])),
+			),
 			
 			// Dados de Envio
 			'{shipping_name}' => $shipping_name,
@@ -272,6 +280,28 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 		}
 
 		return $message;
+	}
+
+	/**
+	 * Constrói endereço completo incluindo campos customizados do Brazilian Market
+	 * Funciona com ou sem o plugin Brazilian Market
+	 */
+	private function build_address_full($address_1, $number, $neighborhood, $city, $state, $postcode) {
+		$address_parts = [];
+		
+		// Endereço principal
+		if (!empty($address_1)) $address_parts[] = $address_1;
+		
+		// Campos customizados do Brazilian Market (se existirem)
+		if (!empty($number)) $address_parts[] = $number;
+		if (!empty($neighborhood)) $address_parts[] = $neighborhood;
+		
+		// Campos padrão do WooCommerce
+		if (!empty($city)) $address_parts[] = $city;
+		if (!empty($state)) $address_parts[] = $state;
+		if (!empty($postcode)) $address_parts[] = $postcode;
+		
+		return implode(', ', $address_parts);
 	}
 
 	/**

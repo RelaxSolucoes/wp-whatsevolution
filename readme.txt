@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -135,6 +135,13 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
+= 1.4.3 =
+* **COMPATIBILIDADE BRAZILIAN MARKET**: Integração total com Brazilian Market on WooCommerce
+* **ENDEREÇOS COMPLETOS**: {shipping_address_full} e {billing_address_full} agora incluem número da casa e bairro
+* **DETECÇÃO AUTOMÁTICA**: Sistema inteligente que detecta se o Brazilian Market está ativo
+* **FALLBACK INTELIGENTE**: Funciona perfeitamente com ou sem o plugin Brazilian Market
+* **ORDEM CORRETA**: Endereços formatados como "Rua, Número, Bairro, Cidade, Estado, CEP"
+
 = 1.4.2 =
 * **CORREÇÃO ANTI-BUG**: Plugin Cart Abandonment Recovery v2.0 - evita envio para clientes que já finalizaram pedidos
 * **VERIFICAÇÃO INTELIGENTE**: Remove carrinhos de clientes com pedidos nas últimas 2 horas
@@ -176,6 +183,9 @@ Sim, 100% gratuito e open source.
 6. Validação no Checkout
 
 == Upgrade Notice ==
+
+= 1.4.3 =
+Esta versão adiciona compatibilidade total com Brazilian Market on WooCommerce, garantindo que endereços completos (com número da casa e bairro) sejam exibidos nas mensagens. Funciona automaticamente com ou sem o plugin Brazilian Market.
 
 = 1.4.0 =
 Esta versão adiciona integração com agentes de IA do n8n para fluxos conversacionais e mensagens dinâmicas com contexto do WooCommerce. Recomendamos a atualização para aproveitar as novas automações de IA.

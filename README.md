@@ -1,8 +1,30 @@
-# WP WhatsEvolution v1.4.2
+# WP WhatsEvolution v1.4.3
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
 [![Assista a atualização no YouTube](https://img.youtube.com/vi/YbCYfefnh3E/0.jpg)](https://www.youtube.com/watch?v=YbCYfefnh3E)
+
+---
+
+## 🆕 **NOVO na v1.4.3: Compatibilidade Total com Brazilian Market on WooCommerce**
+
+### 🇧🇷 **Integração Completa com Brazilian Market**
+- **✅ Endereços Completos**: `{shipping_address_full}` e `{billing_address_full}` agora incluem número da casa e bairro
+- **✅ Detecção Automática**: Sistema inteligente que detecta automaticamente se o Brazilian Market está ativo
+- **✅ Fallback Inteligente**: Funciona perfeitamente com ou sem o plugin Brazilian Market
+- **✅ Ordem Correta**: Endereços formatados como "Rua, Número, Bairro, Cidade, Estado, CEP"
+
+### 🔧 **Melhorias Técnicas**
+- **🔍 Captura de Meta Fields**: Acesso aos campos customizados `_shipping_number`, `_shipping_neighborhood`, `_billing_number`, `_billing_neighborhood`
+- **⚡ Função Auxiliar**: Código reutilizável e limpo para montagem de endereços
+- **📊 Compatibilidade**: Zero impacto para usuários que não usam Brazilian Market
+- **🎯 Precisão**: Endereços sempre completos e formatados corretamente
+
+### 🎯 **Benefícios da Integração**
+- **📍 Endereços Precisos**: Número da casa e bairro sempre incluídos nas mensagens
+- **🇧🇷 Mercado Brasileiro**: Otimizado para o padrão de endereços do Brasil
+- **🚀 Plug & Play**: Funciona automaticamente sem configuração adicional
+- **💬 Mensagens Profissionais**: Endereços completos para melhor experiência do cliente
 
 ---
 
@@ -305,11 +327,11 @@ Cada status tem template personalizável com variáveis específicas do pedido.
 | `{total_orders}` | Total de pedidos | 5 |
 | `{last_order_date}` | Último pedido | 15/01/2025 |
 
-### 📍 **Endereços (Com Fallback)**
+### 📍 **Endereços (Com Fallback + Brazilian Market)**
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
-| `{shipping_address_full}` | Endereço completo de entrega | Rua A, 123 - São Paulo, SP |
-| `{billing_address_full}` | Endereço de cobrança | Rua B, 456 - Rio de Janeiro, RJ |
+| `{shipping_address_full}` | Endereço completo de entrega (com número e bairro) | Rua A, 123, Bairro Centro, São Paulo, SP, 01234-567 |
+| `{billing_address_full}` | Endereço de cobrança (com número e bairro) | Rua B, 456, Bairro Jardins, Rio de Janeiro, RJ, 20000-000 |
 
 ### 🏪 **Dados da Loja**
 | Variável | Descrição | Exemplo |

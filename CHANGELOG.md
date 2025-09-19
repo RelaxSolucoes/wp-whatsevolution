@@ -1,5 +1,28 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.3] - 2025-01-27
+
+### 🇧🇷 Compatibilidade Total com Brazilian Market on WooCommerce
+- **Integração completa**: Suporte total aos campos customizados do Brazilian Market
+- **Endereços completos**: `{shipping_address_full}` e `{billing_address_full}` agora incluem número da casa e bairro
+- **Detecção automática**: Sistema inteligente que detecta se o Brazilian Market está ativo
+- **Fallback inteligente**: Funciona perfeitamente com ou sem o plugin Brazilian Market
+- **Ordem correta**: Endereços formatados como "Rua, Número, Bairro, Cidade, Estado, CEP"
+
+### 🔧 Melhorias Técnicas
+- **Captura de meta fields**: Acesso aos campos `_shipping_number`, `_shipping_neighborhood`, `_billing_number`, `_billing_neighborhood`
+- **Função auxiliar**: Código reutilizável `build_address_full()` para montagem de endereços
+- **Compatibilidade**: Zero impacto para usuários que não usam Brazilian Market
+- **Precisão**: Endereços sempre completos e formatados corretamente
+
+### 🎯 Benefícios da Integração
+- **Endereços precisos**: Número da casa e bairro sempre incluídos nas mensagens
+- **Mercado brasileiro**: Otimizado para o padrão de endereços do Brasil
+- **Plug & Play**: Funciona automaticamente sem configuração adicional
+- **Mensagens profissionais**: Endereços completos para melhor experiência do cliente
+
+---
+
 ## [1.4.2] - 2025-01-27
 
 ### 🐛 Correção Anti-Bug para Cart Abandonment Recovery v2.0
