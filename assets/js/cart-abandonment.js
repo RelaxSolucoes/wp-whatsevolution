@@ -37,7 +37,9 @@ jQuery(document).ready(function($) {
             const button = $(this);
             const originalText = button.text();
             
-            button.prop('disabled', true).text(wpwevoCartAbandonment.i18n.saving);
+            const savingText = wpwevoCartAbandonment?.i18n?.saving || 'Salvando...';
+            
+            button.prop('disabled', true).text(savingText);
             
             $.ajax({
                 url: wpwevoCartAbandonment.ajaxurl,
@@ -72,7 +74,9 @@ jQuery(document).ready(function($) {
             const button = $(this);
             const originalText = button.text();
             
-            button.prop('disabled', true).text(wpwevoCartAbandonment.i18n.generating);
+            const generatingText = wpwevoCartAbandonment?.i18n?.generating || 'Gerando...';
+            
+            button.prop('disabled', true).text(generatingText);
             
             $.ajax({
                 url: wpwevoCartAbandonment.ajaxurl,

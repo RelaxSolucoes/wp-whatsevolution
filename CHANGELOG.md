@@ -1,5 +1,23 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.4] - 2025-01-27
+
+### 🐛 Correção Crítica no Cart Abandonment
+- **Problema identificado**: Erro JavaScript `Cannot read properties of undefined (reading 'saving')` ao salvar templates
+- **Causa raiz**: Objeto `wpwevoCartAbandonment` não possuía propriedades de internacionalização (`i18n`)
+- **Solução implementada**: 
+  - Adicionadas traduções `saving` e `generating` ao objeto localizado do script
+  - Implementadas verificações de segurança com fallbacks para textos padrão
+  - Versão do script atualizada para forçar limpeza do cache
+- **Resultado**: Sistema de salvamento de templates funcionando perfeitamente sem erros JavaScript
+
+### 🔧 Melhorias Técnicas
+- **Robustez**: Verificações de segurança com operador de coalescência nula (`?.`)
+- **Fallbacks**: Textos padrão caso traduções não estejam disponíveis
+- **Cache**: Versionamento do script para garantir atualizações
+
+---
+
 ## [1.4.3] - 2025-01-27
 
 ### 🇧🇷 Compatibilidade Total com Brazilian Market on WooCommerce

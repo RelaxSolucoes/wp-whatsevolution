@@ -1,8 +1,18 @@
-# WP WhatsEvolution v1.4.3
+# WP WhatsEvolution v1.4.4
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
 [![Assista a atualização no YouTube](https://img.youtube.com/vi/YbCYfefnh3E/0.jpg)](https://www.youtube.com/watch?v=YbCYfefnh3E)
+
+---
+
+## 🆕 **NOVO na v1.4.4: Correção Crítica no Cart Abandonment**
+
+### 🐛 **Correção de Erro JavaScript**
+- **✅ Problema Resolvido**: Erro `Cannot read properties of undefined (reading 'saving')` ao salvar templates
+- **✅ Sistema Robusto**: Verificações de segurança com fallbacks para textos padrão
+- **✅ Cache Atualizado**: Versionamento do script para garantir atualizações
+- **✅ Funcionamento Perfeito**: Sistema de salvamento de templates sem erros JavaScript
 
 ---
 

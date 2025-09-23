@@ -268,10 +268,14 @@ class Cart_Abandonment {
 
     public function enqueue_scripts($hook) {
         if (strpos($hook, 'wpwevo-cart-abandonment') !== false) {
-            wp_enqueue_script('wpwevo-cart-abandonment', plugin_dir_url(__FILE__) . '../assets/js/cart-abandonment.js', array('jquery'), '1.0.0', true);
+            wp_enqueue_script('wpwevo-cart-abandonment', plugin_dir_url(__FILE__) . '../assets/js/cart-abandonment.js', array('jquery'), '1.0.2', true);
             wp_localize_script('wpwevo-cart-abandonment', 'wpwevoCartAbandonment', array(
                 'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('wpwevo_cart_abandonment_nonce')
+                'nonce' => wp_create_nonce('wpwevo_cart_abandonment_nonce'),
+                'i18n' => array(
+                    'saving' => __('Salvando...', 'wp-whatsevolution'),
+                    'generating' => __('Gerando...', 'wp-whatsevolution')
+                )
             ));
             
             wp_add_inline_script('jquery', $this->get_cart_abandonment_fix_js());
