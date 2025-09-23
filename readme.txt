@@ -135,6 +135,13 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
+= 1.4.4 =
+* **CORREÇÃO CRÍTICA**: Erro JavaScript "Cannot read properties of undefined (reading 'saving')" no Cart Abandonment
+* **SALVAMENTO DE TEMPLATES**: Sistema de salvamento de templates totalmente funcional
+* **VERIFICAÇÕES DE SEGURANÇA**: Fallbacks para textos padrão caso traduções não estejam disponíveis
+* **CACHE ATUALIZADO**: Versionamento do script para garantir limpeza automática do cache
+* **ROBUSTEZ**: Sistema com operador de coalescência nula (?.?) para maior estabilidade
+
 = 1.4.3 =
 * **COMPATIBILIDADE BRAZILIAN MARKET**: Integração total com Brazilian Market on WooCommerce
 * **ENDEREÇOS COMPLETOS**: {shipping_address_full} e {billing_address_full} agora incluem número da casa e bairro
