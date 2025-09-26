@@ -291,9 +291,39 @@ Finalize agora:
 
 ### ⚡ **Controle de Envio**
 - **Velocidade Configurável**: Segundos entre cada envio
+- **Intervalo Aleatório**: Simula comportamento humano (2-9 segundos)
 - **Agendamento**: Data e hora para iniciar
 - **Progresso em Tempo Real**: Barra de progresso com status
 - **Histórico Completo**: Logs detalhados com limpeza
+
+### 🎯 **Filtros Avançados de Valor**
+- **Valor Mínimo**: Clientes que gastaram acima de R$ X
+- **Valor Máximo**: Clientes que gastaram até R$ X
+- **Faixa de Valores**: Segmentação precisa por faixa de gasto
+- **Casos de Uso**: Campanhas para diferentes perfis de cliente
+
+#### **💡 Exemplos Práticos de Segmentação**
+- **Clientes VIP**: Valor mínimo R$ 500,00
+- **Clientes de Baixo Valor**: Valor máximo R$ 100,00
+- **Cliente Médio**: Entre R$ 100,00 e R$ 500,00
+- **Promoção Específica**: Apenas clientes que gastam até R$ 50,00
+
+### ⏱️ **Sistema de Intervalo Inteligente**
+
+#### **Modo Fixo (Padrão)**
+- **Intervalo Configurável**: 1 a 60 segundos entre envios
+- **Controle Total**: Usuário define exatamente o tempo
+- **Compatibilidade**: Mantém comportamento atual
+
+#### **Modo Aleatório (Novo)**
+- **Intervalo Variável**: 2 a 9 segundos automaticamente
+- **Comportamento Humano**: Simula digitação natural
+- **Anti-Detecção**: Evita padrões robóticos
+- **Performance**: Média de 5,5 segundos por mensagem
+
+#### **🎯 Quando Usar Cada Modo**
+- **Modo Fixo**: Para controle preciso de timing
+- **Modo Aleatório**: Para maior naturalidade e segurança
 
 ---
 
@@ -694,9 +724,10 @@ add_filter('wpwevo_validate_phone', function($phone, $original) {
 - ✅ Histórico de envios
 - ✅ Variáveis da loja
 
-### 📢 **Envio em Massa (v1.3.0)**
+### 📢 **Envio em Massa (v1.3.0+)**
 - ✅ Interface reescrita do zero
-- ✅ Filtros avançados
+- ✅ Filtros avançados de valor (mínimo/máximo)
+- ✅ Intervalo aleatório inteligente
 - ✅ Importação CSV inteligente
 - ✅ Controle de velocidade
 - ✅ Histórico completo

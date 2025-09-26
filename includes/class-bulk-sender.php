@@ -47,6 +47,7 @@ class Bulk_Sender {
                 'period' => __('Período', 'wp-whatsevolution'),
                 'to' => __('até', 'wp-whatsevolution'),
                 'min_value' => __('Valor Mínimo', 'wp-whatsevolution'),
+                'order_value' => __('Valor do Pedido', 'wp-whatsevolution'),
                 'preview_customers' => __('Visualizar Clientes', 'wp-whatsevolution'),
                 'csv_file' => __('Arquivo CSV', 'wp-whatsevolution'),
                 'csv_help' => __('Para melhores resultados, use um arquivo CSV com as colunas "nome" e "telefone". O sistema aceita separação por ponto e vírgula (;) ou vírgula (,).', 'wp-whatsevolution'),
@@ -231,16 +232,30 @@ class Bulk_Sender {
 								</td>
 							</tr>
 							<tr>
-								<th scope="row"><?php echo esc_html($this->i18n['form']['min_value']); ?></th>
+								<th scope="row"><?php echo esc_html($this->i18n['form']['order_value']); ?></th>
 								<td>
-									<div class="wpwevo-currency-input">
-										<span class="wpwevo-currency-symbol">R$</span>
-										<input type="text" 
-											   name="wpwevo_min_total" 
-											   class="regular-text wpwevo-currency-field" 
-											   placeholder="0,00"
-											   pattern="^\d*[0-9](|,\d{0,2}|,\d{2}|\d*[0-9]|,\d{0,2}\d*[0-9])$"
-											   maxlength="15">
+									<div style="display: flex; gap: 20px; align-items: center;">
+										<div class="wpwevo-currency-input">
+											<span class="wpwevo-currency-symbol">R$</span>
+											<input type="text" 
+												   name="wpwevo_min_total" 
+												   class="regular-text wpwevo-currency-field" 
+												   placeholder="0,00"
+												   pattern="^\d*[0-9](|,\d{0,2}|,\d{2}|\d*[0-9]|,\d{0,2}\d*[0-9])$"
+												   maxlength="15">
+											<span style="margin-left: 8px; color: #666; font-size: 13px;">Mínimo</span>
+										</div>
+										
+										<div class="wpwevo-currency-input">
+											<span class="wpwevo-currency-symbol">R$</span>
+											<input type="text" 
+												   name="wpwevo_max_total" 
+												   class="regular-text wpwevo-currency-field" 
+												   placeholder="0,00"
+												   pattern="^\d*[0-9](|,\d{0,2}|,\d{2}|\d*[0-9]|,\d{0,2}\d*[0-9])$"
+												   maxlength="15">
+											<span style="margin-left: 8px; color: #666; font-size: 13px;">Máximo</span>
+										</div>
 									</div>
 									<style>
 										.wpwevo-currency-input {
@@ -250,12 +265,18 @@ class Bulk_Sender {
 										.wpwevo-currency-symbol {
 											position: absolute;
 											left: 8px;
-											top: 50%;
+											top: 32%;
 											transform: translateY(-50%);
 											color: #666;
+											line-height: 1.4;
+											font-size: 14px;
+											height: 14px;
+											display: flex;
+											align-items: center;
 										}
 										.wpwevo-currency-field {
 											padding-left: 25px !important;
+											line-height: 1.4;
 										}
 									</style>
 									<script>
@@ -497,10 +518,33 @@ class Bulk_Sender {
 							<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
 								<span style="margin-right: 10px;">⏱️</span> <?php echo esc_html($this->i18n['form']['interval']); ?>
 							</h3>
-							<div style="display: flex; align-items: center; gap: 10px;">
+							
+							<!-- Modo de Intervalo -->
+							<div style="margin-bottom: 15px;">
+								<div style="display: flex; gap: 20px; margin-bottom: 10px;">
+									<label style="display: flex; align-items: center; cursor: pointer;">
+										<input type="radio" name="wpwevo_interval_mode" value="fixed" checked style="margin-right: 8px;">
+										<span style="font-weight: 500;">Fixo</span>
+									</label>
+									<label style="display: flex; align-items: center; cursor: pointer;">
+										<input type="radio" name="wpwevo_interval_mode" value="random" style="margin-right: 8px;">
+										<span style="font-weight: 500;">Aleatório</span>
+									</label>
+								</div>
+							</div>
+							
+							<!-- Campo de Intervalo Fixo -->
+							<div id="wpwevo-interval-fixed" style="display: flex; align-items: center; gap: 10px;">
 								<input type="number" name="wpwevo_interval" value="5" min="1" max="60" 
 									   style="width: 80px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
 								<span style="color: #4a5568; font-size: 14px;"><?php echo esc_html($this->i18n['form']['interval_help']); ?></span>
+							</div>
+							
+							<!-- Informação do Modo Aleatório -->
+							<div id="wpwevo-interval-random" style="display: none; padding: 10px; background: #e6fffa; border-radius: 6px; border-left: 4px solid #319795;">
+								<p style="margin: 0; color: #2c7a7b; font-size: 14px;">
+									<strong>Modo Aleatório:</strong> Intervalos variam entre 2 e 9 segundos automaticamente
+								</p>
 							</div>
 						</div>
 
@@ -743,6 +787,21 @@ class Bulk_Sender {
 			border-bottom: none;
 		}
 		</style>
+		
+		<script>
+		jQuery(document).ready(function($) {
+			// Alterna entre modos de intervalo
+			$('input[name="wpwevo_interval_mode"]').on('change', function() {
+				if ($(this).val() === 'random') {
+					$('#wpwevo-interval-fixed').hide();
+					$('#wpwevo-interval-random').show();
+				} else {
+					$('#wpwevo-interval-fixed').show();
+					$('#wpwevo-interval-random').hide();
+				}
+			});
+		});
+		</script>
 		<?php
 	}
 
@@ -828,6 +887,8 @@ class Bulk_Sender {
 			$date_to = isset($_POST['wpwevo_date_to']) ? sanitize_text_field($_POST['wpwevo_date_to']) : '';
 			$min_total = isset($_POST['wpwevo_min_total']) ? str_replace(['.', ','], ['', '.'], sanitize_text_field($_POST['wpwevo_min_total'])) : 0;
 			$min_total = floatval($min_total);
+			$max_total = isset($_POST['wpwevo_max_total']) ? str_replace(['.', ','], ['', '.'], sanitize_text_field($_POST['wpwevo_max_total'])) : 0;
+			$max_total = floatval($max_total);
 
 			// Prepara os argumentos da query
 			$query_args = [
@@ -879,8 +940,12 @@ class Bulk_Sender {
 				$order = wc_get_order($order_id);
 				if (!$order) continue;
 
-				// Filtro por valor mínimo
-				if ($min_total > 0 && $order->get_total() < $min_total) {
+				// Filtro por valor mínimo e máximo
+				$order_total = $order->get_total();
+				if ($min_total > 0 && $order_total < $min_total) {
+					continue;
+				}
+				if ($max_total > 0 && $order_total > $max_total) {
 					continue;
 				}
 
@@ -955,12 +1020,27 @@ class Bulk_Sender {
 							$filters[] = $period;
 						}
 						
-						// Valor mínimo
-						if ($min_total > 0) {
-                            $filters[] = sprintf(
-                                __('Valor mínimo: R$ %s', 'wp-whatsevolution'),
-								number_format($min_total, 2, ',', '.')
-							);
+						// Valor mínimo e máximo
+						if ($min_total > 0 || $max_total > 0) {
+							$value_filter = '';
+							if ($min_total > 0 && $max_total > 0) {
+								$value_filter = sprintf(
+									__('Valor: R$ %s a R$ %s', 'wp-whatsevolution'),
+									number_format($min_total, 2, ',', '.'),
+									number_format($max_total, 2, ',', '.')
+								);
+							} elseif ($min_total > 0) {
+								$value_filter = sprintf(
+									__('Valor mínimo: R$ %s', 'wp-whatsevolution'),
+									number_format($min_total, 2, ',', '.')
+								);
+							} elseif ($max_total > 0) {
+								$value_filter = sprintf(
+									__('Valor máximo: R$ %s', 'wp-whatsevolution'),
+									number_format($max_total, 2, ',', '.')
+								);
+							}
+							$filters[] = $value_filter;
 						}
 						
 						echo implode(' | ', $filters);
@@ -1135,6 +1215,7 @@ class Bulk_Sender {
 
 			$active_tab = isset($_POST['active_tab']) ? sanitize_text_field($_POST['active_tab']) : '';
 			$message = isset($_POST['wpwevo_bulk_message']) ? sanitize_textarea_field($_POST['wpwevo_bulk_message']) : '';
+			$interval_mode = isset($_POST['wpwevo_interval_mode']) ? sanitize_text_field($_POST['wpwevo_interval_mode']) : 'fixed';
 			$interval = isset($_POST['wpwevo_interval']) ? absint($_POST['wpwevo_interval']) : 5;
 
         if (empty($message)) {
@@ -1156,8 +1237,9 @@ class Bulk_Sender {
 					$date_from = isset($_POST['wpwevo_date_from']) ? sanitize_text_field($_POST['wpwevo_date_from']) : '';
 					$date_to = isset($_POST['wpwevo_date_to']) ? sanitize_text_field($_POST['wpwevo_date_to']) : '';
 					$min_total = isset($_POST['wpwevo_min_total']) ? floatval(str_replace(',', '.', $_POST['wpwevo_min_total'])) : 0;
+					$max_total = isset($_POST['wpwevo_max_total']) ? floatval(str_replace(',', '.', $_POST['wpwevo_max_total'])) : 0;
 					
-				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total);
+				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total);
 				break;
 
 			case 'csv':
@@ -1239,8 +1321,16 @@ class Bulk_Sender {
 				} finally {
 					$sent++;
 					// Aguarda o intervalo configurado apenas se houver mais envios
-					if ($sent < $total && $interval > 0) {
-						sleep($interval);
+					if ($sent < $total) {
+						if ($interval_mode === 'random') {
+							// Modo aleatório: intervalo entre 2 e 9 segundos
+							sleep(rand(2, 9));
+						} else {
+							// Modo fixo: intervalo configurado pelo usuário
+							if ($interval > 0) {
+								sleep($interval);
+							}
+						}
 					}
 				}
 			}
@@ -1334,7 +1424,7 @@ class Bulk_Sender {
 		return str_replace(array_keys($replacements), array_values($replacements), $message);
 	}
 
-	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total) {
+	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total = 0) {
 		if (!class_exists('WooCommerce')) {
             throw new \Exception(__('WooCommerce não está ativo.', 'wp-whatsevolution'));
 		}
@@ -1392,8 +1482,12 @@ class Bulk_Sender {
 			$order = wc_get_order($order_id);
 			if (!$order) continue;
 			
-			// Filtro por valor mínimo
-			if ($min_total > 0 && $order->get_total() < $min_total) {
+			// Filtro por valor mínimo e máximo
+			$order_total = $order->get_total();
+			if ($min_total > 0 && $order_total < $min_total) {
+				continue;
+			}
+			if ($max_total > 0 && $order_total > $max_total) {
 				continue;
 			}
 
