@@ -270,10 +270,10 @@ class Bulk_Sender {
 										.wpwevo-currency-symbol {
 											position: absolute;
 											left: 8px;
-											top: 32%;
+											top: 50%;
 											transform: translateY(-50%);
 											color: #666;
-											line-height: 1.4;
+											line-height: 1;
 											font-size: 14px;
 											height: 14px;
 											display: flex;
@@ -284,8 +284,47 @@ class Bulk_Sender {
 											line-height: 1.4;
 										}
 									</style>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php _e('Clientes Inativos', 'wp-whatsevolution'); ?></th>
+								<td>
+									<div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+										<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+											<input type="checkbox" 
+												   name="wpwevo_filter_inactive" 
+												   value="1" 
+												   id="wpwevo-filter-inactive"
+												   style="transform: scale(1.1);">
+											<span style="font-weight: 500;">
+												<?php _e('Filtrar clientes inativos há mais de', 'wp-whatsevolution'); ?>
+											</span>
+										</label>
+										
+										<div id="wpwevo-inactive-days-filter" style="display: none;">
+											<input type="number" 
+												   name="wpwevo_inactive_days" 
+												   id="wpwevo-inactive-days"
+												   min="1" 
+												   max="365" 
+												   value="30"
+												   style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+											<span style="color: #666; font-size: 14px;">
+												<?php _e('dias', 'wp-whatsevolution'); ?>
+											</span>
+										</div>
+									</div>
 									<script>
 										jQuery(document).ready(function($) {
+											// Controle do filtro de inatividade
+											$('#wpwevo-filter-inactive').on('change', function() {
+												if ($(this).is(':checked')) {
+													$('#wpwevo-inactive-days-filter').show();
+												} else {
+													$('#wpwevo-inactive-days-filter').hide();
+												}
+											});
+											
 											function formatCurrency(value) {
 												// Remove tudo exceto números e vírgula
 												value = value.replace(/[^\d,]/g, '');
@@ -985,6 +1024,10 @@ class Bulk_Sender {
 			$min_total = floatval($min_total);
 			$max_total = isset($_POST['wpwevo_max_total']) ? str_replace(['.', ','], ['', '.'], sanitize_text_field($_POST['wpwevo_max_total'])) : 0;
 			$max_total = floatval($max_total);
+			
+			// Filtro de inatividade
+			$filter_inactive = isset($_POST['wpwevo_filter_inactive']) && $_POST['wpwevo_filter_inactive'] === '1';
+			$inactive_days = isset($_POST['wpwevo_inactive_days']) ? max(1, min(365, intval($_POST['wpwevo_inactive_days']))) : 30;
 
 			// Prepara os argumentos da query
 			$query_args = [
@@ -1056,12 +1099,39 @@ class Bulk_Sender {
 
 				// Usa o número normalizado como chave para evitar duplicatas
 				if (!isset($processed_phones[$normalized_phone])) {
+					$last_order_date = $order->get_date_created();
+					$customer_id = $order->get_customer_id();
+					
+					// Filtro de inatividade: verifica se o cliente não fez pedidos recentes
+					if ($filter_inactive && $customer_id > 0) {
+						$inactive_cutoff = date('Y-m-d H:i:s', strtotime("-{$inactive_days} days"));
+						
+						// Busca o último pedido do cliente (independente do status)
+						$last_order_query = new \WC_Order_Query([
+							'customer' => $customer_id,
+							'limit' => 1,
+							'orderby' => 'date',
+							'order' => 'DESC',
+							'return' => 'ids'
+						]);
+						
+						$last_orders = $last_order_query->get_orders();
+						
+						// Se o cliente tem pedidos recentes, pula
+						if (!empty($last_orders)) {
+							$last_order_obj = wc_get_order($last_orders[0]);
+							if ($last_order_obj && $last_order_obj->get_date_created() > $inactive_cutoff) {
+								continue; // Cliente ativo, pula
+							}
+						}
+					}
+
 					$customer_data = [
 						'phone' => $phone, // Mantém o número original para exibição
 						'normalized_phone' => $normalized_phone, // Guarda a versão normalizada
 						'name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 						'total_orders' => wc_get_customer_order_count($order->get_customer_id()),
-						'last_order' => date_i18n('d/m/Y', strtotime($order->get_date_created())),
+						'last_order' => date_i18n('d/m/Y', strtotime($last_order_date)),
 						'status' => $order->get_status(),
 						'order_id' => $order->get_id(),
 						'order_total' => $order->get_total()
@@ -1137,6 +1207,14 @@ class Bulk_Sender {
 								);
 							}
 							$filters[] = $value_filter;
+						}
+						
+						// Filtro de inatividade
+						if ($filter_inactive) {
+							$filters[] = sprintf(
+								__('Inativos há mais de %d dias', 'wp-whatsevolution'),
+								$inactive_days
+							);
 						}
 						
 						echo implode(' | ', $filters);
@@ -1302,12 +1380,15 @@ class Bulk_Sender {
 				wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
 			}
 
-			// Obtém filtros de aniversário
+			// Obtém filtros de aniversário e paginação
 			$filter_birthday = isset($_POST['wpwevo_filter_birthday']) && $_POST['wpwevo_filter_birthday'] === '1';
 			$birthday_month = isset($_POST['wpwevo_birthday_month']) ? sanitize_text_field($_POST['wpwevo_birthday_month']) : null;
+			$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+			$per_page = isset($_POST['per_page']) ? max(1, min(100, intval($_POST['per_page']))) : 25;
 
-			// Obtém todos os clientes usando WP_User_Query
-			$customers = $this->get_all_customers_numbers($filter_birthday, $birthday_month);
+			// Obtém todos os clientes usando WP_User_Query com paginação
+			$result = $this->get_all_customers_numbers($filter_birthday, $birthday_month, $page, $per_page);
+			$customers = $result['customers'];
 
 			if (empty($customers)) {
 				if ($filter_birthday && !empty($birthday_month)) {
@@ -1336,13 +1417,63 @@ class Bulk_Sender {
 						<?php 
 						printf(
 							__('Total de clientes encontrados: %d', 'wp-whatsevolution'),
-							count($customers)
+							$result['total']
 						); 
 						?>
 					</h4>
 					<p class="description">
 						<?php _e('Todos os usuários cadastrados no WordPress que possuem telefone.', 'wp-whatsevolution'); ?>
 					</p>
+					
+					<!-- Controles de Paginação como WooCommerce -->
+					<div class="wpwevo-pagination-controls" style="margin: 15px 0; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+						<div class="wpwevo-pagination-info">
+							<?php 
+							printf(
+								__('Página %d de %d', 'wp-whatsevolution'),
+								$result['page'],
+								$result['total_pages']
+							);
+							?>
+						</div>
+						
+						<div class="wpwevo-pagination-nav" style="display: flex; align-items: center; gap: 10px;">
+							<?php if ($result['page'] > 1): ?>
+								<button type="button" class="button" onclick="wpwevoLoadAllCustomersPage(<?php echo $result['page'] - 1; ?>)">
+									&larr; <?php _e('Anterior', 'wp-whatsevolution'); ?>
+								</button>
+							<?php endif; ?>
+							
+							<?php if ($result['page'] < $result['total_pages']): ?>
+								<button type="button" class="button" onclick="wpwevoLoadAllCustomersPage(<?php echo $result['page'] + 1; ?>)">
+									<?php _e('Próxima', 'wp-whatsevolution'); ?> &rarr;
+								</button>
+							<?php endif; ?>
+						</div>
+						
+						<div class="wpwevo-pagination-jump" style="display: flex; align-items: center; gap: 5px;">
+							<label><?php _e('Ir para a página', 'wp-whatsevolution'); ?>:</label>
+							<input type="number" 
+								   id="wpwevo-jump-to-page" 
+								   min="1" 
+								   max="<?php echo $result['total_pages']; ?>" 
+								   value="<?php echo $result['page']; ?>"
+								   style="width: 60px; padding: 4px;">
+							<button type="button" class="button" onclick="wpwevoJumpToPage()">
+								<?php _e('Ir', 'wp-whatsevolution'); ?>
+							</button>
+						</div>
+						
+						<div class="wpwevo-per-page" style="display: flex; align-items: center; gap: 5px;">
+							<label><?php _e('Linhas por página', 'wp-whatsevolution'); ?>:</label>
+							<select id="wpwevo-per-page-select" onchange="wpwevoChangePerPage()" style="padding: 4px; min-width: 80px;">
+								<option value="10" <?php selected($result['per_page'], 10); ?>>10</option>
+								<option value="25" <?php selected($result['per_page'], 25); ?>>25</option>
+								<option value="50" <?php selected($result['per_page'], 50); ?>>50</option>
+								<option value="100" <?php selected($result['per_page'], 100); ?>>100</option>
+							</select>
+						</div>
+					</div>
 				</div>
 
 				<table class="widefat striped">
@@ -1398,16 +1529,6 @@ class Bulk_Sender {
 				</tbody>
 			</table>
 
-				<div class="wpwevo-preview-notes">
-					<p class="description">
-						<?php _e('Notas:', 'wp-whatsevolution'); ?>
-						<ul>
-							<li><?php _e('* Os números de telefone foram formatados para o padrão WhatsApp internacional.', 'wp-whatsevolution'); ?></li>
-							<li><?php _e('* Busca em todos os usuários cadastrados no WordPress.', 'wp-whatsevolution'); ?></li>
-							<li><?php _e('* Inclui usuários com telefone em billing_phone, billing_cellphone ou phone.', 'wp-whatsevolution'); ?></li>
-						</ul>
-					</p>
-				</div>
 			</div>
 
 			<style>
@@ -1439,6 +1560,74 @@ class Bulk_Sender {
 				margin: 5px 0 0 20px;
 			}
 			</style>
+			
+			<script>
+			// Funções de paginação para "Todos os Clientes"
+			function wpwevoLoadAllCustomersPage(page) {
+				const formData = new FormData();
+				formData.append('action', 'wpwevo_preview_all_customers');
+				formData.append('nonce', wpwevoBulkSend.nonce);
+				formData.append('page', page);
+				formData.append('per_page', document.getElementById('wpwevo-per-page-select').value);
+				
+				// Filtros de aniversário
+				const filterBirthday = document.getElementById('wpwevo-filter-birthday');
+				if (filterBirthday && filterBirthday.checked) {
+					formData.append('wpwevo_filter_birthday', '1');
+					const birthdayMonth = document.getElementById('wpwevo-birthday-month');
+					if (birthdayMonth) {
+						formData.append('wpwevo_birthday_month', birthdayMonth.value);
+					}
+				}
+				
+				
+				// Mostra loading
+				const previewContainer = document.getElementById('wpwevo-all-customers-preview');
+				previewContainer.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner is-active" style="float: none; margin: 0 auto;"></div><p>Carregando clientes...</p></div>';
+				
+				fetch(wpwevoBulkSend.ajaxurl, {
+					method: 'POST',
+					body: formData
+				})
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						previewContainer.innerHTML = data.data.html;
+					} else {
+						previewContainer.innerHTML = '<div class="notice notice-error"><p>Erro: ' + data.data + '</p></div>';
+					}
+				})
+				.catch(error => {
+					previewContainer.innerHTML = '<div class="notice notice-error"><p>Erro na requisição: ' + error.message + '</p></div>';
+				});
+			}
+			
+			function wpwevoJumpToPage() {
+				const pageInput = document.getElementById('wpwevo-jump-to-page');
+				const page = parseInt(pageInput.value);
+				if (page > 0) {
+					wpwevoLoadAllCustomersPage(page);
+				}
+			}
+			
+			function wpwevoChangePerPage() {
+				// Volta para página 1 quando muda o per_page
+				wpwevoLoadAllCustomersPage(1);
+			}
+			
+			
+			// Enter no campo de página
+			document.addEventListener('DOMContentLoaded', function() {
+				const pageInput = document.getElementById('wpwevo-jump-to-page');
+				if (pageInput) {
+					pageInput.addEventListener('keypress', function(e) {
+						if (e.key === 'Enter') {
+							wpwevoJumpToPage();
+						}
+					});
+				}
+			});
+			</script>
 		<?php
 		wp_send_json_success(['html' => ob_get_clean()]);
 
@@ -1494,13 +1683,18 @@ class Bulk_Sender {
 					$min_total = isset($_POST['wpwevo_min_total']) ? floatval(str_replace(',', '.', $_POST['wpwevo_min_total'])) : 0;
 					$max_total = isset($_POST['wpwevo_max_total']) ? floatval(str_replace(',', '.', $_POST['wpwevo_max_total'])) : 0;
 					
-				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total);
+				// Filtro de inatividade para envio
+				$filter_inactive = isset($_POST['wpwevo_filter_inactive']) && $_POST['wpwevo_filter_inactive'] === '1';
+				$inactive_days = isset($_POST['wpwevo_inactive_days']) ? max(1, min(365, intval($_POST['wpwevo_inactive_days']))) : 30;
+				
+				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total, $filter_inactive, $inactive_days);
 				break;
 
 			case 'all-customers':
 				$filter_birthday = isset($_POST['wpwevo_filter_birthday']) && $_POST['wpwevo_filter_birthday'] === '1';
 				$birthday_month = isset($_POST['wpwevo_birthday_month']) ? sanitize_text_field($_POST['wpwevo_birthday_month']) : null;
-				$numbers = $this->get_all_customers_numbers($filter_birthday, $birthday_month);
+				$result = $this->get_all_customers_numbers($filter_birthday, $birthday_month, 1, 1000); // Busca até 1000 para envio
+				$numbers = $result['customers'];
 				break;
 
 			case 'csv':
@@ -1699,7 +1893,7 @@ class Bulk_Sender {
 		return str_replace(array_keys($replacements), array_values($replacements), $message);
 	}
 
-	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total = 0) {
+	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total = 0, $filter_inactive = false, $inactive_days = 30) {
 		if (!class_exists('WooCommerce')) {
             throw new \Exception(__('WooCommerce não está ativo.', 'wp-whatsevolution'));
 		}
@@ -1775,6 +1969,33 @@ class Bulk_Sender {
 				continue;
 			}
 
+			// Filtro de inatividade: verifica se o cliente não fez pedidos recentes
+			if ($filter_inactive) {
+				$customer_id = $order->get_customer_id();
+				if ($customer_id > 0) {
+					$inactive_cutoff = date('Y-m-d H:i:s', strtotime("-{$inactive_days} days"));
+					
+					// Busca o último pedido do cliente (independente do status)
+					$last_order_query = new \WC_Order_Query([
+						'customer' => $customer_id,
+						'limit' => 1,
+						'orderby' => 'date',
+						'order' => 'DESC',
+						'return' => 'ids'
+					]);
+					
+					$last_orders = $last_order_query->get_orders();
+					
+					// Se o cliente tem pedidos recentes, pula
+					if (!empty($last_orders)) {
+						$last_order_obj = wc_get_order($last_orders[0]);
+						if ($last_order_obj && $last_order_obj->get_date_created() > $inactive_cutoff) {
+							continue; // Cliente ativo, pula
+						}
+					}
+				}
+			}
+
 			$customers[] = [
 				'name'  => $order->get_billing_first_name(),
 				'phone' => $phone,
@@ -1789,51 +2010,93 @@ class Bulk_Sender {
 	/**
 	 * Obtém todos os clientes usando WP_User_Query
 	 * Busca todos os usuários cadastrados no WordPress, independente de pedidos
+	 * Implementa paginação real como o WooCommerce
+	 * OTIMIZADO para sites com 78k+ usuários
 	 */
-	private function get_all_customers_numbers($filter_birthday = false, $birthday_month = null) {
-		// Query para buscar todos os usuários
-		$user_query = new \WP_User_Query([
-			'number' => -1, // Busca todos os usuários
-			'fields' => ['ID', 'user_email', 'display_name', 'first_name', 'last_name'],
-			'meta_query' => [
-				'relation' => 'OR',
-				[
-					'key' => 'billing_phone',
-					'value' => '',
-					'compare' => '!='
-				],
-				[
-					'key' => 'billing_cellphone',
-					'value' => '',
-					'compare' => '!='
-				],
-				[
-					'key' => 'phone',
-					'value' => '',
-					'compare' => '!='
-				]
-			]
-		]);
-
-		$users = $user_query->get_results();
+	private function get_all_customers_numbers($filter_birthday = false, $birthday_month = null, $page = 1, $per_page = 25) {
+		// Paginação real como o WooCommerce
+		$offset = ($page - 1) * $per_page;
+		
+		// **OTIMIZAÇÃO CRÍTICA**: Query direta no banco para performance máxima
+		global $wpdb;
+		
+		// Prepara filtro de aniversário se ativo
+		$birthday_condition = '';
+		if ($filter_birthday && !empty($birthday_month)) {
+			$birthday_condition = $wpdb->prepare("
+				AND EXISTS (
+					SELECT 1 FROM {$wpdb->usermeta} um_birth 
+					WHERE um_birth.user_id = u.ID 
+					AND um_birth.meta_key = 'billing_birthdate' 
+					AND um_birth.meta_value != ''
+					AND MONTH(STR_TO_DATE(um_birth.meta_value, '%%d/%%m/%%Y')) = %d
+				)
+			", $birthday_month);
+		}
+		
+		// Conta total de usuários com telefone (considerando filtro de aniversário)
+		$total_query = "
+			SELECT COUNT(DISTINCT u.ID) 
+			FROM {$wpdb->users} u
+			INNER JOIN {$wpdb->usermeta} um ON u.ID = um.user_id 
+			WHERE um.meta_key IN ('billing_phone', 'billing_cellphone', 'phone') 
+			AND um.meta_value != ''
+			{$birthday_condition}
+		";
+		
+		$total_users = (int) $wpdb->get_var($total_query);
+		
+		// Query otimizada para buscar usuários com telefone (considerando filtro de aniversário)
+		$users_query = "
+			SELECT DISTINCT u.ID, u.user_email, u.display_name, u.user_registered
+			FROM {$wpdb->users} u
+			INNER JOIN {$wpdb->usermeta} um ON u.ID = um.user_id 
+			WHERE um.meta_key IN ('billing_phone', 'billing_cellphone', 'phone') 
+			AND um.meta_value != ''
+			{$birthday_condition}
+			ORDER BY u.user_registered DESC
+			LIMIT %d OFFSET %d
+		";
+		
+		$users = $wpdb->get_results($wpdb->prepare($users_query, $per_page, $offset));
 		$customers = [];
 		$processed_phones = [];
 
-		foreach ($users as $user) {
-			// Tenta obter o telefone do usuário
-			$phone = '';
+		// **OTIMIZAÇÃO DE PERFORMANCE**: Busca todos os meta dados de uma vez
+		$user_ids = wp_list_pluck($users, 'ID');
+		$all_meta = [];
+		
+		if (!empty($user_ids)) {
+			$meta_keys = ['billing_phone', 'billing_cellphone', 'phone', 'first_name', 'last_name', 'billing_birthdate'];
+			$placeholders = implode(',', array_fill(0, count($meta_keys), '%s'));
+			$user_placeholders = implode(',', array_fill(0, count($user_ids), '%d'));
 			
-			// Primeiro tenta billing_phone (WooCommerce)
-			$phone = get_user_meta($user->ID, 'billing_phone', true);
+			$meta_query = $wpdb->prepare("
+				SELECT user_id, meta_key, meta_value 
+				FROM {$wpdb->usermeta} 
+				WHERE user_id IN ($user_placeholders) 
+				AND meta_key IN ($placeholders)
+			", array_merge($user_ids, $meta_keys));
 			
-			// Se não encontrou, tenta billing_cellphone (Brazilian Market)
-			if (empty($phone)) {
-				$phone = get_user_meta($user->ID, 'billing_cellphone', true);
+			$results = $wpdb->get_results($meta_query);
+			
+			// Organiza os meta dados por user_id
+			foreach ($results as $meta) {
+				$all_meta[$meta->user_id][$meta->meta_key] = $meta->meta_value;
 			}
+		}
+
+		foreach ($users as $user) {
+			// **OTIMIZADO**: Usa dados já carregados em vez de queries individuais
+			$user_meta = $all_meta[$user->ID] ?? [];
 			
-			// Se não encontrou, tenta phone genérico
+			// Tenta obter o telefone do usuário (prioridade: billing_phone > billing_cellphone > phone)
+			$phone = $user_meta['billing_phone'] ?? '';
 			if (empty($phone)) {
-				$phone = get_user_meta($user->ID, 'phone', true);
+				$phone = $user_meta['billing_cellphone'] ?? '';
+			}
+			if (empty($phone)) {
+				$phone = $user_meta['phone'] ?? '';
 			}
 			
 			// Se ainda não encontrou, pula este usuário
@@ -1841,8 +2104,8 @@ class Bulk_Sender {
 				continue;
 			}
 
-			// Busca data de nascimento
-			$birthdate = get_user_meta($user->ID, 'billing_birthdate', true);
+			// **OTIMIZADO**: Usa dados já carregados
+			$birthdate = $user_meta['billing_birthdate'] ?? '';
 			
 			// Se filtro de aniversário está ativo, verifica o mês
 			if ($filter_birthday && !empty($birthday_month)) {
@@ -1870,9 +2133,9 @@ class Bulk_Sender {
 				continue;
 			}
 
-			// Monta o nome do usuário
-			$first_name = get_user_meta($user->ID, 'first_name', true);
-			$last_name = get_user_meta($user->ID, 'last_name', true);
+			// **OTIMIZADO**: Usa dados já carregados
+			$first_name = $user_meta['first_name'] ?? '';
+			$last_name = $user_meta['last_name'] ?? '';
 			$display_name = $user->display_name;
 			
 			$full_name = trim($first_name . ' ' . $last_name);
@@ -1891,7 +2154,14 @@ class Bulk_Sender {
 			$processed_phones[$normalized_phone] = true;
 		}
 
-		return $customers;
+		// Retorna dados com informações de paginação
+		return [
+			'customers' => $customers,
+			'total' => $total_users,
+			'page' => $page,
+			'per_page' => $per_page,
+			'total_pages' => ceil($total_users / $per_page)
+		];
 	}
 
 	private function process_csv_file($file) {
