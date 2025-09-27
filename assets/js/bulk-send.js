@@ -35,7 +35,17 @@ jQuery(document).ready(function($) {
             
             // **NOVO: Troca a exibição das variáveis dinamicamente**
             $('.wpwevo-variables-section').hide();
-            $('#wpwevo-variables-' + tab).show();
+            
+            // Mapeia os nomes das abas para os IDs corretos das variáveis
+            var variablesMap = {
+                'customers': 'wpwevo-variables-woo',
+                'all-customers': 'wpwevo-variables-all-customers',
+                'csv': 'wpwevo-variables-csv',
+                'manual': 'wpwevo-variables-manual'
+            };
+            
+            var variablesId = variablesMap[tab] || 'wpwevo-variables-' + tab;
+            $('#' + variablesId).show();
 
             // Armazena a aba ativa na sessão
             if (typeof(Storage) !== "undefined") {
@@ -291,6 +301,47 @@ jQuery(document).ready(function($) {
         });
     }
 
+    // Preview de todos os clientes
+    function initAllCustomersPreview() {
+        $('#wpwevo-preview-all-customers').on('click', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var $preview = $('#wpwevo-all-customers-preview');
+            var $form = $button.closest('form');
+
+            var originalButtonText = $button.text();
+            $button.prop('disabled', true).text(wpwevoBulkSend.i18n.sending);
+
+            // Cria dados para a requisição
+            var formData = new FormData($form[0]);
+            formData.append('action', 'wpwevo_preview_all_customers');
+            formData.append('nonce', wpwevoBulkSend.nonce);
+
+            // Faz a requisição AJAX
+            $.ajax({
+                url: wpwevoBulkSend.ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        $preview.html(response.data.html).show();
+                    } else {
+                        alert('Erro: ' + (response.data.message || response.data));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert(wpwevoBulkSend.i18n.error);
+                },
+                complete: function() {
+                    $button.prop('disabled', false).text(originalButtonText);
+                }
+            });
+        });
+    }
+
     // Inicializa envio em massa
     function initBulkSend() {
         const sendButton = $('#wpwevo-bulk-form');
@@ -329,6 +380,9 @@ jQuery(document).ready(function($) {
                 alert('Selecione pelo menos um status.');
                 return;
             }
+        } else if (activeTab === 'all-customers') {
+            // Não precisa de validação específica para todos os clientes
+            // A validação será feita no servidor
         } else if (activeTab === 'csv') {
             const csvFile = formData.get('wpwevo_csv_file');
             if (!csvFile || !csvFile.name) {
@@ -512,9 +566,22 @@ jQuery(document).ready(function($) {
         $('#wpwevo-bulk-status').html('<div class="wpwevo-error">' + message + '</div>').show();
     }
 
+    // Controle do filtro de aniversariantes
+    function initBirthdayFilter() {
+        $('#wpwevo-filter-birthday').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#wpwevo-birthday-month-filter').show();
+            } else {
+                $('#wpwevo-birthday-month-filter').hide();
+            }
+        });
+    }
+
     // Inicializa todos os módulos
     initTabs();
     initCustomerPreview();
+    initAllCustomersPreview();
+    initBirthdayFilter();
     initBulkSend();
     initCsvProcessing();
     initHistoryActions();

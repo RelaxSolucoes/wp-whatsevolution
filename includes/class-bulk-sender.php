@@ -77,6 +77,7 @@ class Bulk_Sender {
                 'status' => __('Status', 'wp-whatsevolution'),
 				'sources' => [
                     'customers' => __('Clientes WooCommerce', 'wp-whatsevolution'),
+                    'all-customers' => __('Todos os Clientes', 'wp-whatsevolution'),
                     'csv' => __('Importação CSV', 'wp-whatsevolution'),
                     'manual' => __('Lista Manual', 'wp-whatsevolution')
 				]
@@ -87,6 +88,7 @@ class Bulk_Sender {
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 		add_action('wp_ajax_wpwevo_bulk_send', [$this, 'handle_bulk_send']);
 		add_action('wp_ajax_wpwevo_preview_customers', [$this, 'preview_customers']);
+		add_action('wp_ajax_wpwevo_preview_all_customers', [$this, 'preview_all_customers']);
 		add_action('wp_ajax_wpwevo_get_history', [$this, 'ajax_get_history']);
 		add_action('wp_ajax_wpwevo_clear_history', [$this, 'clear_history']);
 		add_action('wp_ajax_wpwevo_test_ajax', [$this, 'test_ajax']);
@@ -183,6 +185,9 @@ class Bulk_Sender {
 							<nav class="wpwevo-tabs">
 								<a href="#tab-customers" class="wpwevo-tab-button active" data-tab="customers">
 									🛒 <?php echo esc_html($this->i18n['tabs']['customers']); ?>
+								</a>
+								<a href="#tab-all-customers" class="wpwevo-tab-button" data-tab="all-customers">
+									👥 <?php _e('Todos os Clientes', 'wp-whatsevolution'); ?>
 								</a>
 								<a href="#tab-csv" class="wpwevo-tab-button" data-tab="csv">
 									📄 <?php echo esc_html($this->i18n['tabs']['csv']); ?>
@@ -355,6 +360,71 @@ class Bulk_Sender {
 						<div id="wpwevo-customers-preview"></div>
 					</div>
 
+							<div class="wpwevo-tab-content" id="tab-all-customers">
+						<div style="background: #f0f8ff; padding: 20px; border-radius: 8px; border: 2px solid #4facfe; margin-bottom: 20px;">
+							<div style="display: flex; align-items: center; margin-bottom: 15px;">
+								<div style="background: #4facfe; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px; color: white;">
+									👥
+								</div>
+								<div>
+									<h3 style="margin: 0; color: #2d3748; font-size: 18px; font-weight: 600;">
+										<?php _e('Envio para Todos os Clientes', 'wp-whatsevolution'); ?>
+									</h3>
+									<p style="margin: 5px 0 0 0; color: #4a5568; font-size: 14px;">
+										<?php _e('Envie mensagens para todos os usuários cadastrados no WordPress que possuem telefone.', 'wp-whatsevolution'); ?>
+									</p>
+								</div>
+							</div>
+							
+							<div style="background: #e8f5e8; padding: 15px; border-radius: 6px; border-left: 4px solid #48bb78;">
+								<p style="margin: 0; color: #2f855a; font-size: 14px;">
+									<strong>✅ Inclui:</strong> Todos os usuários com telefone cadastrado (billing_phone ou phone)<br>
+									<strong>📱 Fonte:</strong> Dados do perfil do usuário no WordPress<br>
+									<strong>🔄 Atualização:</strong> Busca em tempo real, sempre atualizado
+								</p>
+							</div>
+						</div>
+
+						<!-- Filtro de Aniversariantes -->
+						<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e9ecef;">
+							<label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+								<input type="checkbox" 
+									   name="wpwevo_filter_birthday" 
+									   value="1" 
+									   id="wpwevo-filter-birthday"
+									   style="transform: scale(1.1);">
+								<span style="font-weight: 600; color: #2d3748;">
+									🎂 <?php _e('Filtrar aniversariantes do mês', 'wp-whatsevolution'); ?>
+								</span>
+							</label>
+							<div id="wpwevo-birthday-month-filter" style="display: none;">
+								<select name="wpwevo_birthday_month" id="wpwevo-birthday-month" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+									<option value="01"><?php _e('Janeiro', 'wp-whatsevolution'); ?></option>
+									<option value="02"><?php _e('Fevereiro', 'wp-whatsevolution'); ?></option>
+									<option value="03"><?php _e('Março', 'wp-whatsevolution'); ?></option>
+									<option value="04"><?php _e('Abril', 'wp-whatsevolution'); ?></option>
+									<option value="05"><?php _e('Maio', 'wp-whatsevolution'); ?></option>
+									<option value="06"><?php _e('Junho', 'wp-whatsevolution'); ?></option>
+									<option value="07"><?php _e('Julho', 'wp-whatsevolution'); ?></option>
+									<option value="08"><?php _e('Agosto', 'wp-whatsevolution'); ?></option>
+									<option value="09"><?php _e('Setembro', 'wp-whatsevolution'); ?></option>
+									<option value="10"><?php _e('Outubro', 'wp-whatsevolution'); ?></option>
+									<option value="11"><?php _e('Novembro', 'wp-whatsevolution'); ?></option>
+									<option value="12"><?php _e('Dezembro', 'wp-whatsevolution'); ?></option>
+								</select>
+								<p style="margin: 8px 0 0 0; color: #6c757d; font-size: 13px;">
+									<?php _e('Mostra apenas clientes que fazem aniversário no mês selecionado.', 'wp-whatsevolution'); ?>
+								</p>
+							</div>
+						</div>
+
+						<button type="button" class="button" id="wpwevo-preview-all-customers">
+							<?php _e('Visualizar Todos os Clientes', 'wp-whatsevolution'); ?>
+						</button>
+
+						<div id="wpwevo-all-customers-preview"></div>
+					</div>
+
 							<div class="wpwevo-tab-content" id="tab-csv">
 						<table class="form-table">
 							<tr>
@@ -475,13 +545,39 @@ class Bulk_Sender {
 										<div style="display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
 											<?php 
 											$csv_variables = [
-												'{nome}' => 'Nome do contato',
-												'{name}' => 'Nome do contato (alternativo)',
-												'{customer_name}' => 'Nome do cliente',
-												'{customer_phone}' => 'Telefone do cliente'
+												'{customer_name}' => 'Nome do contato',
+												'{customer_phone}' => 'Telefone do contato',
+												'{customer_email}' => 'Email do contato'
 											];
 											
 											foreach ($csv_variables as $var => $desc) : ?>
+												<div style="background: #e6fffa; padding: 8px; border-radius: 6px; border: 1px solid #b2f5ea;">
+													<div style="margin-bottom: 4px;">
+														<code style="background: #319795; color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; user-select: all; cursor: text;"><?php echo esc_html($var); ?></code>
+													</div>
+													<div style="color: #2d3748; font-size: 11px; line-height: 1.3; user-select: none;"><?php echo esc_html($desc); ?></div>
+												</div>
+											<?php endforeach; ?>
+										</div>
+									</div>
+									
+									<!-- Aba Todos os Clientes -->
+									<div id="wpwevo-variables-all-customers" class="wpwevo-variables-section" style="display: none;">
+										<div style="margin-bottom: 8px; padding: 6px 10px; background: #e6fffa; border-radius: 4px; border-left: 3px solid #319795;">
+											<small style="color: #2c7a7b; font-weight: 600;">👥 Todos os Clientes</small>
+										</div>
+										<div style="display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+											<?php 
+											$all_customers_variables = [
+												'{customer_name}' => 'Nome do cliente',
+												'{customer_phone}' => 'Telefone do cliente',
+												'{customer_email}' => 'Email do cliente',
+												'{birthdate}' => 'Data de aniversário (DD/MM)',
+												'{user_id}' => 'ID do usuário',
+												'{display_name}' => 'Nome de exibição'
+											];
+											
+											foreach ($all_customers_variables as $var => $desc) : ?>
 												<div style="background: #e6fffa; padding: 8px; border-radius: 6px; border: 1px solid #b2f5ea;">
 													<div style="margin-bottom: 4px;">
 														<code style="background: #319795; color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; user-select: all; cursor: text;"><?php echo esc_html($var); ?></code>
@@ -1192,6 +1288,165 @@ class Bulk_Sender {
 		}
 	}
 
+	/**
+	 * Preview de todos os clientes (WP_User_Query)
+	 */
+	public function preview_all_customers() {
+		try {
+			// Verifica nonce
+			if (!wp_verify_nonce($_POST['nonce'], 'wpwevo_bulk_send')) {
+				wp_send_json_error(__('Verificação de segurança falhou.', 'wp-whatsevolution'));
+			}
+
+			if (!current_user_can('manage_options')) {
+				wp_send_json_error(__('Permissão negada.', 'wp-whatsevolution'));
+			}
+
+			// Obtém filtros de aniversário
+			$filter_birthday = isset($_POST['wpwevo_filter_birthday']) && $_POST['wpwevo_filter_birthday'] === '1';
+			$birthday_month = isset($_POST['wpwevo_birthday_month']) ? sanitize_text_field($_POST['wpwevo_birthday_month']) : null;
+
+			// Obtém todos os clientes usando WP_User_Query
+			$customers = $this->get_all_customers_numbers($filter_birthday, $birthday_month);
+
+			if (empty($customers)) {
+				if ($filter_birthday && !empty($birthday_month)) {
+					$month_names = [
+						'01' => 'Janeiro', '02' => 'Fevereiro', '03' => 'Março', '04' => 'Abril',
+						'05' => 'Maio', '06' => 'Junho', '07' => 'Julho', '08' => 'Agosto',
+						'09' => 'Setembro', '10' => 'Outubro', '11' => 'Novembro', '12' => 'Dezembro'
+					];
+					$month_name = $month_names[$birthday_month] ?? $birthday_month;
+					throw new \Exception(sprintf(__('Nenhum cliente com aniversário em %s encontrado.', 'wp-whatsevolution'), $month_name));
+				} else {
+					throw new \Exception(__('Nenhum cliente com telefone cadastrado encontrado.', 'wp-whatsevolution'));
+				}
+			}
+
+			// Ordena os clientes pelo nome
+			usort($customers, function($a, $b) {
+				return strcmp($a['name'], $b['name']);
+			});
+
+			ob_start();
+			?>
+			<div class="wpwevo-preview-table">
+				<div class="wpwevo-preview-summary">
+					<h4>
+						<?php 
+						printf(
+							__('Total de clientes encontrados: %d', 'wp-whatsevolution'),
+							count($customers)
+						); 
+						?>
+					</h4>
+					<p class="description">
+						<?php _e('Todos os usuários cadastrados no WordPress que possuem telefone.', 'wp-whatsevolution'); ?>
+					</p>
+				</div>
+
+				<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php _e('Nome', 'wp-whatsevolution'); ?></th>
+						<th><?php _e('Telefone', 'wp-whatsevolution'); ?></th>
+						<th><?php _e('Email', 'wp-whatsevolution'); ?></th>
+						<th>
+							<?php _e('Aniversário', 'wp-whatsevolution'); ?>
+							<span class="dashicons dashicons-info-outline" 
+								  title="<?php esc_attr_e('Necessita plugin Brazilian Market on WooCommerce', 'wp-whatsevolution'); ?>"
+								  style="font-size: 16px; color: #646970; vertical-align: middle; cursor: help; margin-left: 5px;"></span>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ($customers as $customer) : ?>
+						<tr>
+							<td><?php echo esc_html($customer['name']); ?></td>
+							<td>
+								<?php 
+								$formatted_phone = wpwevo_validate_phone($customer['phone']);
+								if ($formatted_phone !== $customer['phone']) {
+									echo '<strong>' . esc_html($formatted_phone) . '</strong>';
+									echo '<br><small class="description">' . esc_html($customer['phone']) . '</small>';
+								} else {
+									echo esc_html($customer['phone']);
+								}
+								?>
+							</td>
+							<td><?php echo esc_html($customer['email']); ?></td>
+							<td>
+								<?php 
+								if (!empty($customer['birthdate'])) {
+									// Converte data para formato DD/MM
+									$birthdate = $customer['birthdate'];
+									if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $birthdate, $matches)) {
+										// Já está no formato DD/MM/YYYY, extrai DD/MM
+										$birthdate_formatted = $matches[1] . '/' . $matches[2];
+									} else {
+										// Fallback: tenta converter com strtotime
+										$birthdate_formatted = date('d/m', strtotime($birthdate));
+									}
+									echo esc_html($birthdate_formatted);
+								} else {
+									echo '<span class="description">-</span>';
+								}
+								?>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+
+				<div class="wpwevo-preview-notes">
+					<p class="description">
+						<?php _e('Notas:', 'wp-whatsevolution'); ?>
+						<ul>
+							<li><?php _e('* Os números de telefone foram formatados para o padrão WhatsApp internacional.', 'wp-whatsevolution'); ?></li>
+							<li><?php _e('* Busca em todos os usuários cadastrados no WordPress.', 'wp-whatsevolution'); ?></li>
+							<li><?php _e('* Inclui usuários com telefone em billing_phone, billing_cellphone ou phone.', 'wp-whatsevolution'); ?></li>
+						</ul>
+					</p>
+				</div>
+			</div>
+
+			<style>
+			.wpwevo-preview-table {
+				margin-top: 20px;
+			}
+			.wpwevo-preview-summary {
+				margin-bottom: 20px;
+			}
+			.wpwevo-preview-summary h4 {
+				margin: 0 0 10px 0;
+			}
+			.wpwevo-preview-table table {
+				border-collapse: collapse;
+				width: 100%;
+			}
+			.wpwevo-preview-table th,
+			.wpwevo-preview-table td {
+				padding: 8px;
+				text-align: left;
+			}
+			.wpwevo-preview-notes {
+				margin-top: 20px;
+				padding: 10px;
+				background: #f8f9fa;
+				border-left: 4px solid #646970;
+			}
+			.wpwevo-preview-notes ul {
+				margin: 5px 0 0 20px;
+			}
+			</style>
+		<?php
+		wp_send_json_success(['html' => ob_get_clean()]);
+
+		} catch (\Exception $e) {
+			wp_send_json_error($e->getMessage());
+		}
+	}
+
 	public function handle_bulk_send() {
 		try {
 			// Verifica nonce com o nome correto do campo
@@ -1240,6 +1495,12 @@ class Bulk_Sender {
 					$max_total = isset($_POST['wpwevo_max_total']) ? floatval(str_replace(',', '.', $_POST['wpwevo_max_total'])) : 0;
 					
 				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total);
+				break;
+
+			case 'all-customers':
+				$filter_birthday = isset($_POST['wpwevo_filter_birthday']) && $_POST['wpwevo_filter_birthday'] === '1';
+				$birthday_month = isset($_POST['wpwevo_birthday_month']) ? sanitize_text_field($_POST['wpwevo_birthday_month']) : null;
+				$numbers = $this->get_all_customers_numbers($filter_birthday, $birthday_month);
 				break;
 
 			case 'csv':
@@ -1415,10 +1676,24 @@ class Bulk_Sender {
 			$replacements['{last_order_date}'] = date_i18n('d/m/Y', strtotime($order->get_date_created()));
 		}
 
-		// **NOVO: Adiciona placeholders específicos para CSV**
-		if (isset($contact_data['name']) && !empty($contact_data['name'])) {
-			$replacements['{nome}'] = $contact_data['name'];
-			$replacements['{name}'] = $contact_data['name'];
+		// **NOVO: Adiciona placeholders específicos para CSV e Todos os Clientes**
+		// Sempre substitui todas as variáveis - se vazio, fica em branco
+		$replacements['{customer_email}'] = isset($contact_data['email']) && !empty($contact_data['email']) ? $contact_data['email'] : '';
+		$replacements['{user_id}'] = isset($contact_data['user_id']) && !empty($contact_data['user_id']) ? $contact_data['user_id'] : '';
+		$replacements['{display_name}'] = isset($contact_data['display_name']) && !empty($contact_data['display_name']) ? $contact_data['display_name'] : '';
+		
+		if (isset($contact_data['birthdate']) && !empty($contact_data['birthdate'])) {
+			// Formato DD/MM para aniversário
+			$birthdate = $contact_data['birthdate'];
+			if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $birthdate, $matches)) {
+				// Já está no formato DD/MM/YYYY, extrai DD/MM
+				$replacements['{birthdate}'] = $matches[1] . '/' . $matches[2];
+			} else {
+				// Fallback: tenta converter com strtotime
+				$replacements['{birthdate}'] = date('d/m', strtotime($birthdate));
+			}
+		} else {
+			$replacements['{birthdate}'] = '';
 		}
 
 		return str_replace(array_keys($replacements), array_values($replacements), $message);
@@ -1511,6 +1786,114 @@ class Bulk_Sender {
 		return $customers;
 	}
 
+	/**
+	 * Obtém todos os clientes usando WP_User_Query
+	 * Busca todos os usuários cadastrados no WordPress, independente de pedidos
+	 */
+	private function get_all_customers_numbers($filter_birthday = false, $birthday_month = null) {
+		// Query para buscar todos os usuários
+		$user_query = new \WP_User_Query([
+			'number' => -1, // Busca todos os usuários
+			'fields' => ['ID', 'user_email', 'display_name', 'first_name', 'last_name'],
+			'meta_query' => [
+				'relation' => 'OR',
+				[
+					'key' => 'billing_phone',
+					'value' => '',
+					'compare' => '!='
+				],
+				[
+					'key' => 'billing_cellphone',
+					'value' => '',
+					'compare' => '!='
+				],
+				[
+					'key' => 'phone',
+					'value' => '',
+					'compare' => '!='
+				]
+			]
+		]);
+
+		$users = $user_query->get_results();
+		$customers = [];
+		$processed_phones = [];
+
+		foreach ($users as $user) {
+			// Tenta obter o telefone do usuário
+			$phone = '';
+			
+			// Primeiro tenta billing_phone (WooCommerce)
+			$phone = get_user_meta($user->ID, 'billing_phone', true);
+			
+			// Se não encontrou, tenta billing_cellphone (Brazilian Market)
+			if (empty($phone)) {
+				$phone = get_user_meta($user->ID, 'billing_cellphone', true);
+			}
+			
+			// Se não encontrou, tenta phone genérico
+			if (empty($phone)) {
+				$phone = get_user_meta($user->ID, 'phone', true);
+			}
+			
+			// Se ainda não encontrou, pula este usuário
+			if (empty($phone)) {
+				continue;
+			}
+
+			// Busca data de nascimento
+			$birthdate = get_user_meta($user->ID, 'billing_birthdate', true);
+			
+			// Se filtro de aniversário está ativo, verifica o mês
+			if ($filter_birthday && !empty($birthday_month)) {
+				if (empty($birthdate)) {
+					continue; // Pula usuários sem data de nascimento
+				}
+				
+				// Converte data DD/MM/YYYY para extrair o mês
+				$birth_month = '';
+				if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $birthdate, $matches)) {
+					$birth_month = $matches[2]; // Mês está na posição 2
+				} else {
+					// Fallback: tenta strtotime se não for formato DD/MM/YYYY
+					$birth_month = date('m', strtotime($birthdate));
+				}
+				
+				if ($birth_month !== $birthday_month) {
+					continue; // Pula usuários que não fazem aniversário no mês selecionado
+				}
+			}
+
+			// Normaliza o número para comparação para evitar duplicatas
+			$normalized_phone = preg_replace('/\D/', '', $phone);
+			if (isset($processed_phones[$normalized_phone])) {
+				continue;
+			}
+
+			// Monta o nome do usuário
+			$first_name = get_user_meta($user->ID, 'first_name', true);
+			$last_name = get_user_meta($user->ID, 'last_name', true);
+			$display_name = $user->display_name;
+			
+			$full_name = trim($first_name . ' ' . $last_name);
+			if (empty($full_name)) {
+				$full_name = $display_name;
+			}
+
+			$customers[] = [
+				'name' => $full_name,
+				'phone' => $phone,
+				'email' => $user->user_email,
+				'user_id' => $user->ID,
+				'display_name' => $display_name,
+				'birthdate' => $birthdate
+			];
+			$processed_phones[$normalized_phone] = true;
+		}
+
+		return $customers;
+	}
+
 	private function process_csv_file($file) {
 		if ($file['error'] !== UPLOAD_ERR_OK) {
             throw new \Exception(__('Erro no upload do arquivo.', 'wp-whatsevolution'));
@@ -1586,14 +1969,24 @@ class Bulk_Sender {
 			$phone = isset($data[$phone_col_index]) ? trim($data[$phone_col_index]) : null;
 			
 			if (!empty($phone)) {
-				// **NOVO: Tenta extrair nome se disponível**
+				// **NOVO: Tenta extrair nome e email se disponível**
 				$name = '';
+				$email = '';
 				$name_keywords = ['nome', 'name', 'cliente', 'customer'];
+				$email_keywords = ['email', 'e-mail', 'mail'];
 				
 				// Procura por coluna de nome
 				foreach ($header_map as $idx => $col) {
 					if (in_array($col, $name_keywords) && $idx != $phone_col_index) {
 						$name = isset($data[$idx]) ? trim($data[$idx]) : '';
+						break;
+					}
+				}
+				
+				// Procura por coluna de email
+				foreach ($header_map as $idx => $col) {
+					if (in_array($col, $email_keywords) && $idx != $phone_col_index) {
+						$email = isset($data[$idx]) ? trim($data[$idx]) : '';
 						break;
 					}
 				}
@@ -1610,7 +2003,8 @@ class Bulk_Sender {
 				
 				$contacts[] = [
 					'phone' => $phone,
-					'name' => $name
+					'name' => $name,
+					'email' => $email
 				];
 			}
 		}
@@ -1669,7 +2063,7 @@ class Bulk_Sender {
 				<?php foreach (array_reverse($history) as $item) : ?>
 					<tr>
 						<td><?php echo esc_html(date_i18n('d/m/Y H:i', $item['date'])); ?></td>
-						<td><?php echo esc_html($item['source']); ?></td>
+						<td><?php echo esc_html($this->i18n['history']['sources'][$item['source']] ?? $item['source']); ?></td>
 						<td><?php echo esc_html($item['total']); ?></td>
 						<td><?php echo esc_html($item['sent']); ?></td>
 						<td>
