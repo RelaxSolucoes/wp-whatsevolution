@@ -314,6 +314,36 @@ class Bulk_Sender {
 											</span>
 										</div>
 									</div>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php _e('Filtro por Total de Pedidos', 'wp-whatsevolution'); ?></th>
+								<td>
+									<div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+										<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+											<input type="checkbox" 
+												   name="wpwevo_filter_min_orders" 
+												   value="1" 
+												   id="wpwevo-filter-min-orders"
+												   style="transform: scale(1.1);">
+											<span style="font-weight: 500;">
+												<?php _e('Mostrar apenas clientes com', 'wp-whatsevolution'); ?>
+											</span>
+										</label>
+										
+										<div id="wpwevo-min-orders-filter" style="display: none;">
+											<input type="number" 
+												   name="wpwevo_min_orders" 
+												   id="wpwevo-min-orders"
+												   min="1" 
+												   max="1000" 
+												   value="1"
+												   style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+											<span style="color: #666; font-size: 14px;">
+												<?php _e('ou mais pedidos', 'wp-whatsevolution'); ?>
+											</span>
+										</div>
+									</div>
 									<script>
 										jQuery(document).ready(function($) {
 											// Controle do filtro de inatividade
@@ -322,6 +352,15 @@ class Bulk_Sender {
 													$('#wpwevo-inactive-days-filter').show();
 												} else {
 													$('#wpwevo-inactive-days-filter').hide();
+												}
+											});
+											
+											// Controle do filtro de total de pedidos
+											$('#wpwevo-filter-min-orders').on('change', function() {
+												if ($(this).is(':checked')) {
+													$('#wpwevo-min-orders-filter').show();
+												} else {
+													$('#wpwevo-min-orders-filter').hide();
 												}
 											});
 											
@@ -941,6 +980,97 @@ class Bulk_Sender {
 	}
 
 	/**
+	 * Filtra pedidos baseado no total de pedidos do cliente usando abordagem otimizada
+	 * 
+	 * @param array $order_ids Array de IDs dos pedidos
+	 * @param int $min_orders Número mínimo de pedidos
+	 * @return array Array filtrado de IDs dos pedidos
+	 */
+	private function filter_orders_by_customer_order_count($order_ids, $min_orders) {
+		if (empty($order_ids) || $min_orders <= 0) {
+			return $order_ids;
+		}
+
+		// Abordagem mais simples e eficiente: processa cada pedido individualmente
+		$filtered_orders = [];
+		$customer_orders_count = []; // Cache para evitar recálculos
+		
+		// Log para debug
+		error_log("WPWhatsEvolution: Iniciando filtro de pedidos. Total de pedidos: " . count($order_ids) . ", Mínimo: " . $min_orders);
+		
+		// Limita o processamento para evitar timeout
+		$max_orders_to_process = 500; // Limite de segurança
+		$orders_to_process = array_slice($order_ids, 0, $max_orders_to_process);
+		
+		if (count($order_ids) > $max_orders_to_process) {
+			error_log("WPWhatsEvolution: Limitando processamento a " . $max_orders_to_process . " pedidos de " . count($order_ids) . " para evitar timeout");
+		}
+		
+		foreach ($orders_to_process as $order_id) {
+			$order = wc_get_order($order_id);
+			if (!$order) continue;
+			
+			$customer_id = $order->get_customer_id();
+			$customer_email = $order->get_billing_email();
+			$cache_key = '';
+			
+			// Determina a chave de cache
+			if ($customer_id > 0) {
+				$cache_key = 'customer_' . $customer_id;
+			} elseif (!empty($customer_email)) {
+				$cache_key = 'email_' . md5($customer_email);
+			}
+			
+			// Se não tem chave válida, pula
+			if (empty($cache_key)) {
+				continue;
+			}
+			
+			// Verifica se já calculou para este cliente/email
+			if (!isset($customer_orders_count[$cache_key])) {
+				$total_orders = 0;
+				
+				if ($customer_id > 0) {
+					// Cliente logado: conta por customer_id usando função nativa do WooCommerce
+					$total_orders = wc_get_customer_order_count($customer_id);
+					
+					// Se a função nativa retornar 0, tenta método alternativo
+					if ($total_orders == 0) {
+						$customer_orders_query = new \WC_Order_Query([
+							'customer' => $customer_id,
+							'limit' => -1,
+							'return' => 'ids'
+						]);
+						$customer_orders = $customer_orders_query->get_orders();
+						$total_orders = count($customer_orders);
+					}
+				} else {
+					// Cliente convidado: conta por email
+					$email_orders_query = new \WC_Order_Query([
+						'billing_email' => $customer_email,
+						'limit' => -1,
+						'return' => 'ids'
+					]);
+					$email_orders = $email_orders_query->get_orders();
+					$total_orders = count($email_orders);
+				}
+				
+				$customer_orders_count[$cache_key] = $total_orders;
+			}
+			
+			// Se o cliente tem X+ pedidos, inclui este pedido
+			if ($customer_orders_count[$cache_key] >= $min_orders) {
+				$filtered_orders[] = $order_id;
+			}
+		}
+		
+		// Log final para debug
+		error_log("WPWhatsEvolution: Filtro concluído. Pedidos filtrados: " . count($filtered_orders) . " de " . count($orders_to_process) . " processados");
+		
+		return $filtered_orders;
+	}
+
+	/**
 	 * Normaliza um número de telefone para comparação
 	 * Não altera o número original, apenas cria uma versão padronizada para comparação
 	 */
@@ -1028,6 +1158,10 @@ class Bulk_Sender {
 			// Filtro de inatividade
 			$filter_inactive = isset($_POST['wpwevo_filter_inactive']) && $_POST['wpwevo_filter_inactive'] === '1';
 			$inactive_days = isset($_POST['wpwevo_inactive_days']) ? max(1, min(365, intval($_POST['wpwevo_inactive_days']))) : 30;
+			
+			// Filtro de total de pedidos
+			$filter_min_orders = isset($_POST['wpwevo_filter_min_orders']) && $_POST['wpwevo_filter_min_orders'] === '1';
+			$min_orders = isset($_POST['wpwevo_min_orders']) ? max(1, min(1000, intval($_POST['wpwevo_min_orders']))) : 1;
 
 			// Prepara os argumentos da query
 			$query_args = [
@@ -1071,9 +1205,15 @@ class Bulk_Sender {
                 throw new \Exception(__('Nenhum cliente encontrado com os filtros selecionados.', 'wp-whatsevolution'));
 			}
 
+			// Se filtro de total de pedidos está ativo, aplica filtro antes de processar
+			if ($filter_min_orders) {
+				$orders = $this->filter_orders_by_customer_order_count($orders, $min_orders);
+			}
+
 			// Processa os pedidos encontrados
 			$customers = [];
 			$processed_phones = [];
+			$customer_orders_cache = []; // Cache para evitar queries repetidas
 
 			foreach ($orders as $order_id) {
 				$order = wc_get_order($order_id);
@@ -1126,11 +1266,58 @@ class Bulk_Sender {
 						}
 					}
 
+					// Calcula o total de pedidos do cliente de forma robusta e otimizada
+					$customer_id = $order->get_customer_id();
+					$total_orders = 0;
+					$cache_key = '';
+					
+					if ($customer_id > 0) {
+						$cache_key = 'customer_' . $customer_id;
+					} else {
+						// Se não tem customer_id, usa email como chave de cache
+						$customer_email = $order->get_billing_email();
+						if (!empty($customer_email)) {
+							$cache_key = 'email_' . md5($customer_email);
+						}
+					}
+					
+					// Verifica se já calculou para este cliente/email
+					if (!empty($cache_key) && isset($customer_orders_cache[$cache_key])) {
+						$total_orders = $customer_orders_cache[$cache_key];
+					} else if (!empty($cache_key)) {
+						// Calcula o total de pedidos
+						if ($customer_id > 0) {
+							// Usa WC_Order_Query para contar pedidos do cliente
+							$customer_orders_query = new \WC_Order_Query([
+								'customer' => $customer_id,
+								'limit' => -1,
+								'return' => 'ids'
+							]);
+							$customer_orders = $customer_orders_query->get_orders();
+							$total_orders = count($customer_orders);
+						} else {
+							// Se não tem customer_id, conta pedidos pelo email
+							$customer_email = $order->get_billing_email();
+							if (!empty($customer_email)) {
+								$email_orders_query = new \WC_Order_Query([
+									'billing_email' => $customer_email,
+									'limit' => -1,
+									'return' => 'ids'
+								]);
+								$email_orders = $email_orders_query->get_orders();
+								$total_orders = count($email_orders);
+							}
+						}
+						
+						// Armazena no cache para evitar recálculos
+						$customer_orders_cache[$cache_key] = $total_orders;
+					}
+
 					$customer_data = [
 						'phone' => $phone, // Mantém o número original para exibição
 						'normalized_phone' => $normalized_phone, // Guarda a versão normalizada
 						'name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-						'total_orders' => wc_get_customer_order_count($order->get_customer_id()),
+						'total_orders' => $total_orders,
 						'last_order' => date_i18n('d/m/Y', strtotime($last_order_date)),
 						'status' => $order->get_status(),
 						'order_id' => $order->get_id(),
@@ -1217,6 +1404,14 @@ class Bulk_Sender {
 							);
 						}
 						
+						// Filtro de total de pedidos
+						if ($filter_min_orders) {
+							$filters[] = sprintf(
+								__('Clientes com %d+ pedidos', 'wp-whatsevolution'),
+								$min_orders
+							);
+						}
+						
 						echo implode(' | ', $filters);
 						?>
 					</p>
@@ -1284,16 +1479,6 @@ class Bulk_Sender {
 				</tbody>
 			</table>
 
-				<div class="wpwevo-preview-notes">
-					<p class="description">
-                        <?php _e('Notas:', 'wp-whatsevolution'); ?>
-						<ul>
-                            <li><?php _e('* Os números de telefone foram formatados para o padrão WhatsApp internacional.', 'wp-whatsevolution'); ?></li>
-                            <li><?php _e('* Clientes com múltiplos pedidos são mostrados apenas uma vez, com o status do pedido mais recente.', 'wp-whatsevolution'); ?></li>
-                            <li><?php _e('* O total de pedidos inclui todos os pedidos do cliente, independente do status.', 'wp-whatsevolution'); ?></li>
-						</ul>
-					</p>
-		</div>
 			</div>
 
 			<style>
@@ -1687,7 +1872,11 @@ class Bulk_Sender {
 				$filter_inactive = isset($_POST['wpwevo_filter_inactive']) && $_POST['wpwevo_filter_inactive'] === '1';
 				$inactive_days = isset($_POST['wpwevo_inactive_days']) ? max(1, min(365, intval($_POST['wpwevo_inactive_days']))) : 30;
 				
-				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total, $filter_inactive, $inactive_days);
+				// Filtro de total de pedidos para envio
+				$filter_min_orders = isset($_POST['wpwevo_filter_min_orders']) && $_POST['wpwevo_filter_min_orders'] === '1';
+				$min_orders = isset($_POST['wpwevo_min_orders']) ? max(1, min(1000, intval($_POST['wpwevo_min_orders']))) : 1;
+				
+				$numbers = $this->get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total, $filter_inactive, $inactive_days, $filter_min_orders, $min_orders);
 				break;
 
 			case 'all-customers':
@@ -1893,7 +2082,7 @@ class Bulk_Sender {
 		return str_replace(array_keys($replacements), array_values($replacements), $message);
 	}
 
-	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total = 0, $filter_inactive = false, $inactive_days = 30) {
+	private function get_customers_numbers($statuses, $date_from, $date_to, $min_total, $max_total = 0, $filter_inactive = false, $inactive_days = 30, $filter_min_orders = false, $min_orders = 1) {
 		if (!class_exists('WooCommerce')) {
             throw new \Exception(__('WooCommerce não está ativo.', 'wp-whatsevolution'));
 		}
@@ -1943,6 +2132,11 @@ class Bulk_Sender {
 
 		$orders_query = new \WC_Order_Query($query_args);
 		$orders = $orders_query->get_orders();
+
+		// Se filtro de total de pedidos está ativo, aplica filtro
+		if ($filter_min_orders) {
+			$orders = $this->filter_orders_by_customer_order_count($orders, $min_orders);
+		}
 
 		$customers = [];
 		$processed_phones = [];
