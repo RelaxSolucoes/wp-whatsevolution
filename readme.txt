@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -38,12 +38,16 @@ Integração completa com WooCommerce usando Evolution API. Envio automático pa
 * Interface simples e intuitiva
 * Validação automática de números
 
-**📢 Envio em Massa**
-* Envie para múltiplos clientes simultaneamente
-* Filtros por pedidos, produtos, datas
-* **NOVO**: Sistema de variáveis dinâmicas por aba
-* **NOVO**: Interface melhorada com variáveis sempre visíveis
-* Controle de velocidade e logs completos
+**🎯 Envio em Massa Avançado**
+* 4 abas especializadas: Clientes WooCommerce, Todos os Clientes, Importar CSV, Lista Manual
+* Filtros de valor: segmentação por valor mínimo e máximo de pedidos
+* Sistema de intervalo inteligente: modo fixo (5-60s) e aleatório (2-9s)
+* Filtro de aniversário: segmentação por mês de nascimento
+* Compatibilidade total com Brazilian Market on WooCommerce
+* Preview inteligente e histórico completo de envios
+* Importação CSV inteligente com detecção automática de colunas
+* Controle de velocidade para prevenção de spam
+* Interface reescrita do zero com sistema moderno
 
 **✅ Validação no Checkout**
 * Torna o campo telefone obrigatório
@@ -134,6 +138,25 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.4.5 =
+* **FILTROS AVANÇADOS**: Adicionados filtros de valor mínimo e máximo para segmentação precisa
+* **SISTEMA DE INTERVALO INTELIGENTE**: Modo fixo (5-60s) e aleatório (2-9s) para simular comportamento humano
+* **NOVA ABA TODOS OS CLIENTES**: Envio para todos os usuários cadastrados no WordPress
+* **FILTRO DE ANIVERSÁRIO**: Segmentação por mês de nascimento (Janeiro-Dezembro)
+* **COMPATIBILIDADE EXPANDIDA**: Suporte a billing_phone, billing_cellphone e phone
+* **VARIÁVEIS COMPLETAS**: 6+ variáveis por aba com substituição inteligente
+* **PADRÃO CONSISTENTE**: Todas as variáveis vazias ficam em branco (não mostram {variável})
+* **PREVIEW INTELIGENTE**: Visualização de todos os clientes antes do envio
+* **INTEGRAÇÃO BRASILEIRA**: Compatível com Brazilian Market on WooCommerce
+* **IMPORTAÇÃO CSV INTELIGENTE**: Detecção automática de colunas de telefone, nome e email
+* **CONTROLE DE VELOCIDADE**: Prevenção de spam e bloqueios por envio muito rápido
+* **INTERFACE REESCRITA**: Sistema moderno e intuitivo com 4 abas especializadas
+
+= 1.4.4 =
+* **CORREÇÃO JAVASCRIPT**: Erro ao salvar templates no Cart Abandonment
+* **SISTEMA ROBUSTO**: Verificações de segurança com fallbacks
+* **CACHE ATUALIZADO**: Versionamento do script para garantir atualizações
 
 = 1.4.3 =
 * **COMPATIBILIDADE BRAZILIAN MARKET**: Integração total com Brazilian Market on WooCommerce

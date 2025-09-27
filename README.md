@@ -1,8 +1,45 @@
-# WP WhatsEvolution v1.4.4
+# WP WhatsEvolution v1.4.5
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
 [![Assista a atualização no YouTube](https://img.youtube.com/vi/YbCYfefnh3E/0.jpg)](https://www.youtube.com/watch?v=YbCYfefnh3E)
+
+---
+
+## 🆕 **NOVO na v1.4.5: Filtros Avançados e Envio para Todos os Clientes**
+
+### 🎯 **Filtros Avançados de Valor**
+- **✅ Filtros de Valor**: Segmentação precisa por valor mínimo e máximo de clientes
+- **✅ Sistema Inteligente**: Permite criar campanhas direcionadas por faixa de gastos
+- **✅ Interface Intuitiva**: Campos de valor com formatação automática
+- **✅ Validação Robusta**: Prevenção de erros e valores inválidos
+
+### ⏱️ **Sistema de Intervalo Inteligente**
+- **✅ Modo Fixo**: Intervalos constantes entre envios (5-60 segundos)
+- **✅ Modo Aleatório**: Simula comportamento humano (2-9 segundos)
+- **✅ Alternância Inteligente**: Interface que adapta opções conforme o modo selecionado
+- **✅ Prevenção de Spam**: Evita bloqueios por envio muito rápido
+
+### 👥 **Nova Aba: Todos os Clientes**
+- **✅ Busca Universal**: Envia para todos os usuários cadastrados no WordPress
+- **✅ Filtro de Aniversário**: Segmentação por mês de nascimento (Janeiro-Dezembro)
+- **✅ Compatibilidade Total**: Suporte a `billing_phone`, `billing_cellphone` e `phone`
+- **✅ Variáveis Completas**: `{customer_name}`, `{customer_phone}`, `{customer_email}`, `{birthdate}`, `{user_id}`, `{display_name}`
+- **✅ Preview Inteligente**: Visualização de todos os clientes antes do envio
+- **✅ Integração Brasileira**: Compatível com Brazilian Market on WooCommerce
+
+### 🔧 **Melhorias Técnicas**
+- **✅ Padrão Consistente**: Todas as variáveis vazias ficam em branco (não mostram `{variável}`)
+- **✅ Compatibilidade Expandida**: Suporte a múltiplos campos de telefone
+- **✅ Interface Responsiva**: Tooltips informativos e validações em tempo real
+- **✅ Sistema Robusto**: Tratamento de erros e fallbacks inteligentes
+
+### 🎯 **Benefícios das Novas Funcionalidades**
+- **📊 Segmentação Avançada**: Campanhas direcionadas por valor e aniversário
+- **🤖 Comportamento Humano**: Intervalos aleatórios evitam detecção de spam
+- **👥 Alcance Total**: Acesso a todos os clientes, não apenas com pedidos
+- **🇧🇷 Mercado Brasileiro**: Otimizado para plugins e padrões brasileiros
+- **⚡ Performance**: Sistema otimizado para grandes volumes de envio
 
 ---
 
@@ -716,22 +753,25 @@ add_filter('wpwevo_validate_phone', function($phone, $original) {
 - ✅ Templates por status
 - ✅ Variáveis dinâmicas
 - ✅ Sistema de fallback inteligente
-- ✅ Configuração flexível
+
+### 🎯 **Envio em Massa Avançado**
+- ✅ **4 Abas Especializadas**: Clientes WooCommerce, Todos os Clientes, Importar CSV, Lista Manual
+- ✅ **Filtros de Valor**: Segmentação por valor mínimo e máximo de pedidos
+- ✅ **Sistema de Intervalo Inteligente**: Modo fixo (5-60s) e aleatório (2-9s)
+- ✅ **Filtro de Aniversário**: Segmentação por mês de nascimento
+- ✅ **Compatibilidade Total**: Suporte a `billing_phone`, `billing_cellphone` e `phone`
+- ✅ **Variáveis Completas**: 6+ variáveis por aba com substituição inteligente
+- ✅ **Preview Inteligente**: Visualização antes do envio
+- ✅ **Histórico Completo**: Rastreamento de todos os envios
+- ✅ **Importação CSV Inteligente**: Detecção automática de colunas
+- ✅ **Controle de Velocidade**: Prevenção de spam e bloqueios
+- ✅ **Interface Reescrita**: Sistema moderno e intuitivo
 
 ### 📱 **Envio Individual**
 - ✅ Interface simples
 - ✅ Validação automática
 - ✅ Histórico de envios
 - ✅ Variáveis da loja
-
-### 📢 **Envio em Massa (v1.3.0+)**
-- ✅ Interface reescrita do zero
-- ✅ Filtros avançados de valor (mínimo/máximo)
-- ✅ Intervalo aleatório inteligente
-- ✅ Importação CSV inteligente
-- ✅ Controle de velocidade
-- ✅ Histórico completo
-- ✅ Variáveis contextuais
 
 ### ✅ **Validação Checkout**
 - ✅ Campo obrigatório
