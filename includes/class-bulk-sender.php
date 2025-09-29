@@ -1210,6 +1210,32 @@ class Bulk_Sender {
 				$orders = $this->filter_orders_by_customer_order_count($orders, $min_orders);
 			}
 
+			// **OTIMIZAÇÃO CRÍTICA**: Busca todos os últimos pedidos em uma única query
+			$last_orders_cache = [];
+			if ($filter_inactive) {
+				$inactive_cutoff = date('Y-m-d H:i:s', strtotime("-{$inactive_days} days"));
+				
+				// Busca todos os últimos pedidos de uma vez usando query direta
+				global $wpdb;
+				$last_orders_query = $wpdb->prepare("
+					SELECT customer_id, MAX(post_date) as last_order_date
+					FROM {$wpdb->posts} p
+					INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+					WHERE p.post_type = 'shop_order'
+					AND p.post_status IN ('wc-completed', 'wc-processing', 'wc-on-hold', 'wc-pending', 'wc-cancelled', 'wc-failed', 'wc-refunded')
+					AND pm.meta_key = '_customer_user'
+					AND pm.meta_value > 0
+					GROUP BY customer_id
+				");
+				
+				$last_orders_results = $wpdb->get_results($last_orders_query);
+				
+				// Organiza os resultados por customer_id
+				foreach ($last_orders_results as $result) {
+					$last_orders_cache[$result->customer_id] = $result->last_order_date;
+				}
+			}
+
 			// Processa os pedidos encontrados
 			$customers = [];
 			$processed_phones = [];
@@ -1244,23 +1270,10 @@ class Bulk_Sender {
 					
 					// Filtro de inatividade: verifica se o cliente não fez pedidos recentes
 					if ($filter_inactive && $customer_id > 0) {
-						$inactive_cutoff = date('Y-m-d H:i:s', strtotime("-{$inactive_days} days"));
-						
-						// Busca o último pedido do cliente (independente do status)
-						$last_order_query = new \WC_Order_Query([
-							'customer' => $customer_id,
-							'limit' => 1,
-							'orderby' => 'date',
-							'order' => 'DESC',
-							'return' => 'ids'
-						]);
-						
-						$last_orders = $last_order_query->get_orders();
-						
-						// Se o cliente tem pedidos recentes, pula
-						if (!empty($last_orders)) {
-							$last_order_obj = wc_get_order($last_orders[0]);
-							if ($last_order_obj && $last_order_obj->get_date_created() > $inactive_cutoff) {
+						// Usa o cache de últimos pedidos em vez de query individual
+						if (isset($last_orders_cache[$customer_id])) {
+							$last_order_date_str = $last_orders_cache[$customer_id];
+							if ($last_order_date_str > $inactive_cutoff) {
 								continue; // Cliente ativo, pula
 							}
 						}
@@ -2138,6 +2151,32 @@ class Bulk_Sender {
 			$orders = $this->filter_orders_by_customer_order_count($orders, $min_orders);
 		}
 
+		// **OTIMIZAÇÃO CRÍTICA**: Busca todos os últimos pedidos em uma única query
+		$last_orders_cache = [];
+		if ($filter_inactive) {
+			$inactive_cutoff = date('Y-m-d H:i:s', strtotime("-{$inactive_days} days"));
+			
+			// Busca todos os últimos pedidos de uma vez usando query direta
+			global $wpdb;
+			$last_orders_query = $wpdb->prepare("
+				SELECT customer_id, MAX(post_date) as last_order_date
+				FROM {$wpdb->posts} p
+				INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+				WHERE p.post_type = 'shop_order'
+				AND p.post_status IN ('wc-completed', 'wc-processing', 'wc-on-hold', 'wc-pending', 'wc-cancelled', 'wc-failed', 'wc-refunded')
+				AND pm.meta_key = '_customer_user'
+				AND pm.meta_value > 0
+				GROUP BY customer_id
+			");
+			
+			$last_orders_results = $wpdb->get_results($last_orders_query);
+			
+			// Organiza os resultados por customer_id
+			foreach ($last_orders_results as $result) {
+				$last_orders_cache[$result->customer_id] = $result->last_order_date;
+			}
+		}
+
 		$customers = [];
 		$processed_phones = [];
 
@@ -2167,23 +2206,10 @@ class Bulk_Sender {
 			if ($filter_inactive) {
 				$customer_id = $order->get_customer_id();
 				if ($customer_id > 0) {
-					$inactive_cutoff = date('Y-m-d H:i:s', strtotime("-{$inactive_days} days"));
-					
-					// Busca o último pedido do cliente (independente do status)
-					$last_order_query = new \WC_Order_Query([
-						'customer' => $customer_id,
-						'limit' => 1,
-						'orderby' => 'date',
-						'order' => 'DESC',
-						'return' => 'ids'
-					]);
-					
-					$last_orders = $last_order_query->get_orders();
-					
-					// Se o cliente tem pedidos recentes, pula
-					if (!empty($last_orders)) {
-						$last_order_obj = wc_get_order($last_orders[0]);
-						if ($last_order_obj && $last_order_obj->get_date_created() > $inactive_cutoff) {
+					// Usa o cache de últimos pedidos em vez de query individual
+					if (isset($last_orders_cache[$customer_id])) {
+						$last_order_date_str = $last_orders_cache[$customer_id];
+						if ($last_order_date_str > $inactive_cutoff) {
 							continue; // Cliente ativo, pula
 						}
 					}
