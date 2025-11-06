@@ -1,5 +1,156 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.6] - 2025-11-06
+
+### 🔔 Sistema de Notificações Admin por Status
+
+**Nova funcionalidade completa para notificar administradores quando pedidos mudarem de status**
+
+#### 🆕 Funcionalidades Implementadas
+
+##### 1. Campo WhatsApp Admin nas Configurações
+- **Localização**: `includes/class-settings-page.php`
+- **Novo campo**: "WhatsApp Admin" opcional nas configurações principais
+- **Validação em tempo real**: Verifica se número existe no WhatsApp
+- **Sanitização**: Input sanitizado com `sanitize_text_field()`
+- **Persistência**: Salvo automaticamente em `wpwevo_admin_whatsapp`
+
+##### 2. Interface de Notificação por Status
+- **Localização**: `includes/class-send-by-status.php`
+- **Checkbox "Notificar Admin"**: Para cada status individualmente
+- **Campo de Mensagem Admin**: Textarea que aparece quando checkbox marcado
+- **Show/Hide Inteligente**: JavaScript slideDown/slideUp suave
+- **Labels Diferenciados**:
+  - 📱 Mensagem para o Cliente
+  - 🔔 Mensagem para o Admin
+
+##### 3. JavaScript Interativo
+- **Arquivo**: `assets/js/send-by-status.js`
+- **Toggle dinâmico**: Mostra/oculta campo admin ao marcar checkbox
+- **Auto-resize**: Textarea ajusta altura automaticamente
+- **Processamento no submit**: Envia `notify_admin` e `admin_message`
+- **Seletores específicos**: Evita conflitos com outros elementos
+
+##### 4. Backend - Salvamento de Configurações
+- **Método**: `handle_save_messages()`
+- **Novos campos salvos**:
+  - `notify_admin`: Boolean (checkbox marcado ou não)
+  - `admin_message`: String (mensagem personalizada)
+- **Sanitização**: `wp_kses_post()` para conteúdo
+- **Retrocompatibilidade**: Fallback para configurações antigas
+
+##### 5. Lógica de Envio Duplo Sequencial
+- **Método**: `handle_status_change()`
+- **Fluxo de execução**:
+  1. Envia mensagem ao cliente (comportamento atual)
+  2. Verifica se `notify_admin` está ativo para o status
+  3. Valida se WhatsApp Admin está configurado
+  4. Envia notificação ao admin
+- **Mensagem padrão** (se admin_message vazio):
+  ```
+  🔔 *Notificação de Pedido*
+
+  📋 Pedido: #{order_id}
+  📊 Status: {order_status}
+  👤 Cliente: {customer_name}
+  📱 Contato: {customer_phone}
+  💰 Valor: {order_total}
+
+  🔗 Ver pedido: {order_url}
+  ```
+- **Substituição de variáveis**: Reutiliza `replace_variables()`
+- **Notas no pedido**: Registra envio ao admin
+- **Logs de erro**: Falha no admin não afeta cliente
+
+##### 6. Validação em Tempo Real do Admin
+- **Arquivo**: `assets/js/admin.js`
+- **Debounce**: 800ms para evitar chamadas excessivas
+- **Validação**: Usa endpoint `wpwevo_validate_number`
+- **Feedback visual**:
+  - ⏳ "Validando número..."
+  - ✅ "Número válido do WhatsApp!"
+  - ❌ "Número inválido ou não existe no WhatsApp"
+- **Nonce específico**: `validate_nonce` separado do nonce de settings
+
+#### 🎯 Casos de Uso
+
+1. **Novos Pedidos (Processing)**
+   - Cliente recebe: "Seu pedido foi aprovado!"
+   - Admin recebe: "Novo pedido #1234 - R$ 149,90 - João Silva"
+
+2. **Pedidos Concluídos (Completed)**
+   - Cliente recebe: "Pedido entregue com sucesso!"
+   - Admin recebe: "Pedido #1234 concluído - Cliente: João Silva"
+
+3. **Cancelamentos (Cancelled)**
+   - Cliente recebe: "Pedido cancelado"
+   - Admin recebe: "Alerta: Pedido #1234 cancelado - Verificar motivo"
+
+4. **Pedidos VIP (Alto Valor)**
+   - Mensagem personalizada para admin quando valor > R$ 500
+
+#### 🔧 Detalhes Técnicos
+
+**Arquivos Modificados:**
+1. `wp-whatsevolution.php` - Versão atualizada para 1.4.6
+2. `includes/class-settings-page.php` - Campo WhatsApp Admin + validação
+3. `includes/class-send-by-status.php` - Interface + lógica de envio duplo
+4. `assets/js/send-by-status.js` - Toggle e processamento de formulário
+5. `assets/js/admin.js` - Validação em tempo real
+
+**Estrutura de Dados:**
+```php
+// Nova option
+get_option('wpwevo_admin_whatsapp') // '5511999999999'
+
+// Estrutura atualizada
+$status_messages = [
+    'processing' => [
+        'enabled' => true,
+        'message' => 'Mensagem para cliente...',
+        'notify_admin' => true,           // NOVO
+        'admin_message' => 'Mensagem para admin...'  // NOVO
+    ]
+]
+```
+
+**Segurança:**
+- ✅ Nonces verificados em todos os AJAX
+- ✅ Capabilities `manage_options` validadas
+- ✅ Inputs sanitizados com `sanitize_text_field()` e `wp_kses_post()`
+- ✅ Fallbacks para evitar erros
+- ✅ Logs de erro sem expor dados sensíveis
+
+#### 📊 Performance e Compatibilidade
+
+- **Impacto**: Mínimo - apenas 2 campos adicionais por status
+- **Envio sequencial**: Admin só recebe após cliente (evita confusão)
+- **Retrocompatibilidade**: Configurações antigas funcionam normalmente
+- **Fallback inteligente**: Usa mensagem padrão se admin_message vazio
+- **Independência**: Falha no envio ao admin não afeta cliente
+
+#### 🎨 UX/UI
+
+- **Visual consistente**: Mantém design system do plugin
+- **Interação suave**: Animações slideDown/slideUp
+- **Feedback imediato**: Validação em tempo real
+- **Tooltips informativos**: Labels claros e descritivos
+- **Cores diferenciadas**: Verde claro para campo admin
+
+#### ✅ Testes Recomendados
+
+1. Configurar WhatsApp Admin com número válido
+2. Ativar "Notificar Admin" para status "processing"
+3. Criar pedido de teste
+4. Mudar status para "processing"
+5. Verificar:
+   - Cliente recebe mensagem
+   - Admin recebe notificação
+   - Notas registradas no pedido
+   - Logs sem erros
+
+---
+
 ## [1.4.4] - 2025-01-27
 
 ### 🐛 Correção Crítica no Cart Abandonment

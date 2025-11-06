@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.5
+Stable tag: 1.4.6
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -138,6 +138,18 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.4.6 =
+* **NOTIFICAÇÕES ADMIN**: Sistema de notificação ao administrador por mudança de status
+* **WHATSAPP ADMIN**: Campo dedicado para número do administrador com validação em tempo real
+* **CHECKBOX POR STATUS**: Ative notificação admin individualmente para cada status
+* **MENSAGENS PERSONALIZADAS**: Template exclusivo para notificações do admin
+* **ENVIO DUPLO SEQUENCIAL**: Cliente recebe primeiro, depois admin é notificado automaticamente
+* **FALLBACK INTELIGENTE**: Mensagem padrão quando campo admin_message estiver vazio
+* **VARIÁVEIS COMPLETAS**: Usa todas as variáveis disponíveis ({order_id}, {customer_name}, etc.)
+* **NOTAS NO PEDIDO**: Registra envios para cliente e admin no histórico do pedido
+* **LOGS DE ERRO**: Falha no envio ao admin não afeta envio ao cliente
+* **RETROCOMPATIBILIDADE**: Configurações antigas continuam funcionando perfeitamente
 
 = 1.4.5 =
 * **FILTROS AVANÇADOS**: Adicionados filtros de valor mínimo e máximo para segmentação precisa

@@ -1,8 +1,38 @@
-# WP WhatsEvolution v1.4.5
+# WP WhatsEvolution v1.4.6
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
 [![Assista a atualização no YouTube](https://img.youtube.com/vi/YbCYfefnh3E/0.jpg)](https://www.youtube.com/watch?v=YbCYfefnh3E)
+
+---
+
+## 🆕 **NOVO na v1.4.6: Notificações Admin por Status**
+
+### 🔔 **Sistema de Notificação ao Administrador**
+- **✅ WhatsApp Admin**: Campo dedicado para número do administrador
+- **✅ Notificação por Status**: Checkbox para ativar notificação em cada status
+- **✅ Mensagens Personalizadas**: Template exclusivo para notificações admin
+- **✅ Validação em Tempo Real**: Verificação automática do número do admin
+- **✅ Envio Duplo Sequencial**: Cliente recebe primeiro, depois admin é notificado
+- **✅ Fallback Inteligente**: Mensagem padrão se campo admin vazio
+
+### 🎯 **Como Funciona**
+1. **Configure WhatsApp Admin**: Insira o número em "Whats Evolution > Conexão"
+2. **Ative por Status**: Marque "🔔 Notificar Admin" em cada status desejado
+3. **Personalize Mensagens**: Campo exclusivo aparece para cada status
+4. **Automático**: Quando pedido mudar de status, cliente e admin recebem notificações
+
+### 💡 **Casos de Uso**
+- **Novos Pedidos**: Admin recebe alerta imediato de novos pedidos
+- **Pedidos Aprovados**: Notificação para processar envio
+- **Cancelamentos**: Alerta para verificar motivo
+- **Alto Valor**: Mensagens personalizadas para pedidos VIP
+
+### 🔧 **Recursos Técnicos**
+- **✅ Variáveis Completas**: Usa todas as variáveis disponíveis ({order_id}, {customer_name}, etc.)
+- **✅ Notas no Pedido**: Registra envios para cliente e admin
+- **✅ Logs de Erro**: Falha no admin não afeta envio ao cliente
+- **✅ Retrocompatibilidade**: Configurações antigas continuam funcionando
 
 ---
 
