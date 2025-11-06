@@ -71,4 +71,57 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    // NOVO: Validação em tempo real do WhatsApp Admin
+    var validateTimeout;
+    var $adminWhatsApp = $('#wpwevo-admin-whatsapp');
+    var $validation = $('#wpwevo-admin-whatsapp-validation');
+
+    if ($adminWhatsApp.length) {
+        $adminWhatsApp.on('input', function() {
+            var number = $(this).val().replace(/[^0-9]/g, '');
+            $(this).val(number);
+
+            clearTimeout(validateTimeout);
+
+            // Se o campo estiver vazio, esconde validação
+            if (number.length === 0) {
+                $validation.hide();
+                return;
+            }
+
+            if (number.length >= 10) {
+                validateTimeout = setTimeout(function() {
+                    validateAdminNumber(number);
+                }, 800);
+            } else {
+                $validation.hide();
+            }
+        });
+    }
+
+    function validateAdminNumber(number) {
+        $validation.html('<span style="color: #4a5568;">⏳ Validando número...</span>');
+        $validation.show();
+
+        $.ajax({
+            url: wpwevo_admin.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wpwevo_validate_number',
+                nonce: wpwevo_admin.validate_nonce,
+                number: number
+            },
+            success: function(response) {
+                if (response.success) {
+                    $validation.html('<span style="color: #48bb78;">✅ Número válido do WhatsApp!</span>');
+                } else {
+                    $validation.html('<span style="color: #f56565;">❌ Número inválido ou não existe no WhatsApp</span>');
+                }
+            },
+            error: function() {
+                $validation.html('<span style="color: #f56565;">❌ Erro ao validar número</span>');
+            }
+        });
+    }
 });

@@ -25,14 +25,32 @@ jQuery(document).ready(function($) {
     // ========================================
     $('.wpwevo-auto-resize-textarea').each(function() {
         var textarea = this;
-        
+
         // Redimensiona inicialmente
         autoResizeTextarea(textarea);
-        
+
         // Adiciona eventos para redimensionar conforme o usuário digita
         $(textarea).on('input keyup paste', function() {
             autoResizeTextarea(this);
         });
+    });
+
+    // ========================================
+    // 1.5 TOGGLE NOTIFICAR ADMIN (NOVO)
+    // ========================================
+    $(document).on('change', '.wpwevo-notify-admin-toggle', function() {
+        var status = $(this).data('status');
+        var $container = $('.wpwevo-admin-message-container[data-status="' + status + '"]');
+
+        if ($(this).is(':checked')) {
+            $container.slideDown(300);
+            // Auto-resize do textarea que apareceu
+            $container.find('textarea').each(function() {
+                autoResizeTextarea(this);
+            });
+        } else {
+            $container.slideUp(300);
+        }
     });
 
     // ========================================
@@ -251,15 +269,19 @@ jQuery(document).ready(function($) {
         // Processa todos os status
         $form.find('div[style*="border-left: 4px solid"]').each(function() {
             var $statusBlock = $(this);
-            var $checkbox = $statusBlock.find('input[type="checkbox"]');
-            var $textarea = $statusBlock.find('textarea');
-            var matches = $checkbox.attr('name').match(/status\[(.*?)\]/);
+            var $checkboxEnabled = $statusBlock.find('input[name*="[enabled]"]');
+            var $checkboxNotifyAdmin = $statusBlock.find('input[name*="[notify_admin]"]');
+            var $textareaMessage = $statusBlock.find('textarea[name*="[message]"]').first();
+            var $textareaAdminMessage = $statusBlock.find('textarea[name*="[admin_message]"]');
+            var matches = $checkboxEnabled.attr('name').match(/status\[(.*?)\]/);
             if (!matches) return;
-            
+
             var status = matches[1];
             formData.status[status] = {
-                enabled: $checkbox.is(':checked'),
-                message: $textarea.val() || ''
+                enabled: $checkboxEnabled.is(':checked'),
+                message: $textareaMessage.val() || '',
+                notify_admin: $checkboxNotifyAdmin.is(':checked'),
+                admin_message: $textareaAdminMessage.val() || ''
             };
         });
 

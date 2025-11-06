@@ -62,6 +62,12 @@ class Settings_Page {
 			'sanitize_callback' => 'sanitize_text_field',
 			'default' => ''
 		]);
+
+		register_setting('wpwevo_settings', 'wpwevo_admin_whatsapp', [
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'default' => ''
+		]);
 	}
 
 	public function test_connection() {
@@ -109,7 +115,11 @@ class Settings_Page {
 			update_option('wpwevo_api_url', $api_url);
 			update_option('wpwevo_manual_api_key', $api_key);
 			update_option('wpwevo_instance', $instance);
-			
+
+			// Salva o WhatsApp Admin (opcional)
+			$admin_whatsapp = isset($_POST['admin_whatsapp']) ? sanitize_text_field($_POST['admin_whatsapp']) : '';
+			update_option('wpwevo_admin_whatsapp', $admin_whatsapp);
+
 			// Limpa a chave antiga para evitar confusão
 			delete_option('wpwevo_api_key');
 
@@ -169,6 +179,7 @@ class Settings_Page {
 		wp_localize_script('wpwevo-admin', 'wpwevo_admin', [
 			'ajax_url' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('wpwevo_validate_settings'),
+			'validate_nonce' => wp_create_nonce('wpwevo_validate_number'),
             'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsevolution'),
 			'saved_api_url' => get_option('wpwevo_api_url', ''),
 			'saved_api_key' => get_option('wpwevo_managed_api_key', ''),
@@ -482,13 +493,28 @@ class Settings_Page {
 							<!-- Nome da Instância -->
 							<div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
 								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">📱 Nome da Instância</label>
-								<input type="text" name="instance" 
-									   value="<?php echo esc_attr(get_option('wpwevo_instance', '')); ?>" 
+								<input type="text" name="instance"
+									   value="<?php echo esc_attr(get_option('wpwevo_instance', '')); ?>"
 									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" required
 									   placeholder="Nome da sua instância" <?php disabled($is_managed, true); ?>>
 								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
 									Nome da instância criada na Evolution API
 								</p>
+							</div>
+
+							<!-- WhatsApp Admin (NOVO) -->
+							<div style="background: #f0fff4; padding: 15px; border-radius: 8px; border-left: 4px solid #48bb78;">
+								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">🔔 WhatsApp Admin (Opcional)</label>
+								<input type="text"
+									   id="wpwevo-admin-whatsapp"
+									   name="admin_whatsapp"
+									   value="<?php echo esc_attr(get_option('wpwevo_admin_whatsapp', '')); ?>"
+									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;"
+									   placeholder="5511999999999 (apenas números)" <?php disabled($is_managed, true); ?>>
+								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
+									Número do WhatsApp para receber notificações de status dos pedidos (apenas números, com DDI + DDD)
+								</p>
+								<div id="wpwevo-admin-whatsapp-validation" style="display: none; margin-top: 8px;"></div>
 							</div>
 						</div>
 						

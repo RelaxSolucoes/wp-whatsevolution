@@ -453,27 +453,64 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 								<div style="background: #f7fafc; border-radius: 8px; padding: 20px; margin-bottom: 15px; border-left: 4px solid <?php echo $color; ?>;">
 									<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
 										<label style="display: flex; align-items: center; cursor: pointer; font-weight: 600; color: #2d3748;">
-											<input type="checkbox" 
-												   name="status[<?php echo esc_attr($status); ?>][enabled]" 
-												   value="1" 
+											<input type="checkbox"
+												   name="status[<?php echo esc_attr($status); ?>][enabled]"
+												   value="1"
 												   <?php checked($enabled, true); ?>
 												   style="margin-right: 10px; transform: scale(1.2);">
 											<span style="font-size: 16px;"><?php echo esc_html($label); ?></span>
 										</label>
-										<button type="button" 
-												class="wpwevo-reset-message" 
-												data-default="<?php echo esc_attr($default_message); ?>"
-												data-status="<?php echo esc_attr($status); ?>"
-												style="background: <?php echo $color; ?>; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px;">
-											🔄 Restaurar Padrão
-										</button>
+										<div style="display: flex; gap: 10px; align-items: center;">
+											<!-- NOVO: Checkbox Notificar Admin -->
+											<label style="display: flex; align-items: center; cursor: pointer; font-size: 14px; color: #4a5568;">
+												<input type="checkbox"
+													   class="wpwevo-notify-admin-toggle"
+													   name="status[<?php echo esc_attr($status); ?>][notify_admin]"
+													   value="1"
+													   data-status="<?php echo esc_attr($status); ?>"
+													   <?php checked(isset($settings[$status]['notify_admin']) && $settings[$status]['notify_admin'], true); ?>
+													   style="margin-right: 5px; transform: scale(1.1);">
+												<span>🔔 Notificar Admin</span>
+											</label>
+
+											<button type="button"
+													class="wpwevo-reset-message"
+													data-default="<?php echo esc_attr($default_message); ?>"
+													data-status="<?php echo esc_attr($status); ?>"
+													style="background: <?php echo $color; ?>; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+												🔄 Restaurar Padrão
+											</button>
+										</div>
 									</div>
 
-									<textarea name="status[<?php echo esc_attr($status); ?>][message]" 
-											  class="wpwevo-auto-resize-textarea"
-											  rows="1"
-											  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical; min-height: 50px; overflow: hidden;"
-											  placeholder="Digite a mensagem para este status..."><?php echo esc_textarea($message); ?></textarea>
+									<!-- Mensagem para CLIENTE -->
+									<div style="margin-bottom: 10px;">
+										<label style="font-size: 12px; color: #4a5568; margin-bottom: 5px; display: block; font-weight: 500;">
+											📱 Mensagem para o Cliente:
+										</label>
+										<textarea name="status[<?php echo esc_attr($status); ?>][message]"
+												  class="wpwevo-auto-resize-textarea"
+												  rows="1"
+												  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical; min-height: 50px; overflow: hidden;"
+												  placeholder="Digite a mensagem para este status..."><?php echo esc_textarea($message); ?></textarea>
+									</div>
+
+									<!-- NOVO: Mensagem para ADMIN (oculta por padrão) -->
+									<div class="wpwevo-admin-message-container"
+										 data-status="<?php echo esc_attr($status); ?>"
+										 style="display: <?php echo (isset($settings[$status]['notify_admin']) && $settings[$status]['notify_admin']) ? 'block' : 'none'; ?>;
+												margin-top: 15px;
+												padding-top: 15px;
+												border-top: 2px dashed #e2e8f0;">
+										<label style="font-size: 12px; color: #667eea; margin-bottom: 5px; display: block; font-weight: 600;">
+											🔔 Mensagem para o Admin:
+										</label>
+										<textarea name="status[<?php echo esc_attr($status); ?>][admin_message]"
+												  class="wpwevo-auto-resize-textarea"
+												  rows="1"
+												  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical; min-height: 50px; overflow: hidden;"
+												  placeholder="Digite a mensagem que o admin receberá quando este status for ativado..."><?php echo esc_textarea(isset($settings[$status]['admin_message']) ? $settings[$status]['admin_message'] : ''); ?></textarea>
+									</div>
 								</div>
 							<?php endforeach; ?>
 
@@ -627,10 +664,14 @@ Valor: {order_total}
 		foreach ($this->available_statuses as $status => $label) {
 			// Garante que todos os status sejam incluídos, mesmo que não enviados
 			$status_messages[$status] = [
-				'enabled' => isset($posted_statuses[$status]['enabled']) && 
+				'enabled' => isset($posted_statuses[$status]['enabled']) &&
 					        filter_var($posted_statuses[$status]['enabled'], FILTER_VALIDATE_BOOLEAN),
-				'message' => isset($posted_statuses[$status]['message']) ? 
-					        wp_kses_post(stripslashes($posted_statuses[$status]['message'])) : ''
+				'message' => isset($posted_statuses[$status]['message']) ?
+					        wp_kses_post(stripslashes($posted_statuses[$status]['message'])) : '',
+				'notify_admin' => isset($posted_statuses[$status]['notify_admin']) &&
+					        filter_var($posted_statuses[$status]['notify_admin'], FILTER_VALIDATE_BOOLEAN),
+				'admin_message' => isset($posted_statuses[$status]['admin_message']) ?
+					        wp_kses_post(stripslashes($posted_statuses[$status]['admin_message'])) : ''
 			];
 		}
 
@@ -842,6 +883,48 @@ Valor: {order_total}
 				),
 				false
 			);
+
+			// NOVO: Envia notificação para o admin se configurado
+			if (!empty($settings[$new_status]['notify_admin'])) {
+				$admin_phone = get_option('wpwevo_admin_whatsapp');
+
+				if (!empty($admin_phone)) {
+					// Usa mensagem personalizada ou mensagem padrão
+					if (!empty($settings[$new_status]['admin_message'])) {
+						$admin_message = $settings[$new_status]['admin_message'];
+					} else {
+						// Mensagem padrão caso não haja mensagem personalizada
+						$admin_message = "🔔 *Notificação de Pedido*\n\n" .
+										"📋 Pedido: #{order_id}\n" .
+										"📊 Status: {order_status}\n" .
+										"👤 Cliente: {customer_name}\n" .
+										"📱 Contato: {customer_phone}\n" .
+										"💰 Valor: {order_total}\n\n" .
+										"🔗 Ver pedido: {order_url}";
+					}
+
+					// Substitui as variáveis na mensagem do admin
+					$admin_message = $this->replace_variables($admin_message, $order);
+
+					// Envia para o admin
+					$admin_result = $api->send_message($admin_phone, $admin_message);
+
+					if ($admin_result && isset($admin_result['success']) && $admin_result['success']) {
+						// Adiciona nota no pedido sobre notificação ao admin
+						$order->add_order_note(
+							sprintf(
+								'Notificação de status enviada ao admin: %s',
+								$admin_phone
+							),
+							false
+						);
+					} else {
+						// Log de erro caso falhe o envio ao admin (não afeta o cliente)
+						$error_msg = isset($admin_result['message']) ? $admin_result['message'] : 'Erro desconhecido';
+						wpwevo_log('error', "Send_By_Status: Falha ao enviar notificação ao admin para pedido #$order_id - $error_msg");
+					}
+				}
+			}
 		}
 	}
 } 
