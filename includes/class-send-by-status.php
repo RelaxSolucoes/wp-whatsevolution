@@ -270,7 +270,12 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			'{shipping_postcode}' => $order->get_shipping_postcode(),
 			'{shipping_country}' => $order->get_shipping_country(),
 			'{shipping_address_full}' => $shipping_address_full,
-			
+
+			// Rastreamento (Melhor Envio e outros)
+			'{tracking_code}' => $this->get_tracking_code($order),
+			'{tracking_url}' => $this->get_tracking_url($this->get_tracking_code($order)),
+			'{shipping_company}' => $this->get_shipping_company($order),
+
 			// Data do último pedido (alias para order_date)
 			'{last_order_date}' => date_i18n('d/m/Y', strtotime($order->get_date_created()))
 		];
@@ -280,6 +285,78 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 		}
 
 		return $message;
+	}
+
+	/**
+	 * Obtém o código de rastreio do Melhor Envio
+	 * Suporta Melhor Envio e outros plugins brasileiros
+	 */
+	private function get_tracking_code($order) {
+		// 1. Melhor Envio (mais comum no Brasil)
+		$tracking = $order->get_meta('melhorenvio_tracking');
+		if (!empty($tracking)) {
+			return $tracking;
+		}
+
+		// 2. WooCommerce Shipment Tracking (plugin oficial)
+		$tracking_items = $order->get_meta('_wc_shipment_tracking_items');
+		if (!empty($tracking_items) && is_array($tracking_items)) {
+			$first_tracking = reset($tracking_items);
+			if (!empty($first_tracking['tracking_number'])) {
+				return $first_tracking['tracking_number'];
+			}
+		}
+
+		// 3. Plugins genéricos
+		$generic_tracking = $order->get_meta('_tracking_code');
+		if (!empty($generic_tracking)) {
+			return $generic_tracking;
+		}
+
+		$tracking_number = $order->get_meta('_tracking_number');
+		if (!empty($tracking_number)) {
+			return $tracking_number;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Gera URL de rastreamento usando Melhor Rastreio
+	 */
+	private function get_tracking_url($tracking_code) {
+		if (empty($tracking_code)) {
+			return '';
+		}
+
+		// Se for código dos Correios (formato BR ou padrão brasileiro)
+		if (preg_match('/^[A-Z]{2}[0-9]{9}[A-Z]{2}$/', $tracking_code)) {
+			return 'https://melhorrastreio.com.br/app/correios/' . $tracking_code;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Obtém o nome da transportadora
+	 */
+	private function get_shipping_company($order) {
+		// Tenta pegar do WooCommerce Shipment Tracking
+		$tracking_items = $order->get_meta('_wc_shipment_tracking_items');
+		if (!empty($tracking_items) && is_array($tracking_items)) {
+			$first_tracking = reset($tracking_items);
+			if (!empty($first_tracking['tracking_provider'])) {
+				return $first_tracking['tracking_provider'];
+			}
+		}
+
+		// Tenta pegar do método de envio padrão
+		$shipping_method = $order->get_shipping_method();
+		if (!empty($shipping_method)) {
+			return $shipping_method;
+		}
+
+		return '';
 	}
 
 	/**
@@ -580,7 +657,11 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 								'{shipping_postcode}' => 'CEP de entrega',
 								'{shipping_country}' => 'País de entrega',
 								'{shipping_address_full}' => 'Endereço completo de entrega',
-								
+
+								// Rastreamento (Melhor Envio / Correios)
+								'{tracking_code}' => 'Código de rastreio',
+								'{tracking_url}' => 'Link de rastreamento',
+
 								// Data (compatibilidade)
 								'{last_order_date}' => 'Data do último pedido'
 							];

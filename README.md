@@ -216,11 +216,12 @@ O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagen
 
 - 🚀 **Quick Signup** com teste grátis de 7 dias
 - 🛒 **Carrinho Abandonado** com interceptação interna revolucionária
-- 📊 **Envio por Status** de pedido automatizado  
+- 📊 **Envio por Status** de pedido automatizado
 - 📱 **Envio Individual** para clientes específicos
 - 📢 **Envio em Massa** com filtros avançados (REESCRITO v1.3.0)
 - ✅ **Validação no Checkout** em tempo real
 - 🎨 **Templates Personalizáveis** com shortcodes dinâmicos
+- 📦 **Rastreamento Integrado** com Melhor Envio e Correios
 - 🧠 **Sistema Inteligente** de fallback e validação
 
 ---
@@ -439,6 +440,19 @@ Cada status tem template personalizável com variáveis específicas do pedido.
 |----------|-----------|---------|
 | `{shipping_address_full}` | Endereço completo de entrega (com número e bairro) | Rua A, 123, Bairro Centro, São Paulo, SP, 01234-567 |
 | `{billing_address_full}` | Endereço de cobrança (com número e bairro) | Rua B, 456, Bairro Jardins, Rio de Janeiro, RJ, 20000-000 |
+
+### 📦 **Rastreamento (Melhor Envio + Correios)**
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `{tracking_code}` | Código de rastreio | AB646739409BR |
+| `{tracking_url}` | Link de rastreamento | https://melhorrastreio.com.br/app/correios/AB646739409BR |
+| `{shipping_company}` | Nome da transportadora | Correios / PAC |
+
+**Compatibilidade:**
+- ✅ **Melhor Envio**: Campo `melhorenvio_tracking`
+- ✅ **WooCommerce Shipment Tracking**: Campo `_wc_shipment_tracking_items`
+- ✅ **Plugins Genéricos**: Campos `_tracking_code` e `_tracking_number`
+- ✅ **Fallback Inteligente**: Se não encontrar, retorna vazio (não mostra a variável)
 
 ### 🏪 **Dados da Loja**
 | Variável | Descrição | Exemplo |
