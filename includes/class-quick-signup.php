@@ -115,9 +115,6 @@ class Quick_Signup {
 		
 		if ($trial_expires_at) {
 			update_option('wpwevo_trial_expires_at', $trial_expires_at);
-			$this->log_info('Trial expires at sincronizado: ' . $trial_expires_at);
-		} else {
-			$this->log_debug('Trial expires at não encontrado nos dados de status');
 		}
 
 		// ✅ CORREÇÃO: Verificar múltiplas estruturas possíveis para user_plan
@@ -132,7 +129,6 @@ class Quick_Signup {
 		
 		if ($user_plan) {
 			update_option('wpwevo_user_plan', $user_plan);
-			$this->log_info('User plan sincronizado: ' . $user_plan);
 		}
 
 		// ✅ CORREÇÃO: Verificar múltiplas estruturas possíveis para trial_days_left
@@ -147,7 +143,6 @@ class Quick_Signup {
 		
 		if ($trial_days_left !== null) {
 			update_option('wpwevo_trial_days_left', intval($trial_days_left));
-			$this->log_info('Trial days left sincronizado: ' . $trial_days_left);
 		}
 	}
 
@@ -158,8 +153,6 @@ class Quick_Signup {
 		if (!$this->should_enqueue_assets($hook)) {
 			return;
 		}
-
-		$this->log_info('Enqueueing quick signup assets for hook: ' . $hook);
 
 		wp_enqueue_script(
 			'wpwevo-quick-signup',
@@ -313,7 +306,6 @@ class Quick_Signup {
 	private function extract_api_data($api_data) {
 		// Corrige aninhamento da resposta
 		if (isset($api_data['success']) && $api_data['success'] === true && isset($api_data['data'])) {
-			$this->log_info('Corrigindo aninhamento da resposta da API.');
 			return $api_data['data'];
 		}
 
@@ -375,7 +367,6 @@ class Quick_Signup {
 		
 		if ($trial_expires_at) {
 			update_option('wpwevo_trial_expires_at', sanitize_text_field($trial_expires_at));
-			$this->log_info('Trial expires at salvo: ' . $trial_expires_at);
 		} else {
 			$this->log_error('Trial expires at não encontrado na resposta da API');
 		}

@@ -42,6 +42,7 @@ class Plugin_Loader {
 		Checkout_Validator::init();
 		Quick_Signup::init();
 		AI_Agent::init();
+		Logs_Page::init();
 	}
 
 	public function activate() {

@@ -1,8 +1,43 @@
-# WP WhatsEvolution v1.4.6
+# WP WhatsEvolution v1.4.7
 
 🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
 
 [![Assista a atualização no YouTube](https://img.youtube.com/vi/YbCYfefnh3E/0.jpg)](https://www.youtube.com/watch?v=YbCYfefnh3E)
+
+---
+
+## 🆕 **NOVO na v1.4.7: Variáveis de Rastreamento e Sistema de Logs**
+
+### 📦 **Variáveis de Rastreamento para Envios**
+- **✅ {tracking_code}**: Código de rastreio do pedido (ex: AB646739409BR)
+- **✅ {tracking_url}**: Link automático de rastreamento via Melhor Rastreio
+- **✅ {shipping_company}**: Nome da transportadora ou método de envio
+
+### 🚚 **Compatibilidade com Plugins de Rastreio**
+- **✅ Melhor Envio**: Suporte automático ao meta field `melhorenvio_tracking`
+- **✅ WooCommerce Shipment Tracking**: Compatível com o plugin oficial
+- **✅ Plugins Genéricos**: Fallback para `_tracking_code` e `_tracking_number`
+- **✅ Melhor Rastreio**: Links automáticos usando melhorrastreio.com.br para Correios
+
+### 📊 **Nova Aba de Logs Centralizada**
+- **✅ Visualização Completa**: Todos os logs de envio em um só lugar
+- **✅ Filtros Avançados**: Filtre por nível (Error, Warning, Info, Debug)
+- **✅ Busca Inteligente**: Pesquise por número, pedido ou mensagem
+- **✅ Contexto Detalhado**: Expanda para ver informações completas
+- **✅ Limpeza Fácil**: Botão para remover logs antigos
+- **✅ Paginação**: Interface organizada com 50 logs por página
+
+### 💡 **Casos de Uso das Variáveis de Rastreamento**
+- **Notificação de Envio**: "Seu pedido #{order_id} foi enviado! 📦 Código de rastreio: {tracking_code}"
+- **Link Direto**: "Acompanhe sua encomenda: {tracking_url}"
+- **Informação Completa**: "Enviado via {shipping_company} - Rastreio: {tracking_code}"
+- **Automação Perfeita**: Use em templates de status "Concluído" ou "Enviado"
+
+### 🔧 **Recursos Técnicos**
+- **✅ Fallback Inteligente**: Variáveis vazias se não houver código de rastreio
+- **✅ Detecção Automática**: Identifica formato dos Correios (BR123456789BR)
+- **✅ Performance**: Busca otimizada em múltiplas fontes de dados
+- **✅ Logs Limpos**: Removidos logs desnecessários que poluíam o banco
 
 ---
 

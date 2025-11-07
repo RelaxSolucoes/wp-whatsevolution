@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.6
+Stable tag: 1.4.7
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,6 +86,9 @@ O sistema intercepta automaticamente os carrinhos abandonados e envia mensagens 
 * `{cart_total}` - Valor total formatado (R$ 99,90)
 * `{checkout_url}` - Link para finalizar compra
 * `{coupon_code}` - Código do cupom
+* **NOVO**: `{tracking_code}` - Código de rastreio (ex: AB646739409BR)
+* **NOVO**: `{tracking_url}` - Link de rastreamento via Melhor Rastreio
+* **NOVO**: `{shipping_company}` - Nome da transportadora
 * E muito mais!
 
 ### 🆕 Novidades da Versão 1.4.2
@@ -138,6 +141,18 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.4.7 =
+* **📦 VARIÁVEIS DE RASTREAMENTO**: Novas variáveis {tracking_code}, {tracking_url} e {shipping_company}
+* **🚚 MELHOR ENVIO**: Suporte automático ao plugin Melhor Envio (melhorenvio_tracking)
+* **📦 WOOCOMMERCE SHIPMENT TRACKING**: Compatibilidade com WooCommerce Shipment Tracking oficial
+* **🔗 MELHOR RASTREIO**: Links automáticos usando melhorrastreio.com.br para códigos dos Correios
+* **🏷️ PLUGINS GENÉRICOS**: Fallback inteligente para meta fields _tracking_code e _tracking_number
+* **📊 NOVA ABA LOGS**: Visualização centralizada de todos os logs de envio com filtros avançados
+* **🔍 FILTROS DE LOGS**: Filtre por nível (Error, Warning, Info) e busca textual
+* **🗑️ LIMPEZA DE LOGS**: Botão para limpar logs antigos e manter o sistema organizado
+* **🎯 CONTEXTO DETALHADO**: Logs estruturados com informações completas de cada envio
+* **⚡ OTIMIZAÇÃO**: Removidos logs desnecessários que poluíam o banco de dados
 
 = 1.4.6 =
 * **NOTIFICAÇÕES ADMIN**: Sistema de notificação ao administrador por mudança de status

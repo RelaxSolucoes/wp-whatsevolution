@@ -1,5 +1,123 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.7] - 2025-11-07
+
+### 📦 Variáveis de Rastreamento e Sistema de Logs
+
+**Principais funcionalidades para rastreamento de envios e monitoramento centralizado**
+
+#### 🆕 Novas Variáveis de Rastreamento
+
+##### 1. Variáveis Implementadas
+- **`{tracking_code}`**: Código de rastreio do pedido (ex: AB646739409BR)
+- **`{tracking_url}`**: Link automático de rastreamento via Melhor Rastreio
+- **`{shipping_company}`**: Nome da transportadora ou método de envio
+
+##### 2. Compatibilidade com Plugins Brasileiros
+- **Melhor Envio**: Suporte automático ao meta field `melhorenvio_tracking`
+- **WooCommerce Shipment Tracking**: Compatível com plugin oficial
+- **Plugins Genéricos**: Fallback para `_tracking_code` e `_tracking_number`
+- **Melhor Rastreio**: Links automáticos usando melhorrastreio.com.br
+
+##### 3. Implementação Técnica
+- **Localização**: `includes/class-send-by-status.php`
+- **Método**: `get_tracking_code()` - Busca código em múltiplas fontes
+- **Método**: `get_tracking_url()` - Gera URL do Melhor Rastreio
+- **Método**: `get_shipping_company()` - Obtém nome da transportadora
+- **Regex dos Correios**: `^[A-Z]{2}[0-9]{9}[A-Z]{2}$` para validação
+- **Fallback inteligente**: Retorna string vazia se não encontrar
+
+##### 4. Fontes de Dados Suportadas
+1. **Melhor Envio**: `melhorenvio_tracking`
+2. **WC Shipment Tracking**: `_wc_shipment_tracking_items` (array)
+3. **Generic**: `_tracking_code`
+4. **Generic**: `_tracking_number`
+
+#### 📊 Nova Aba de Logs Centralizada
+
+##### 1. Página de Logs
+- **Arquivo**: `includes/class-logs-page.php`
+- **Localização menu**: WP WhatsEvolution → Logs
+- **Tabela**: `wp_wpwevo_logs`
+- **Colunas**: timestamp, level, message, context
+
+##### 2. Funcionalidades da Interface
+- **Filtro por Nível**: Debug, Info, Warning, Error
+- **Busca Textual**: Pesquisa em message e context
+- **Paginação**: 50 logs por página
+- **Contexto Expansível**: Detalhes em JSON formatado
+- **Cores por Nível**:
+  - 🔴 Error: #dc3545
+  - 🟡 Warning: #ffc107
+  - 🔵 Info: #17a2b8
+  - ⚫ Debug: #6c757d
+
+##### 3. Limpeza de Logs
+- **Botão**: "🗑️ Limpar Logs"
+- **Confirmação**: Dialog antes de executar
+- **Método**: AJAX `wpwevo_clear_logs`
+- **Operação**: `TRUNCATE TABLE` (instantâneo)
+- **Segurança**: Nonce e verificação de permissões
+
+##### 4. Otimização de Logs
+- **Removidos logs desnecessários**:
+  - ❌ "Enqueueing quick signup assets..."
+  - ❌ "Trial expires at sincronizado..."
+  - ❌ "User plan sincronizado..."
+  - ❌ "Trial days left sincronizado..."
+  - ❌ "Corrigindo aninhamento da resposta..."
+- **Mantidos logs importantes**:
+  - ✅ Erros de API
+  - ✅ Números inválidos
+  - ✅ Carrinhos abandonados
+  - ✅ Falhas de envio
+
+#### 💡 Casos de Uso das Variáveis
+
+**1. Notificação de Envio:**
+```
+📦 Seu pedido #{order_id} foi enviado!
+
+Código de rastreio: {tracking_code}
+Transportadora: {shipping_company}
+
+Acompanhe: {tracking_url}
+```
+
+**2. Template Conciso:**
+```
+Pedido enviado via {shipping_company}!
+Rastreio: {tracking_code}
+```
+
+**3. Link Direto:**
+```
+Sua encomenda está a caminho!
+Clique para rastrear: {tracking_url}
+```
+
+#### 🔧 Detalhes Técnicos
+
+**Arquivos Modificados:**
+1. `wp-whatsevolution.php` - Versão 1.4.7
+2. `includes/class-send-by-status.php` - Variáveis de rastreamento
+3. `includes/class-logs-page.php` - Nova página de logs (NOVO)
+4. `includes/class-plugin-loader.php` - Inicialização do Logs_Page
+5. `includes/class-quick-signup.php` - Remoção de logs desnecessários
+
+**Banco de Dados:**
+- Tabela: `wp_wpwevo_logs` (já existente)
+- Colunas: id, timestamp, level, message, context
+- Índice: timestamp (para ordenação)
+
+**Performance:**
+- Busca otimizada com meta queries
+- TRUNCATE para limpeza instantânea
+- Paginação para grandes volumes
+- Índices no banco para queries rápidas
+
+---
+
 ## [1.4.6] - 2025-11-06
 
 ### 🔔 Sistema de Notificações Admin por Status
