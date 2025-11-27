@@ -3,6 +3,7 @@
 🚀 **📲 Mais vendas, menos trabalho — automação total entre WooCommerce e WhatsApp**
 
 [![Assista a atualização no YouTube](https://i9.ytimg.com/vi_webp/U52eaHWuP0g/mqdefault.webp?v=684717de&sqp=CNzQucgG&rs=AOn4CLCBCKj5AIUBV6Uqp61UDIZX8EQMgg)](https://www.youtube.com/watch?v=U52eaHWuP0g)
+<<<<<<< HEAD
 
 ---
 
@@ -33,6 +34,8 @@
 - **✅ Validação**: Pelo menos 1 mensagem obrigatória
 - **✅ Sanitização**: Todas as mensagens sanitizadas automaticamente
 - **✅ Compatibilidade**: Funciona em todas as abas (Clientes WooCommerce, CSV, Manual, etc.)
+=======
+>>>>>>> fc566464bbe303854090e94867cdcbe23b327b3c
 
 ---
 
