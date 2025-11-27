@@ -572,12 +572,28 @@ class Bulk_Sender {
 							<!-- Seção de Mensagem e Configurações -->
 							<div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4facfe;">
 								<h3 style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; display: flex; align-items: center;">
-									<span style="margin-right: 10px;">💬</span> Mensagem
+									<span style="margin-right: 10px;">💬</span> Mensagens
 								</h3>
-								<textarea name="wpwevo_bulk_message" id="wpwevo-bulk-message" 
-										  rows="4" required
-										  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
-										  placeholder="Digite sua mensagem aqui..."></textarea>
+								<div style="background: #e6f7ff; padding: 10px 12px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #1890ff;">
+									<p style="margin: 0; font-size: 12px; color: #0050b3;">
+										<strong>✨ Envio Aleatório:</strong> Adicione múltiplas mensagens e o sistema selecionará aleatoriamente uma para cada número, garantindo maior naturalidade.
+									</p>
+								</div>
+								<div id="wpwevo-messages-container">
+									<div class="wpwevo-message-item" style="position: relative; margin-bottom: 15px; padding: 15px; background: white; border-radius: 6px; border: 2px solid #e2e8f0;">
+										<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+											<span style="font-size: 12px; font-weight: 600; color: #4a5568;">Mensagem 1</span>
+										</div>
+										<textarea name="wpwevo_bulk_messages[]" class="wpwevo-bulk-message"
+												  rows="4" required
+												  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
+												  placeholder="Digite sua mensagem aqui..."></textarea>
+									</div>
+								</div>
+								<button type="button" id="wpwevo-add-message"
+										style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3); transition: all 0.3s ease; margin-top: 5px;">
+									<span style="font-size: 18px; font-weight: bold; line-height: 1;">+</span> Adicionar Mensagem
+								</button>
 								
 								<!-- Variáveis Disponíveis -->
 								<div style="margin-top: 15px; padding: 15px; background: #f0fff4; border-radius: 8px; border-left: 4px solid #48bb78;">
@@ -1856,12 +1872,31 @@ class Bulk_Sender {
 			}
 
 			$active_tab = isset($_POST['active_tab']) ? sanitize_text_field($_POST['active_tab']) : '';
-			$message = isset($_POST['wpwevo_bulk_message']) ? sanitize_textarea_field($_POST['wpwevo_bulk_message']) : '';
+
+			// Suporte para múltiplas mensagens (sistema aleatório)
+			$messages = [];
+			if (isset($_POST['wpwevo_bulk_messages']) && is_array($_POST['wpwevo_bulk_messages'])) {
+				foreach ($_POST['wpwevo_bulk_messages'] as $msg) {
+					$sanitized = sanitize_textarea_field($msg);
+					if (!empty(trim($sanitized))) {
+						$messages[] = $sanitized;
+					}
+				}
+			}
+
+			// Fallback para mensagem única (compatibilidade)
+			if (empty($messages) && isset($_POST['wpwevo_bulk_message'])) {
+				$single_message = sanitize_textarea_field($_POST['wpwevo_bulk_message']);
+				if (!empty(trim($single_message))) {
+					$messages[] = $single_message;
+				}
+			}
+
 			$interval_mode = isset($_POST['wpwevo_interval_mode']) ? sanitize_text_field($_POST['wpwevo_interval_mode']) : 'fixed';
 			$interval = isset($_POST['wpwevo_interval']) ? absint($_POST['wpwevo_interval']) : 5;
 
-        if (empty($message)) {
-                throw new \Exception(__('A mensagem é obrigatória.', 'wp-whatsevolution'));
+        if (empty($messages)) {
+                throw new \Exception(__('Pelo menos uma mensagem é obrigatória.', 'wp-whatsevolution'));
         }
 
 			// Obtém a lista de números com base na aba ativa
@@ -1944,8 +1979,11 @@ class Bulk_Sender {
 						continue; // Pula para o próximo número
 					}
 
+					// Seleciona aleatoriamente uma mensagem do array
+					$random_message = $messages[array_rand($messages)];
+
 					// Prepara a mensagem com as variáveis substituídas
-					$prepared_message = $this->replace_variables($message, $contact);
+					$prepared_message = $this->replace_variables($random_message, $contact);
 					
 					// Envia a mensagem de forma segura
 					try {

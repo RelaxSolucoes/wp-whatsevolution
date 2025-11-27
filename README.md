@@ -1,8 +1,38 @@
-# WP WhatsEvolution v1.4.7
+# WP WhatsEvolution v1.4.8
 
 🚀 **📲 Mais vendas, menos trabalho — automação total entre WooCommerce e WhatsApp**
 
 [![Assista a atualização no YouTube](https://i9.ytimg.com/vi_webp/U52eaHWuP0g/mqdefault.webp?v=684717de&sqp=CNzQucgG&rs=AOn4CLCBCKj5AIUBV6Uqp61UDIZX8EQMgg)](https://www.youtube.com/watch?v=U52eaHWuP0g)
+
+---
+
+## 🆕 **NOVO na v1.4.8: Sistema de Mensagens Aleatórias**
+
+### 🎲 **Múltiplos Templates com Seleção Automática**
+- **✅ Interface Dinâmica**: Botão "+" para adicionar quantas mensagens quiser
+- **✅ Seleção Aleatória**: Sistema escolhe automaticamente uma mensagem diferente para cada contato
+- **✅ Anti-Spam Natural**: Variação de conteúdo evita detecção como spam
+- **✅ Compatibilidade Total**: Funciona com todas as variáveis ({customer_name}, {order_id}, etc.)
+- **✅ Gerenciamento Fácil**: Botão "Remover" em cada mensagem (mínimo 1)
+- **✅ Numeração Automática**: Mensagens numeradas sequencialmente
+
+### 🎯 **Como Funciona**
+1. **Crie Templates**: Adicione múltiplas versões da sua mensagem
+2. **Use Variáveis**: Todas as variáveis funcionam normalmente em cada template
+3. **Envio Automático**: Sistema seleciona aleatoriamente uma mensagem para cada número
+4. **Distribuição**: Exemplo - Número 1 recebe msg 3, Número 2 recebe msg 1, Número 3 recebe msg 5
+
+### 💡 **Casos de Uso**
+- **Variação de Tom**: Formal, casual e entusiasta
+- **Testes A/B**: Compare diferentes CTAs e abordagens
+- **Naturalidade**: Cada cliente recebe uma mensagem única
+- **Prevenção**: Evita bloqueios por mensagens idênticas em massa
+
+### 🔧 **Recursos Técnicos**
+- **✅ Algoritmo**: `array_rand()` para seleção verdadeiramente aleatória
+- **✅ Validação**: Pelo menos 1 mensagem obrigatória
+- **✅ Sanitização**: Todas as mensagens sanitizadas automaticamente
+- **✅ Compatibilidade**: Funciona em todas as abas (Clientes WooCommerce, CSV, Manual, etc.)
 
 ---
 

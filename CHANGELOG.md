@@ -1,5 +1,105 @@
 # Changelog - WP WhatsEvolution
 
+## [1.4.8] - 2025-01-27
+
+### 🎲 Sistema de Mensagens Aleatórias para Envio em Massa
+
+**Funcionalidade que permite criar múltiplos templates de mensagem com seleção aleatória automática**
+
+#### 🆕 Principais Funcionalidades
+
+##### 1. Interface de Múltiplas Mensagens
+- **Botão "+"**: Adiciona novas mensagens dinamicamente
+- **Botão "Remover"**: Remove mensagens individuais (mínimo 1 mensagem)
+- **Numeração Automática**: Mensagens numeradas sequencialmente
+- **Interface Intuitiva**: Design consistente com o plugin
+- **Posicionamento Dinâmico**: Botão + sempre abaixo da última mensagem
+
+##### 2. Sistema de Seleção Aleatória
+- **Algoritmo**: `array_rand()` do PHP para seleção verdadeiramente aleatória
+- **Por Número**: Cada contato recebe UMA mensagem selecionada aleatoriamente
+- **Distribuição**: Exemplo - número 1 → msg 3, número 2 → msg 1, número 3 → msg 5
+- **Naturalidade**: Evita detecção como spam por variação de conteúdo
+
+##### 3. Compatibilidade Total
+- ✅ **Variáveis**: Todas as variáveis continuam funcionando (`{customer_name}`, `{order_id}`, etc.)
+- ✅ **Processamento**: Variáveis substituídas individualmente em cada mensagem
+- ✅ **Filtros**: Compatível com filtros de data, valor, inatividade
+- ✅ **Intervalos**: Funciona com modo fixo e aleatório
+- ✅ **Todas as Abas**: Clientes WooCommerce, Todos os Clientes, CSV, Manual
+
+##### 4. Validações e Segurança
+- **Mínimo**: Pelo menos 1 mensagem obrigatória
+- **Sanitização**: Todas as mensagens sanitizadas com `sanitize_textarea_field()`
+- **Fallback**: Compatibilidade com mensagem única (sistemas antigos)
+- **Nonce**: Verificação de segurança mantida
+
+#### 💻 Implementação Técnica
+
+**Frontend (HTML/PHP):**
+- **Arquivo**: `includes/class-bulk-sender.php` (linhas 572-598)
+- **Container**: `#wpwevo-messages-container` com mensagens dinâmicas
+- **Nome do Campo**: `wpwevo_bulk_messages[]` (array)
+
+**JavaScript:**
+- **Arquivo**: `assets/js/bulk-send.js` (linhas 582-656)
+- **Função Principal**: `initMultipleMessages()`
+- **Eventos**: Delegação com `$(document).on()` para elementos dinâmicos
+- **Validação**: Coleta array de mensagens com `formData.getAll()`
+
+**Backend (PHP):**
+- **Arquivo**: `includes/class-bulk-sender.php` (linhas 1878-1988)
+- **Coleta**: Loop sobre `$_POST['wpwevo_bulk_messages']`
+- **Seleção**: `$messages[array_rand($messages)]` por número
+- **Processamento**: `replace_variables()` com dados do contato
+
+#### 🎯 Casos de Uso
+
+**1. Múltiplas Abordagens:**
+```
+Mensagem 1: Olá {customer_name}! Seu pedido #{order_id} está pronto! 🎉
+Mensagem 2: Oi {customer_name}, temos uma novidade sobre seu pedido #{order_id}! ✨
+Mensagem 3: {customer_name}, boas notícias sobre o pedido #{order_id}! 🚀
+```
+
+**2. Variação de Tom:**
+```
+Mensagem 1: Formal e profissional
+Mensagem 2: Casual e amigável
+Mensagem 3: Entusiasta e enérgica
+```
+
+**3. Testes A/B:**
+```
+Mensagem 1: CTA direto
+Mensagem 2: CTA com urgência
+Mensagem 3: CTA com benefício
+```
+
+#### ✨ Benefícios
+
+- 🎲 **Anti-Spam**: Variação natural evita bloqueios
+- 🎯 **Personalização**: Cada contato recebe mensagem única
+- ⚡ **Eficiência**: Processo automático sem intervenção manual
+- 📊 **Testes**: Possibilidade de testar diferentes abordagens
+- 🔄 **Flexibilidade**: Adicione quantas mensagens quiser
+
+#### 🔧 Arquivos Modificados
+
+1. **includes/class-bulk-sender.php**
+   - Interface HTML de múltiplas mensagens
+   - Backend de processamento aleatório
+
+2. **assets/js/bulk-send.js**
+   - Gerenciamento de mensagens dinâmicas
+   - Validação de múltiplas mensagens
+
+3. **assets/css/** (estilos inline)
+   - Hover effects nos botões
+   - Animações de transição
+
+---
+
 ## [1.4.7] - 2025-11-07
 
 ### 📦 Variáveis de Rastreamento e Sistema de Logs

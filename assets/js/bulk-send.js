@@ -362,11 +362,13 @@ jQuery(document).ready(function($) {
 
         const formElement = $('#wpwevo-bulk-form')[0];
         const formData = new FormData(formElement);
-        
-        const message = formData.get('wpwevo_bulk_message');
 
-        if (!message || !message.trim()) {
-            alert('Digite uma mensagem.');
+        // Valida se há pelo menos uma mensagem preenchida
+        const messages = formData.getAll('wpwevo_bulk_messages[]');
+        const validMessages = messages.filter(msg => msg && msg.trim());
+
+        if (validMessages.length === 0) {
+            alert('Digite pelo menos uma mensagem.');
             return;
         }
 
@@ -577,6 +579,82 @@ jQuery(document).ready(function($) {
         });
     }
 
+    // Gerenciamento de múltiplas mensagens
+    function initMultipleMessages() {
+        let messageCount = 1;
+
+        // Adiciona estilos CSS dinamicamente
+        if (!$('#wpwevo-messages-styles').length) {
+            $('head').append(`
+                <style id="wpwevo-messages-styles">
+                    #wpwevo-add-message:hover {
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4) !important;
+                    }
+                    .wpwevo-remove-message:hover {
+                        background: #fc8181 !important;
+                        color: white !important;
+                        border-color: #fc8181 !important;
+                    }
+                    .wpwevo-message-item:hover {
+                        border-color: #cbd5e0 !important;
+                    }
+                </style>
+            `);
+        }
+
+        // Botão adicionar mensagem - usando delegação de eventos
+        $(document).on('click', '#wpwevo-add-message', function(e) {
+            e.preventDefault();
+            messageCount++;
+            const messageHtml = `
+                <div class="wpwevo-message-item" style="position: relative; margin-bottom: 15px; padding: 15px; background: white; border-radius: 6px; border: 2px solid #e2e8f0; transition: all 0.2s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; font-weight: 600; color: #4a5568;">Mensagem ${messageCount}</span>
+                        <button type="button" class="wpwevo-remove-message"
+                                style="background: #fee; color: #c53030; border: 1px solid #feb2b2; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s ease;">
+                            🗑️ Remover
+                        </button>
+                    </div>
+                    <textarea name="wpwevo_bulk_messages[]" class="wpwevo-bulk-message"
+                              rows="4"
+                              style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical;"
+                              placeholder="Digite sua mensagem aqui..."></textarea>
+                </div>
+            `;
+
+            // Adiciona a mensagem no container
+            $('#wpwevo-messages-container').append(messageHtml);
+
+            // Move o botão para depois do container (sempre abaixo da última mensagem)
+            const button = $('#wpwevo-add-message');
+            button.insertAfter('#wpwevo-messages-container');
+
+            updateMessageNumbers();
+        });
+
+        // Remover mensagem (delegação de eventos)
+        $(document).on('click', '.wpwevo-remove-message', function(e) {
+            e.preventDefault();
+            const messagesCount = $('.wpwevo-message-item').length;
+            if (messagesCount <= 1) {
+                alert('Você precisa ter pelo menos uma mensagem.');
+                return;
+            }
+            $(this).closest('.wpwevo-message-item').fadeOut(200, function() {
+                $(this).remove();
+                updateMessageNumbers();
+            });
+        });
+
+        // Atualiza numeração das mensagens
+        function updateMessageNumbers() {
+            $('.wpwevo-message-item').each(function(index) {
+                $(this).find('span:first').text('Mensagem ' + (index + 1));
+            });
+        }
+    }
+
     // Inicializa todos os módulos
     initTabs();
     initCustomerPreview();
@@ -585,6 +663,7 @@ jQuery(document).ready(function($) {
     initBulkSend();
     initCsvProcessing();
     initHistoryActions();
+    initMultipleMessages();
     updateHistory(); // Carrega o histórico inicial
     
     // **NOVO: Inicializa as variáveis clicáveis após um pequeno delay para garantir que o DOM esteja pronto**

@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.7
+Stable tag: 1.4.8
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -40,6 +40,8 @@ Integração completa com WooCommerce usando Evolution API. Envio automático pa
 
 **🎯 Envio em Massa Avançado**
 * 4 abas especializadas: Clientes WooCommerce, Todos os Clientes, Importar CSV, Lista Manual
+* **NOVO**: Sistema de mensagens aleatórias - crie múltiplos templates e o sistema seleciona automaticamente
+* Evita detecção de spam com variação natural de mensagens
 * Filtros de valor: segmentação por valor mínimo e máximo de pedidos
 * Sistema de intervalo inteligente: modo fixo (5-60s) e aleatório (2-9s)
 * Filtro de aniversário: segmentação por mês de nascimento
