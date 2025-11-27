@@ -1,8 +1,8 @@
 # WP WhatsEvolution v1.4.7
 
-🚀 **A Revolução do Envio em Massa + Sistema Completo de Automação WhatsApp**
+🚀 **📲 Mais vendas, menos trabalho — automação total entre WooCommerce e WhatsApp**
 
-[![Assista a atualização no YouTube](https://img.youtube.com/vi/YbCYfefnh3E/0.jpg)](https://www.youtube.com/watch?v=YbCYfefnh3E)
+[![Assista a atualização no YouTube](https://i9.ytimg.com/vi_webp/U52eaHWuP0g/mqdefault.webp?v=684717de&sqp=CNzQucgG&rs=AOn4CLCBCKj5AIUBV6Uqp61UDIZX8EQMgg)](https://www.youtube.com/watch?v=U52eaHWuP0g)
 
 ---
 
