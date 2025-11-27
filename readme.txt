@@ -144,6 +144,20 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
+= 1.4.8 =
+* **🎲 SISTEMA DE MENSAGENS ALEATÓRIAS**: Crie múltiplos templates de mensagem para envio em massa
+* **➕ INTERFACE DINÂMICA**: Botão "+" para adicionar quantas mensagens quiser
+* **🎯 SELEÇÃO AUTOMÁTICA**: Sistema escolhe aleatoriamente uma mensagem diferente para cada contato
+* **🛡️ ANTI-SPAM NATURAL**: Variação de conteúdo evita detecção como spam e bloqueios
+* **✅ COMPATIBILIDADE TOTAL**: Funciona com todas as variáveis ({customer_name}, {order_id}, {tracking_code}, etc.)
+* **🔄 PROCESSAMENTO INDIVIDUAL**: Variáveis substituídas em cada mensagem por contato
+* **🗑️ GERENCIAMENTO FÁCIL**: Botão "Remover" em cada mensagem (mínimo 1 mensagem obrigatória)
+* **🔢 NUMERAÇÃO AUTOMÁTICA**: Mensagens numeradas sequencialmente de forma inteligente
+* **📋 TODAS AS ABAS**: Funciona em Clientes WooCommerce, Todos os Clientes, CSV e Manual
+* **🎨 DESIGN CONSISTENTE**: Interface responsiva e moderna integrada ao plugin
+* **🔒 VALIDAÇÃO ROBUSTA**: Sanitização e verificação de segurança de todas as mensagens
+* **⚡ ALGORITMO EFICIENTE**: `array_rand()` do PHP para seleção verdadeiramente aleatória
+
 = 1.4.7 =
 * **📦 VARIÁVEIS DE RASTREAMENTO**: Novas variáveis {tracking_code}, {tracking_url} e {shipping_company}
 * **🚚 MELHOR ENVIO**: Suporte automático ao plugin Melhor Envio (melhorenvio_tracking)
@@ -235,6 +249,9 @@ Sim, 100% gratuito e open source.
 6. Validação no Checkout
 
 == Upgrade Notice ==
+
+= 1.4.8 =
+Esta versão adiciona o poderoso sistema de mensagens aleatórias para envio em massa. Crie múltiplos templates e o sistema seleciona automaticamente uma mensagem diferente para cada contato, evitando detecção de spam e tornando suas campanhas mais naturais. Compatível com todas as variáveis e funcionalidades existentes.
 
 = 1.4.3 =
 Esta versão adiciona compatibilidade total com Brazilian Market on WooCommerce, garantindo que endereços completos (com número da casa e bairro) sejam exibidos nas mensagens. Funciona automaticamente com ou sem o plugin Brazilian Market.
