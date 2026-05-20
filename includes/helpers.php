@@ -438,6 +438,118 @@ function wpwevo_sanitize_input($data, $type = 'text') {
 	}
 }
 
+/**
+ * Formata número de telefone para SMS (formato internacional +55XXXXXXXXXXX)
+ */
+function wpwevo_format_phone_for_sms($phone) {
+	// Remove tudo que não é dígito e sinal +
+	$phone = preg_replace('/[^\d+]/', '', $phone);
+
+	// Se já começa com +, apenas retorna (assume que já está correto)
+	if (strpos($phone, '+') === 0) {
+		return $phone;
+	}
+
+	// Remove zeros à esquerda
+	$digits = ltrim($phone, '0');
+
+	if (empty($digits)) {
+		return false;
+	}
+
+	$len = strlen($digits);
+
+	// 12-13 dígitos: começa com 55 (DDI Brasil já presente)
+	if ($len >= 12 && $len <= 13 && substr($digits, 0, 2) === '55') {
+		return '+' . $digits;
+	}
+
+	// 11 dígitos: DDD + 9 + número (celular BR sem DDI)
+	if ($len === 11) {
+		$ddd = (int) substr($digits, 0, 2);
+		if ($ddd >= 11 && $ddd <= 99) {
+			return '+55' . $digits;
+		}
+	}
+
+	// 10 dígitos: DDD + número (fixo BR sem DDI)
+	if ($len === 10) {
+		$ddd = (int) substr($digits, 0, 2);
+		if ($ddd >= 11 && $ddd <= 99) {
+			return '+55' . $digits;
+		}
+	}
+
+	// 8-9 dígitos: sem DDD, assume São Paulo (11)
+	if ($len >= 8 && $len <= 9) {
+		return '+5511' . $digits;
+	}
+
+	// Se já tem mais de 12 dígitos sem 55 no início, adiciona + diretamente
+	if ($len >= 12) {
+		return '+' . $digits;
+	}
+
+	// Fallback: adiciona +55
+	return '+55' . $digits;
+}
+
+/**
+ * Envia mensagem via SMSGate (android-sms-gateway)
+ */
+function wpwevo_send_via_smsgate($phone, $message) {
+	$username  = get_option('wpwevo_smsgate_username', '');
+	$password  = get_option('wpwevo_smsgate_password', '');
+	$api_url   = get_option('wpwevo_smsgate_url', 'https://api.sms-gate.app');
+
+	if (empty($username) || empty($password)) {
+		return ['success' => false, 'error' => 'SMSGate não configurado (usuário/senha ausentes).'];
+	}
+
+	$formatted_phone = wpwevo_format_phone_for_sms($phone);
+	if (!$formatted_phone) {
+		return ['success' => false, 'error' => 'Número de telefone inválido para SMS: ' . $phone];
+	}
+
+	$endpoint = rtrim($api_url, '/') . '/3rdparty/v1/message';
+
+	$response = wp_remote_post($endpoint, [
+		'headers' => [
+			'Content-Type'  => 'application/json',
+			'Authorization' => 'Basic ' . base64_encode($username . ':' . $password),
+		],
+		'body'    => json_encode([
+			'message'      => $message,
+			'phoneNumbers' => [$formatted_phone],
+		]),
+		'timeout' => 15,
+	]);
+
+	if (is_wp_error($response)) {
+		return ['success' => false, 'error' => $response->get_error_message()];
+	}
+
+	$status_code = wp_remote_retrieve_response_code($response);
+	$body        = json_decode(wp_remote_retrieve_body($response), true);
+	$state       = isset($body['state']) ? strtolower($body['state']) : '';
+
+	// SMSGate retorna "Pending" em caso de sucesso
+	if ($status_code === 200 || $status_code === 201 || $state === 'pending') {
+		return ['success' => true, 'data' => $body];
+	}
+
+	$error_msg = isset($body['message']) ? $body['message'] : ('HTTP ' . $status_code);
+	return ['success' => false, 'error' => $error_msg, 'data' => $body];
+}
+
+/**
+ * Verifica se o SMSGate está configurado (username e password preenchidos)
+ */
+function wpwevo_is_smsgate_configured() {
+	return !empty(get_option('wpwevo_smsgate_username', '')) &&
+	       !empty(get_option('wpwevo_smsgate_password', ''));
+}
+
 // Agenda limpeza de logs
 if (!wp_next_scheduled('wpwevo_cleanup_logs')) {
 	wp_schedule_event(time(), 'daily', 'wpwevo_cleanup_logs');

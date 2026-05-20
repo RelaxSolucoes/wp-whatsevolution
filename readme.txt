@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.8
+Stable tag: 1.4.9
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -144,6 +144,16 @@ Sim, 100% gratuito e open source.
 
 == Changelog ==
 
+= 1.4.9 =
+* **📱 MODO SMS (SMSGate)**: Novo canal de envio via SMS usando o app android-sms-gateway
+* **📡 SELETOR DE MODO**: Escolha entre Managed (WhatsApp automático), Manual (suas credenciais) ou SMS
+* **🔄 FALLBACK AUTOMÁTICO**: Ative o fallback para SMS quando o WhatsApp falhar (modos Managed e Manual)
+* **⚙️ ABA SMS**: Nova aba de configuração com guia passo a passo, campos de credenciais e botão "Salvar e Testar"
+* **✅ COMPATIBILIDADE TOTAL**: SMS funciona em todos os módulos — Envio por Status, Carrinho Abandonado, Envio Único e Envio em Massa
+* **📞 FORMATAÇÃO AUTOMÁTICA**: Número formatado para padrão internacional +55 automaticamente
+* **📊 LOGS COMPLETOS**: Canal, status da API e eventos de fallback registrados em todos os envios
+* **🔒 SEM QUEBRA**: Toda configuração WhatsApp existente é preservada ao migrar para SMS
+
 = 1.4.8 =
 * **🎲 SISTEMA DE MENSAGENS ALEATÓRIAS**: Crie múltiplos templates de mensagem para envio em massa
 * **➕ INTERFACE DINÂMICA**: Botão "+" para adicionar quantas mensagens quiser
@@ -249,6 +259,9 @@ Sim, 100% gratuito e open source.
 6. Validação no Checkout
 
 == Upgrade Notice ==
+
+= 1.4.9 =
+Esta versão adiciona suporte completo a SMS via SMSGate como terceiro canal de envio, com fallback automático do WhatsApp para SMS. Compatível com todos os módulos existentes (Envio por Status, Carrinho Abandonado, Envio Único e Envio em Massa). Nenhuma configuração existente é alterada.
 
 = 1.4.8 =
 Esta versão adiciona o poderoso sistema de mensagens aleatórias para envio em massa. Crie múltiplos templates e o sistema seleciona automaticamente uma mensagem diferente para cada contato, evitando detecção de spam e tornando suas campanhas mais naturais. Compatível com todas as variáveis e funcionalidades existentes.

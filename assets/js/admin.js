@@ -100,6 +100,38 @@ jQuery(document).ready(function($) {
         });
     }
 
+    // ── Modo de envio: toggle visual dos cards e visibilidade do fallback ──
+    $(document).on('change', 'input[name="wpwevo_connection_mode"]', function() {
+        var selected = $(this).val();
+
+        // Atualiza estilos dos cards
+        $('input[name="wpwevo_connection_mode"]').each(function() {
+            var $label = $(this).closest('label');
+            if ($(this).val() === selected) {
+                $label.css({'border-color': '#38b2ac', 'background': '#e6fffa'});
+            } else {
+                $label.css({'border-color': '#e2e8f0', 'background': '#f7fafc'});
+            }
+        });
+
+        // Mostra/oculta fallback SMS
+        if (selected === 'sms') {
+            $('#wpwevo-sms-fallback-row').hide();
+        } else {
+            $('#wpwevo-sms-fallback-row').show();
+        }
+    });
+
+    // ── Feedback de modo salvo via parâmetro URL ──
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode_saved') === '1') {
+        var $msg = $('#wpwevo-mode-saved-msg');
+        if ($msg.length) {
+            $msg.show();
+            setTimeout(function() { $msg.fadeOut(); }, 3000);
+        }
+    }
+
     function validateAdminNumber(number) {
         $validation.html('<span style="color: #4a5568;">⏳ Validando número...</span>');
         $validation.show();

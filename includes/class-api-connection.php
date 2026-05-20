@@ -59,6 +59,15 @@ class Api_Connection {
         $this->api_key = self::get_active_api_key(); // CORRIGIDO: Usa a função que busca a chave correta
         $this->instance_name = get_option('wpwevo_instance', '');
 
+        // SMS mode is configured independently from Evolution API credentials
+        $connection_mode = get_option('wpwevo_connection_mode', 'manual');
+        if ($connection_mode === 'sms') {
+            $is_configured = wpwevo_is_smsgate_configured();
+            self::$last_config_check = $current_time;
+            self::$is_configured_cache = $is_configured;
+            return $is_configured;
+        }
+
         $is_configured = !empty($this->api_url) && !empty($this->api_key) && !empty($this->instance_name);
         
         self::$last_config_check = $current_time;
@@ -390,14 +399,47 @@ class Api_Connection {
             ];
         }
 
-        // ✅ CORREÇÃO: Verificar modo de conexão primeiro
+        // Verificar modo de conexão
         $connection_mode = get_option('wpwevo_connection_mode', 'manual');
-        
-        if ($connection_mode === 'managed') {
-            return $this->send_message_managed($number, $message);
+
+        // Modo SMS exclusivo
+        if ($connection_mode === 'sms') {
+            $sms_result = wpwevo_send_via_smsgate($number, $message);
+            $success = !empty($sms_result['success']);
+            wpwevo_log(
+                $success ? 'info' : 'error',
+                'Envio SMS (modo sms): ' . ($success ? 'sucesso' : $sms_result['error']),
+                ['phone' => $number, 'channel' => 'sms']
+            );
+            return [
+                'success' => $success,
+                'message' => $success ? 'SMS enviado com sucesso!' : ($sms_result['error'] ?? 'Erro desconhecido'),
+                'data'    => $sms_result['data'] ?? null,
+            ];
         }
-        
-        return $this->send_message_manual($number, $message);
+
+        // Modos managed / manual → tenta WhatsApp primeiro
+        if ($connection_mode === 'managed') {
+            $result = $this->send_message_managed($number, $message);
+        } else {
+            $result = $this->send_message_manual($number, $message);
+        }
+
+        // Fallback automático para SMS se WhatsApp falhou e fallback está habilitado
+        if (!$result['success'] && get_option('wpwevo_smsgate_fallback', 'no') === 'yes' && wpwevo_is_smsgate_configured()) {
+            $sms_result = wpwevo_send_via_smsgate($number, $message);
+            if (!empty($sms_result['success'])) {
+                wpwevo_log('info', 'WhatsApp falhou, SMS enviado como fallback', ['phone' => $number, 'channel' => 'sms_fallback', 'whatsapp_error' => $result['message']]);
+                return [
+                    'success' => true,
+                    'message' => 'SMS enviado como fallback (WhatsApp falhou).',
+                    'data'    => $sms_result['data'] ?? null,
+                ];
+            }
+            wpwevo_log('error', 'Fallback SMS também falhou', ['phone' => $number, 'sms_error' => $sms_result['error'] ?? 'Erro desconhecido']);
+        }
+
+        return $result;
     }
 
     /**

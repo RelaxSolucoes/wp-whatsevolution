@@ -1,8 +1,49 @@
-# WP WhatsEvolution v1.4.8
+# WP WhatsEvolution v1.4.9
 
-🚀 **📲 Mais vendas, menos trabalho — automação total entre WooCommerce e WhatsApp**
+🚀 **📲 Mais vendas, menos trabalho — automação total entre WooCommerce e WhatsApp + SMS**
 
 [![Assista a atualização no YouTube](https://i9.ytimg.com/vi_webp/U52eaHWuP0g/mqdefault.webp?v=684717de&sqp=CNzQucgG&rs=AOn4CLCBCKj5AIUBV6Uqp61UDIZX8EQMgg)](https://www.youtube.com/watch?v=U52eaHWuP0g)
+
+---
+
+## 🆕 **NOVO na v1.4.9: Envio por SMS via SMSGate**
+
+### 📱 **Terceiro Canal de Envio — 100% Independente do WhatsApp**
+
+Agora você pode enviar notificações via SMS usando o app **android-sms-gateway** (SMSGate), diretamente do seu celular Android, sem depender de WhatsApp ou Evolution API.
+
+### 🎯 **Três Modos de Operação**
+
+| Modo | Canal | Ideal para |
+|------|-------|------------|
+| 🚀 **Managed** | WhatsApp automático | Quem usa o Teste Grátis |
+| ⚙️ **Manual** | WhatsApp com suas credenciais | Quem tem Evolution API própria |
+| 📱 **SMS** | SMSGate (android-sms-gateway) | Alternativa sem WhatsApp |
+
+### 🔄 **Fallback Automático WhatsApp → SMS**
+- **✅ Ative em 1 clique**: Checkbox "Usar SMS como fallback se WhatsApp falhar"
+- **✅ Transparente**: Se o WhatsApp falhar, SMS é enviado automaticamente
+- **✅ Log de fallback**: Cada evento de fallback é registrado com detalhes
+- **✅ Requer SMSGate configurado**: Só ativa se as credenciais estiverem salvas
+
+### ✅ **Compatível com Todos os Módulos**
+- **📊 Envio por Status**: Notificações de pedido via SMS
+- **🛒 Carrinho Abandonado**: Recuperação via SMS
+- **📱 Envio Único**: Mensagem individual via SMS
+- **📢 Envio em Massa**: Campanhas via SMS
+- **⚠️ Validação no Checkout**: Não se aplica ao SMS (requer WhatsApp)
+
+### 🔧 **Como Configurar**
+1. Baixe o APK do SMSGate: [android-sms-gateway](https://github.com/capcom6/android-sms-gateway/releases/latest/download/app-release.apk)
+2. Instale no celular Android e ative o **Cloud Server**
+3. No WordPress: **WhatsEvolution → Conexão → selecione 📱 SMS → Salvar Modo**
+4. Vá na aba **📱 SMS**, preencha Username, Password e Device ID
+5. Clique em **"Salvar e Testar"** — um SMS de teste será enviado para o número admin
+
+### 📞 **Formatação Automática de Número**
+- Qualquer formato brasileiro é aceito (com ou sem DDI)
+- Convertido automaticamente para `+55XXXXXXXXXXX`
+- Funciona com os mesmos números já cadastrados nos pedidos
 
 ---
 
@@ -291,7 +332,7 @@ O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagen
 
 ---
 
-## 🔧 **Dois Modos de Operação**
+## 🔧 **Três Modos de Operação**
 
 ### 🚀 **Modo Managed (Free Trial)**
 - **Backend Supabase**: Usado apenas para onboarding e verificação de status
@@ -304,6 +345,13 @@ O **WP WhatsEvolution** é o plugin mais avançado para integração de mensagen
 - **Configuração**: URL, API Key, Instância próprias
 - **Custo**: Zero (usa sua Evolution API)
 - **Ideal para**: Quem já tem Evolution API configurada
+
+### 📱 **Modo SMS (SMSGate)**
+- **Backend**: App android-sms-gateway no seu celular Android
+- **Configuração**: Username, Password e Device ID gerados pelo app
+- **Custo**: Zero (usa o chip do seu celular)
+- **Fallback**: Pode ser usado como fallback automático do WhatsApp
+- **Ideal para**: Quem quer SMS como canal principal ou reserva
 
 ## 🔍 **Compatibilidade de Versões da Evolution API**
 

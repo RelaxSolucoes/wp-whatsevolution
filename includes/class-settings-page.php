@@ -21,7 +21,9 @@ class Settings_Page {
 		add_action('admin_menu', [$this, 'add_menu']);
 		add_action('admin_init', [$this, 'register_settings']);
 		add_action('admin_post_wpwevo_test_connection', [$this, 'test_connection']);
+		add_action('admin_post_wpwevo_save_send_mode', [$this, 'save_send_mode']);
 		add_action('wp_ajax_wpwevo_validate_settings', [$this, 'validate_settings']);
+		add_action('wp_ajax_wpwevo_sms_test', [$this, 'handle_sms_test']);
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
 	}
 
@@ -68,6 +70,36 @@ class Settings_Page {
 			'sanitize_callback' => 'sanitize_text_field',
 			'default' => ''
 		]);
+
+		register_setting('wpwevo_smsgate_settings', 'wpwevo_smsgate_username', [
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'default' => ''
+		]);
+
+		register_setting('wpwevo_smsgate_settings', 'wpwevo_smsgate_password', [
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'default' => ''
+		]);
+
+		register_setting('wpwevo_smsgate_settings', 'wpwevo_smsgate_device_id', [
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'default' => ''
+		]);
+
+		register_setting('wpwevo_smsgate_settings', 'wpwevo_smsgate_url', [
+			'type' => 'string',
+			'sanitize_callback' => 'esc_url_raw',
+			'default' => 'https://api.sms-gate.app'
+		]);
+
+		register_setting('wpwevo_smsgate_settings', 'wpwevo_smsgate_fallback', [
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'default' => 'no'
+		]);
 	}
 
 	public function test_connection() {
@@ -110,8 +142,10 @@ class Settings_Page {
 
 			// A Evolution API que valida a chave - não fazemos validação local
 
-			// Atualiza as opções para o modo manual
-			update_option('wpwevo_connection_mode', 'manual');
+			// Salva credenciais da Evolution API; preserva o modo SMS se ativo
+			if (get_option('wpwevo_connection_mode', 'manual') !== 'sms') {
+				update_option('wpwevo_connection_mode', 'manual');
+			}
 			update_option('wpwevo_api_url', $api_url);
 			update_option('wpwevo_manual_api_key', $api_key);
 			update_option('wpwevo_instance', $instance);
@@ -177,13 +211,15 @@ class Settings_Page {
 		);
 
 		wp_localize_script('wpwevo-admin', 'wpwevo_admin', [
-			'ajax_url' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('wpwevo_validate_settings'),
+			'ajax_url'       => admin_url('admin-ajax.php'),
+			'nonce'          => wp_create_nonce('wpwevo_validate_settings'),
 			'validate_nonce' => wp_create_nonce('wpwevo_validate_number'),
+			'sms_test_nonce' => wp_create_nonce('wpwevo_sms_test'),
             'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsevolution'),
-			'saved_api_url' => get_option('wpwevo_api_url', ''),
-			'saved_api_key' => get_option('wpwevo_managed_api_key', ''),
-			'saved_instance' => get_option('wpwevo_instance', '')
+			'saved_api_url'  => get_option('wpwevo_api_url', ''),
+			'saved_api_key'  => get_option('wpwevo_managed_api_key', ''),
+			'saved_instance' => get_option('wpwevo_instance', ''),
+			'send_mode'      => get_option('wpwevo_connection_mode', 'manual'),
 		]);
 
 		// Adiciona as variáveis para o quick-signup
@@ -211,8 +247,9 @@ class Settings_Page {
 		
 		$tabs = [
             'quick-signup' => __('🚀 Teste Grátis', 'wp-whatsevolution'),
-            'connection' => __('Conexão', 'wp-whatsevolution'),
-            'help' => __('Ajuda', 'wp-whatsevolution'),
+            'connection'   => __('Conexão', 'wp-whatsevolution'),
+            'sms'          => __('📱 SMS', 'wp-whatsevolution'),
+            'help'         => __('Ajuda', 'wp-whatsevolution'),
 		];
 
 		if (isset($_GET['connection'])) {
@@ -267,6 +304,9 @@ class Settings_Page {
 					break;
 				case 'connection':
 					$this->render_connection_tab();
+					break;
+				case 'sms':
+					$this->render_sms_tab();
 					break;
 				case 'help':
 					$this->render_help_tab();
@@ -412,6 +452,64 @@ class Settings_Page {
 		<!-- Cards de Configuração -->
 		<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
 			
+			<!-- Card 0: Modo de Envio -->
+			<div style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(56, 178, 172, 0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.97); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 18px;">
+						<div style="background: #38b2ac; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">📡</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Modo de Envio de Notificações</h3>
+					</div>
+
+					<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="wpwevo-mode-form">
+						<?php wp_nonce_field('wpwevo_save_send_mode', 'wpwevo_mode_nonce'); ?>
+						<input type="hidden" name="action" value="wpwevo_save_send_mode">
+
+						<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 18px;">
+							<!-- Managed -->
+							<label style="display: flex; align-items: center; gap: 12px; padding: 15px; border: 2px solid <?php echo $connection_mode === 'managed' ? '#38b2ac' : '#e2e8f0'; ?>; border-radius: 10px; cursor: pointer; background: <?php echo $connection_mode === 'managed' ? '#e6fffa' : '#f7fafc'; ?>; transition: all 0.2s;">
+								<input type="radio" name="wpwevo_connection_mode" value="managed" <?php checked($connection_mode, 'managed'); ?> style="accent-color: #38b2ac; width: 18px; height: 18px;">
+								<div>
+									<div style="font-weight: 600; color: #2d3748; font-size: 14px;">🚀 Managed</div>
+									<div style="color: #718096; font-size: 12px; margin-top: 2px;">WhatsApp automático</div>
+								</div>
+							</label>
+
+							<!-- Manual -->
+							<label style="display: flex; align-items: center; gap: 12px; padding: 15px; border: 2px solid <?php echo $connection_mode === 'manual' ? '#38b2ac' : '#e2e8f0'; ?>; border-radius: 10px; cursor: pointer; background: <?php echo $connection_mode === 'manual' ? '#e6fffa' : '#f7fafc'; ?>; transition: all 0.2s;">
+								<input type="radio" name="wpwevo_connection_mode" value="manual" <?php checked($connection_mode, 'manual'); ?> style="accent-color: #38b2ac; width: 18px; height: 18px;">
+								<div>
+									<div style="font-weight: 600; color: #2d3748; font-size: 14px;">⚙️ Manual</div>
+									<div style="color: #718096; font-size: 12px; margin-top: 2px;">Minhas credenciais</div>
+								</div>
+							</label>
+
+							<!-- SMS -->
+							<label style="display: flex; align-items: center; gap: 12px; padding: 15px; border: 2px solid <?php echo $connection_mode === 'sms' ? '#38b2ac' : '#e2e8f0'; ?>; border-radius: 10px; cursor: pointer; background: <?php echo $connection_mode === 'sms' ? '#e6fffa' : '#f7fafc'; ?>; transition: all 0.2s;">
+								<input type="radio" name="wpwevo_connection_mode" value="sms" <?php checked($connection_mode, 'sms'); ?> style="accent-color: #38b2ac; width: 18px; height: 18px;">
+								<div>
+									<div style="font-weight: 600; color: #2d3748; font-size: 14px;">📱 SMS</div>
+									<div style="color: #718096; font-size: 12px; margin-top: 2px;">SMSGate exclusivo</div>
+								</div>
+							</label>
+						</div>
+
+						<!-- Fallback SMS (visível apenas para managed/manual) -->
+						<div id="wpwevo-sms-fallback-row" style="display: <?php echo $connection_mode !== 'sms' ? 'flex' : 'none'; ?>; align-items: center; gap: 10px; padding: 12px 16px; background: #fef9e7; border: 1px solid #f6d860; border-radius: 8px; margin-bottom: 16px;">
+							<input type="checkbox" id="wpwevo-smsgate-fallback" name="wpwevo_smsgate_fallback" value="yes" <?php checked(get_option('wpwevo_smsgate_fallback', 'no'), 'yes'); ?> style="accent-color: #e6a817; width: 16px; height: 16px;">
+							<label for="wpwevo-smsgate-fallback" style="margin: 0; cursor: pointer; color: #7d6608; font-size: 14px; font-weight: 500;">
+								📩 Usar SMS como fallback se WhatsApp falhar
+								<span style="color: #a16207; font-size: 12px; display: block; font-weight: normal; margin-top: 2px;">Requer SMSGate configurado na aba 📱 SMS</span>
+							</label>
+						</div>
+
+						<button type="submit" style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%); border: none; padding: 10px 22px; font-size: 14px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 3px 10px rgba(56,178,172,0.25); font-weight: 600;">
+							💾 Salvar Modo
+						</button>
+						<span id="wpwevo-mode-saved-msg" style="display:none; margin-left: 12px; color: #38b2ac; font-size: 13px; font-weight: 500;">✅ Modo salvo!</span>
+					</form>
+				</div>
+			</div>
+
 			<!-- Card 1: Configuração da API -->
 			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2); overflow: hidden;">
 				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
@@ -1019,6 +1117,287 @@ Finalize agora:
 			transition: all 0.3s ease;
 		}
 		</style>
+		<?php
+	}
+
+	/**
+	 * Salva o modo de envio (managed/manual/sms) e o fallback via admin-post
+	 */
+	public function save_send_mode() {
+		check_admin_referer('wpwevo_save_send_mode', 'wpwevo_mode_nonce');
+
+		if (!current_user_can('manage_options')) {
+			wp_die(__('Permissão negada.', 'wp-whatsevolution'));
+		}
+
+		$mode = isset($_POST['wpwevo_connection_mode']) ? sanitize_text_field($_POST['wpwevo_connection_mode']) : 'manual';
+		if (!in_array($mode, ['managed', 'manual', 'sms'])) {
+			$mode = 'manual';
+		}
+		update_option('wpwevo_connection_mode', $mode);
+
+		$fallback = isset($_POST['wpwevo_smsgate_fallback']) && $_POST['wpwevo_smsgate_fallback'] === 'yes' ? 'yes' : 'no';
+		update_option('wpwevo_smsgate_fallback', $fallback);
+
+		// Limpa cache do Api_Connection
+		$api = Api_Connection::get_instance();
+		$api->force_reload();
+
+		wp_redirect(admin_url('admin.php?page=wpwevo-settings&tab=connection&mode_saved=1'));
+		exit;
+	}
+
+	/**
+	 * AJAX: salva credenciais SMSGate e dispara mensagem de teste para o admin
+	 */
+	public function handle_sms_test() {
+		check_ajax_referer('wpwevo_sms_test', 'nonce');
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => __('Permissão negada.', 'wp-whatsevolution')]);
+		}
+
+		$username  = isset($_POST['username'])  ? sanitize_text_field($_POST['username'])  : '';
+		$password  = isset($_POST['password'])  ? sanitize_text_field($_POST['password'])  : '';
+		$device_id = isset($_POST['device_id']) ? sanitize_text_field($_POST['device_id']) : '';
+		$api_url   = isset($_POST['api_url'])   ? esc_url_raw($_POST['api_url'])           : 'https://api.sms-gate.app';
+
+		if (empty($username) || empty($password)) {
+			wp_send_json_error(['message' => 'Username e Password são obrigatórios.']);
+		}
+
+		// Salva as credenciais
+		update_option('wpwevo_smsgate_username',  $username);
+		update_option('wpwevo_smsgate_password',  $password);
+		update_option('wpwevo_smsgate_device_id', $device_id);
+		update_option('wpwevo_smsgate_url',       $api_url);
+
+		// Descobre o número do admin (WhatsApp Admin ou email do blog)
+		$admin_phone = get_option('wpwevo_admin_whatsapp', '');
+		if (empty($admin_phone)) {
+			wp_send_json_error(['message' => 'Número do admin não configurado. Preencha o campo "WhatsApp Admin" na aba Conexão primeiro.']);
+		}
+
+		$test_message = '✅ SMSGate configurado com sucesso! Seu plugin está pronto para enviar SMS.';
+
+		$formatted = wpwevo_format_phone_for_sms($admin_phone);
+		if (!$formatted) {
+			wp_send_json_error(['message' => 'Número de telefone do admin inválido: ' . $admin_phone]);
+		}
+
+		$endpoint = rtrim($api_url, '/') . '/3rdparty/v1/message';
+		$response = wp_remote_post($endpoint, [
+			'headers' => [
+				'Content-Type'  => 'application/json',
+				'Authorization' => 'Basic ' . base64_encode($username . ':' . $password),
+			],
+			'body'    => json_encode([
+				'message'      => $test_message,
+				'phoneNumbers' => [$formatted],
+			]),
+			'timeout' => 15,
+		]);
+
+		if (is_wp_error($response)) {
+			wp_send_json_error(['message' => 'Erro de conexão: ' . $response->get_error_message()]);
+		}
+
+		$status_code = wp_remote_retrieve_response_code($response);
+		$body        = json_decode(wp_remote_retrieve_body($response), true);
+		$state       = isset($body['state']) ? strtolower($body['state']) : '';
+
+		if ($status_code === 200 || $status_code === 201 || $state === 'pending') {
+			wp_send_json_success(['message' => '✅ SMS de teste enviado com sucesso para ' . $formatted . '! Estado: ' . ($body['state'] ?? 'OK')]);
+		} else {
+			$err = isset($body['message']) ? $body['message'] : ('HTTP ' . $status_code);
+			wp_send_json_error(['message' => '❌ Falha ao enviar SMS de teste: ' . $err]);
+		}
+	}
+
+	/**
+	 * Renderiza a aba de configuração do SMSGate
+	 */
+	private function render_sms_tab() {
+		$username  = get_option('wpwevo_smsgate_username', '');
+		$password  = get_option('wpwevo_smsgate_password', '');
+		$device_id = get_option('wpwevo_smsgate_device_id', '');
+		$api_url   = get_option('wpwevo_smsgate_url', 'https://api.sms-gate.app');
+		$is_configured = !empty($username) && !empty($password);
+		?>
+		<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">
+
+			<!-- Card: Status atual -->
+			<?php if ($is_configured): ?>
+			<div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #4ade80; border-radius: 10px; padding: 15px;">
+				<strong style="color: #166534;">✅ SMSGate configurado!</strong>
+				<span style="color: #15803d; font-size: 13px; margin-left: 8px;">Username: <code><?php echo esc_html($username); ?></code></span>
+			</div>
+			<?php endif; ?>
+
+			<!-- Card: Passo a passo de configuração -->
+			<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102,126,234,0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.97); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 18px;">
+						<div style="background: #667eea; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">📋</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Como configurar o SMSGate</h3>
+					</div>
+					<ol style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 14px; line-height: 1.9;">
+						<li>Acesse: <a href="https://github.com/capcom6/android-sms-gateway/releases/latest/download/app-release.apk" target="_blank" rel="noopener noreferrer" style="color: #667eea; word-break: break-all;">https://github.com/capcom6/android-sms-gateway/releases/latest/download/app-release.apk</a></li>
+						<li>Baixe e instale o APK no celular Android dedicado</li>
+						<li style="background: #fef9e7; padding: 8px 10px; border-radius: 6px; list-style: none; margin: 6px 0; border-left: 3px solid #f59e0b;">
+							⚠️ <strong>Se aparecer erro de instalação:</strong> abra a Play Store → foto do perfil → Play Protect → Configurações → desative <em>"Verificar apps com Play Protect"</em>
+						</li>
+						<li>Abra o app SMSGate e ative o <strong>Cloud Server</strong></li>
+						<li>Anote os dados gerados (Username, Password, Device ID) e preencha abaixo</li>
+					</ol>
+				</div>
+			</div>
+
+			<!-- Card: Formulário de credenciais -->
+			<div style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(56,178,172,0.2); overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.97); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 18px;">
+						<div style="background: #38b2ac; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🔑</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">Credenciais SMSGate</h3>
+					</div>
+
+					<div style="display: grid; gap: 16px;">
+						<!-- Username -->
+						<div style="background: #f7fafc; padding: 14px; border-radius: 8px; border-left: 4px solid #38b2ac;">
+							<label style="display: block; margin-bottom: 6px; font-weight: 500; color: #2d3748; font-size: 14px;">👤 Username</label>
+							<input type="text" id="wpwevo-sms-username"
+								   value="<?php echo esc_attr($username); ?>"
+								   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;"
+								   placeholder="Ex: RHDZVV">
+						</div>
+
+						<!-- Password -->
+						<div style="background: #f7fafc; padding: 14px; border-radius: 8px; border-left: 4px solid #38b2ac;">
+							<label style="display: block; margin-bottom: 6px; font-weight: 500; color: #2d3748; font-size: 14px;">🔒 Password</label>
+							<input type="password" id="wpwevo-sms-password"
+								   value="<?php echo esc_attr($password); ?>"
+								   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;"
+								   placeholder="Ex: t9ate4mtzqvgj8">
+						</div>
+
+						<!-- Device ID -->
+						<div style="background: #f7fafc; padding: 14px; border-radius: 8px; border-left: 4px solid #38b2ac;">
+							<label style="display: block; margin-bottom: 6px; font-weight: 500; color: #2d3748; font-size: 14px;">📱 Device ID <span style="color: #718096; font-weight: normal;">(opcional)</span></label>
+							<input type="text" id="wpwevo-sms-device-id"
+								   value="<?php echo esc_attr($device_id); ?>"
+								   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;"
+								   placeholder="Ex: ylVXKVouDkwpSsjNHVjYc">
+						</div>
+
+						<!-- API URL -->
+						<div style="background: #f7fafc; padding: 14px; border-radius: 8px; border-left: 4px solid #38b2ac;">
+							<label style="display: block; margin-bottom: 6px; font-weight: 500; color: #2d3748; font-size: 14px;">🌐 API URL</label>
+							<input type="url" id="wpwevo-sms-api-url"
+								   value="<?php echo esc_attr($api_url); ?>"
+								   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;"
+								   placeholder="https://api.sms-gate.app">
+							<p style="margin: 6px 0 0 0; color: #718096; font-size: 12px;">Padrão: https://api.sms-gate.app (Cloud Server). Altere apenas se usar servidor próprio.</p>
+						</div>
+					</div>
+
+					<!-- Botão Salvar e Testar -->
+					<div style="margin-top: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+						<button type="button" id="wpwevo-sms-save-test"
+								style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%); border: none; padding: 12px 24px; font-size: 14px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(56,178,172,0.35); font-weight: 600;">
+							💾 Salvar e Testar
+						</button>
+						<span class="spinner" id="wpwevo-sms-spinner"></span>
+					</div>
+
+					<!-- Feedback -->
+					<div id="wpwevo-sms-result" style="display: none; margin-top: 15px; padding: 14px; border-radius: 8px; font-size: 14px;"></div>
+
+					<!-- Aviso: número admin necessário -->
+					<div style="margin-top: 16px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; font-size: 13px; color: #1e40af;">
+						ℹ️ O SMS de teste será enviado para o número configurado em <strong>WhatsApp Admin</strong> (aba Conexão).
+						<?php if (empty(get_option('wpwevo_admin_whatsapp', ''))): ?>
+							<br><strong style="color: #dc2626;">⚠️ Número de admin não configurado! Configure-o primeiro.</strong>
+						<?php else: ?>
+							<br>Número: <code><?php echo esc_html(get_option('wpwevo_admin_whatsapp')); ?></code>
+						<?php endif; ?>
+					</div>
+				</div>
+			</div>
+
+			<!-- Card: Aviso sobre comprimento de templates -->
+			<div style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 12px; padding: 0; overflow: hidden;">
+				<div style="background: rgba(255,255,255,0.97); margin: 2px; border-radius: 10px; padding: 18px;">
+					<div style="display: flex; align-items: center; margin-bottom: 12px;">
+						<div style="background: #fcb69f; color: #2d3748; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px;">⚠️</div>
+						<h4 style="margin: 0; color: #2d3748; font-size: 16px;">Limite de caracteres por SMS</h4>
+					</div>
+					<p style="margin: 0; color: #4a5568; font-size: 13px; line-height: 1.6;">
+						Um SMS padrão comporta <strong>160 caracteres</strong> (GSM-7) ou <strong>70 caracteres</strong> (Unicode/emojis). Mensagens maiores são fragmentadas em múltiplos SMS, podendo aumentar o custo. Revise os templates em <em>Envio por Status</em> para mantê-los concisos quando usar o modo SMS.
+					</p>
+				</div>
+			</div>
+
+		</div>
+
+		<script>
+		jQuery(document).ready(function($) {
+			$('#wpwevo-sms-save-test').on('click', function() {
+				var $btn     = $(this);
+				var $spinner = $('#wpwevo-sms-spinner');
+				var $result  = $('#wpwevo-sms-result');
+
+				var username  = $('#wpwevo-sms-username').val().trim();
+				var password  = $('#wpwevo-sms-password').val().trim();
+				var device_id = $('#wpwevo-sms-device-id').val().trim();
+				var api_url   = $('#wpwevo-sms-api-url').val().trim() || 'https://api.sms-gate.app';
+
+				if (!username || !password) {
+					$result.css({'background': '#fee2e2', 'border': '1px solid #fca5a5', 'color': '#991b1b'})
+					       .html('❌ Username e Password são obrigatórios.')
+					       .show();
+					return;
+				}
+
+				$btn.prop('disabled', true);
+				$spinner.addClass('is-active');
+				$result.hide();
+
+				$.ajax({
+					url: wpwevo_admin.ajax_url,
+					type: 'POST',
+					data: {
+						action:    'wpwevo_sms_test',
+						nonce:     wpwevo_admin.sms_test_nonce,
+						username:  username,
+						password:  password,
+						device_id: device_id,
+						api_url:   api_url
+					},
+					success: function(response) {
+						if (response.success) {
+							$result.css({'background': '#f0fdf4', 'border': '1px solid #bbf7d0', 'color': '#166534'})
+							       .html(response.data.message)
+							       .show();
+						} else {
+							var msg = (response.data && response.data.message) ? response.data.message : 'Erro desconhecido.';
+							$result.css({'background': '#fee2e2', 'border': '1px solid #fca5a5', 'color': '#991b1b'})
+							       .html(msg)
+							       .show();
+						}
+					},
+					error: function() {
+						$result.css({'background': '#fee2e2', 'border': '1px solid #fca5a5', 'color': '#991b1b'})
+						       .html('❌ Erro de comunicação. Tente novamente.')
+						       .show();
+					},
+					complete: function() {
+						$btn.prop('disabled', false);
+						$spinner.removeClass('is-active');
+					}
+				});
+			});
+		});
+		</script>
 		<?php
 	}
 } 

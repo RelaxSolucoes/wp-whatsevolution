@@ -3,7 +3,7 @@
  * Plugin Name: WP WhatsEvolution
  * Plugin URI: https://github.com/RelaxSolucoes/wp-whatsevolution
  * Description: Integração avançada com WooCommerce usando Evolution API para envio de mensagens
- * Version:           1.4.8
+ * Version:           1.4.9
  * Author:            Relax Soluções
  * Author URI:        https://relaxsolucoes.online/
  * Text Domain: wp-whatsevolution
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('WPWEVO_VERSION', '1.4.8');
+define('WPWEVO_VERSION', '1.4.9');
 define('WPWEVO_FILE', __FILE__);
 define('WPWEVO_PATH', plugin_dir_path(__FILE__));
 define('WPWEVO_URL', plugin_dir_url(__FILE__));
@@ -233,6 +233,18 @@ function wpwevo_create_options() {
 
 	// Opções de mensagens por status - inicializa vazio para ser preenchido automaticamente
 	add_option('wpwevo_status_messages', []);
+
+	// Opções do SMSGate
+	add_option('wpwevo_smsgate_username', '');
+	add_option('wpwevo_smsgate_password', '');
+	add_option('wpwevo_smsgate_device_id', '');
+	add_option('wpwevo_smsgate_url', 'https://api.sms-gate.app');
+	add_option('wpwevo_smsgate_fallback', 'no');
+
+	// Modo de envio (managed | manual | sms) — preserva o valor existente
+	if (!get_option('wpwevo_connection_mode')) {
+		add_option('wpwevo_connection_mode', 'manual');
+	}
 	
 	// Inicializa mensagens padrão se o WooCommerce estiver ativo
 	if (class_exists('WooCommerce')) {
