@@ -201,14 +201,8 @@ class Settings_Page {
 			true
 		);
 
-		// Adiciona o script do quick-signup
-		wp_enqueue_script(
-			'wpwevo-quick-signup',
-			WPWEVO_URL . 'assets/js/quick-signup.js',
-			['jquery'],
-			WPWEVO_VERSION,
-			true
-		);
+		// O script do quick-signup é enfileirado e localizado pela classe Quick_Signup
+		// (mesmo hook, com dados completos) — não duplicar aqui.
 
 		wp_localize_script('wpwevo-admin', 'wpwevo_admin', [
 			'ajax_url'       => admin_url('admin-ajax.php'),
@@ -222,19 +216,6 @@ class Settings_Page {
 			'send_mode'      => get_option('wpwevo_connection_mode', 'manual'),
 		]);
 
-		// Adiciona as variáveis para o quick-signup
-		wp_localize_script('wpwevo-quick-signup', 'wpwevo_quick_signup', [
-			'ajax_url' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('wpwevo_quick_signup'),
-			'api_key' => get_option('wpwevo_managed_api_key', ''),
-			'messages' => [
-                'validating' => __('Validando dados...', 'wp-whatsevolution'),
-                'creating_account' => __('Criando conta...', 'wp-whatsevolution'),
-                'configuring_plugin' => __('Configurando plugin...', 'wp-whatsevolution'),
-                'success' => __('Pronto!', 'wp-whatsevolution'),
-                'error' => __('Erro ao criar conta. Tente novamente.', 'wp-whatsevolution')
-			]
-		]);
 	}
 
 	public function render_page() {
@@ -282,7 +263,7 @@ class Settings_Page {
 						<span class="wpwevo-cta-emoji">💡</span> <strong>Dica:</strong> Use a aba "🚀 Teste Grátis" para configuração automática em 1-click!
 					</p>
 			</div>
-			<a href="https://whats-evolution.vercel.app/" 
+			<a href="<?php echo esc_url(WHATSEVOLUTION_DASHBOARD_URL); ?>"
 			   class="wpwevo-cta-button" target="_blank" rel="noopener noreferrer">
 				<span class="wpwevo-cta-emoji">🚀</span> Teste Grátis Agora Mesmo!
 				</a>

@@ -1,5 +1,27 @@
 # Changelog - WP WhatsEvolution
 
+## [1.5.0] - 2026-07-02
+
+### 🚀 Modo Managed migrado para o WhatsEvolution V2
+
+**O backend do teste grátis/cobrança agora é o WhatsEvolution V2 (whats-evolution-v2.vercel.app). A V1 entra em modo legado.**
+
+#### 🔄 Migração
+- **Novo backend**: signup, status, pagamento e polling agora usam o endpoint único `/api/plugin` da V2
+- **Envio direto pela Evolution API**: no modo managed, mensagens e validação de número agora vão direto pela Evolution API com as credenciais da instância (corrige envio managed que falhava — as Edge Functions `send-message`/`validate-number` da V1 não existiam)
+- **Renovação por PIX no wp-admin**: pagamento aprovado renova a instância automaticamente por +30 dias (webhook Mercado Pago da V2)
+- **Modelo de validade unificado**: `trial_expires_at` agora reflete o `expires_at` da instância na V2 (trial e plano pago renovável)
+
+#### 🐛 Correções
+- Cálculo de dias restantes usava `current_time('timestamp')` (fuso do WP) contra epoch UTC — corrigido para `time()`
+- Removido `sslverify => false` em chamada de validação de número
+- Polling de pagamento não expõe mais URL/chave do Supabase no navegador (proxy via admin-ajax)
+- Removido enqueue/localize duplicado do `quick-signup.js` (Settings_Page × Quick_Signup)
+
+#### 🧹 Limpeza
+- Removido código morto: `render_page_content`/`render_signup_form`/`render_status_view` (com bug fatal de PHP 8), helpers de envio duplicados apontando para a V1
+- URLs do backend centralizadas em `includes/config.php` (`WHATSEVOLUTION_API_BASE`, `WHATSEVOLUTION_DASHBOARD_URL`)
+
 ## [1.4.8] - 2025-01-27
 
 ### 🎲 Sistema de Mensagens Aleatórias para Envio em Massa
