@@ -13,6 +13,7 @@
 - **Modelo de validade unificado**: `trial_expires_at` agora reflete o `expires_at` da instância na V2 (trial e plano pago renovável)
 
 #### 🐛 Correções
+- Polling de pagamento era interrompido quando o WhatsApp conectava durante o pagamento — a UI não detectava a aprovação do PIX (backend renovava, mas o modal não atualizava)
 - Cálculo de dias restantes usava `current_time('timestamp')` (fuso do WP) contra epoch UTC — corrigido para `time()`
 - Removido `sslverify => false` em chamada de validação de número
 - Polling de pagamento não expõe mais URL/chave do Supabase no navegador (proxy via admin-ajax)

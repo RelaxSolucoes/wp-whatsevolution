@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.9
+Stable tag: 1.5.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -143,6 +143,12 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.5.0 =
+* **🔧 ATUALIZAÇÃO ESTRUTURAL INTERNA**: Modernização do backend do modo Managed (teste grátis) — nenhuma mudança visível para o usuário
+* **⚡ ENVIO MAIS RÁPIDO NO MODO MANAGED**: Mensagens agora vão direto pela Evolution API, sem intermediários
+* **🛡️ MAIS ESTABILIDADE**: Correções internas de conexão, fuso horário e verificação de pagamento
+* **✅ SEM MUDANÇAS**: Modos Manual e SMS permanecem exatamente iguais — nenhuma ação necessária
 
 = 1.4.9 =
 * **📱 MODO SMS (SMSGate)**: Novo canal de envio via SMS usando o app android-sms-gateway

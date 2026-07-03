@@ -377,10 +377,10 @@ jQuery(document).ready(function($) {
         }
         retryCount = 0;
         console.log('🔄 Contador de tentativas resetado');
-        
-        // ✅ NOVO: Limpar dados do pagamento
-        localStorage.removeItem('wpwevo_current_payment');
-        stopPaymentStatusPolling();
+
+        // O polling de pagamento é independente: ele só para quando o pagamento
+        // é aprovado/cancelado ou no próprio timeout. Parar aqui fazia a UI
+        // perder a aprovação quando o WhatsApp conectava durante o pagamento.
     }
 
     // ✅ Polling de status de pagamento (via admin-ajax, proxy para a API managed)
@@ -437,6 +437,7 @@ jQuery(document).ready(function($) {
                 if (data.payment_approved) {
                     console.log('✅ Pagamento aprovado!');
                     stopPaymentStatusPolling();
+                    localStorage.removeItem('wpwevo_current_payment');
                     showPaymentSuccessMessage(data.display_message);
                     setTimeout(() => {
                         window.location.reload();
@@ -447,6 +448,7 @@ jQuery(document).ready(function($) {
                 if (data.payment_status === 'cancelled') {
                     console.log('❌ Pagamento cancelado');
                     stopPaymentStatusPolling();
+                    localStorage.removeItem('wpwevo_current_payment');
                     showPaymentErrorMessage('Pagamento cancelado. Tente novamente.');
                 }
                 // pending: continua o polling
