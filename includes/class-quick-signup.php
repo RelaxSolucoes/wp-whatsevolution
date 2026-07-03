@@ -7,9 +7,8 @@ namespace WpWhatsAppEvolution;
  */
 class Quick_Signup {
 	private static $instance = null;
-	private $api_base_url = 'https://ydnobqsepveefiefmxag.supabase.co/functions/v1';
-	private $api_timeout = 30;
-	private $status_timeout = 10;
+	private $api_timeout = 45;
+	private $status_timeout = 15;
 
 	public static function init() {
 		if (self::$instance === null) {
@@ -30,6 +29,7 @@ class Quick_Signup {
 		add_action('wp_ajax_wpwevo_quick_signup', [$this, 'handle_quick_signup']);
 		add_action('wp_ajax_wpwevo_check_plugin_status', [$this, 'handle_check_status']);
 		add_action('wp_ajax_wpwevo_create_payment', [$this, 'handle_create_payment']);
+		add_action('wp_ajax_wpwevo_check_payment_status', [$this, 'handle_check_payment_status']);
 		add_action('wp_ajax_wpwevo_sync_status', [$this, 'handle_sync_status']);
 		add_action('wp_ajax_wpwevo_request_qr_code', [$this, 'handle_request_qr_code']);
 		
@@ -186,6 +186,7 @@ class Quick_Signup {
 			'is_trial_expired' => self::should_show_upgrade_modal(),
 			'api_key' => $api_key,
 			'user_id' => $user_id,
+			'dashboard_url' => get_option('wpwevo_dashboard_url', WHATSEVOLUTION_DASHBOARD_URL),
 			'messages' => $this->get_messages(),
 			'debug_enabled' => get_option('wpwevo_debug_enabled', false)
 		];
@@ -216,16 +217,14 @@ class Quick_Signup {
 			$form_data = $this->get_sanitized_form_data();
 			$this->validate_form_data($form_data);
 
-			$is_renewal = $this->is_renewal_request($form_data['email']);
 			$previous_config = $this->get_previous_manual_config();
 
-			$response = $this->call_edge_function('quick-signup', [
+			$response = $this->call_managed_api('signup', [
 				'name' => $form_data['name'],
 				'email' => $form_data['email'],
 				'whatsapp' => $form_data['whatsapp'],
 				'source' => 'wordpress-plugin',
-				'plugin_version' => WPWEVO_VERSION,
-				'is_renewal' => $is_renewal
+				'plugin_version' => WPWEVO_VERSION
 			]);
 
 			$this->validate_edge_response($response);
@@ -265,14 +264,6 @@ class Quick_Signup {
         if (!is_email($form_data['email'])) {
             throw new \Exception(__('Email inválido.', 'wp-whatsevolution'));
 		}
-	}
-
-	/**
-	 * ✅ NOVO: Verificar se é renovação
-	 */
-	private function is_renewal_request($email) {
-		$previous_email = get_option('wpwevo_user_email', '');
-		return $previous_email === $email;
 	}
 
 	/**
@@ -392,7 +383,7 @@ class Quick_Signup {
 			$api_key = $this->get_api_key();
 			$this->validate_api_key($api_key);
 
-			$response = $this->call_edge_function('plugin-status', [
+			$response = $this->call_managed_api('status', [
 				'api_key' => $api_key
 			]);
 
@@ -513,22 +504,20 @@ class Quick_Signup {
 	}
 
 	/**
-	 * ✅ MELHORADO: Chamada para Edge Function com retry
+	 * Chamada para a API managed (WhatsEvolution V2 — endpoint único /api/plugin)
 	 */
-	private function call_edge_function($function_name, $data = []) {
-		$url = "{$this->api_base_url}/{$function_name}";
-		
+	private function call_managed_api($action, $data = []) {
+		$url = WHATSEVOLUTION_API_BASE . '/plugin';
+
 		$headers = [
-			'Content-Type' => 'application/json',
-			'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
+			'Content-Type' => 'application/json'
 		];
 
-		$body = json_encode($data);
-		$timeout = ($function_name === 'quick-signup') ? $this->api_timeout : $this->status_timeout;
+		$body = json_encode(array_merge(['action' => $action], $data));
+		$timeout = ($action === 'signup') ? $this->api_timeout : $this->status_timeout;
 
-		$this->log_debug("Chamando Edge Function: {$function_name}");
+		$this->log_debug("Chamando API managed: {$action}");
 		$this->log_debug("URL: {$url}");
-		$this->log_debug("Body: {$body}");
 
         $response = wp_remote_post($url, [
 			'headers' => $headers,
@@ -536,11 +525,11 @@ class Quick_Signup {
             'timeout' => $timeout
 		]);
 
-		return $this->process_edge_response($response, $function_name);
+		return $this->process_edge_response($response, $action);
 	}
 
 	/**
-	 * ✅ NOVO: Processar resposta da Edge Function
+	 * ✅ NOVO: Processar resposta da API managed
 	 */
 	private function process_edge_response($response, $function_name) {
 		if (is_wp_error($response)) {
@@ -605,18 +594,14 @@ class Quick_Signup {
 			$this->validate_ajax_request();
 
             if (!self::is_auto_configured()) {
-                throw new \Exception(__('Apenas usuários do teste grátis podem fazer upgrade.', 'wp-whatsevolution'));
+                throw new \Exception(__('Apenas usuários do modo managed podem renovar por aqui.', 'wp-whatsevolution'));
 			}
 
-			$user_data = $this->get_user_data_for_payment();
-			$this->validate_user_data($user_data);
+			$api_key = $this->get_api_key();
+			$this->validate_api_key($api_key);
 
-			$response = $this->call_edge_function('create-payment-from-plugin', [
-				'user_id' => $user_data['user_id'],
-				'email' => $user_data['email'],
-				'name' => $user_data['name'],
-				'whatsapp' => $user_data['whatsapp'],
-				'plan_type' => 'basic'
+			$response = $this->call_managed_api('create_payment', [
+				'api_key' => $api_key
 			]);
 
 			if (!$response['success']) {
@@ -627,13 +612,9 @@ class Quick_Signup {
 				throw new \Exception($error_message);
 			}
 
-			$final_data = $response['data']['data'];
-			$api_key = get_option('wpwevo_managed_api_key');
-			
-			if ($api_key) {
-				$final_data['api_key'] = $api_key;
-			}
-			
+			$final_data = $response['data']['data'] ?? [];
+			$final_data['api_key'] = $api_key;
+
 			wp_send_json_success($final_data);
 
 		} catch (\Exception $e) {
@@ -645,24 +626,50 @@ class Quick_Signup {
 	}
 
 	/**
-	 * ✅ NOVO: Obter dados do usuário para pagamento
+	 * Verifica o status de um pagamento PIX gerado pelo plugin (polling do JS).
+	 * Proxy para a API managed — evita expor URLs/chaves do backend no navegador.
 	 */
-	private function get_user_data_for_payment() {
-		return [
-			'user_id' => get_option('wpwevo_user_id'),
-			'email' => get_option('wpwevo_user_email'),
-			'name' => get_option('wpwevo_user_name'),
-			'whatsapp' => get_option('wpwevo_user_whatsapp')
-		];
-	}
+	public function handle_check_payment_status() {
+		try {
+			$this->validate_ajax_request();
 
-	/**
-	 * ✅ NOVO: Validar dados do usuário
-	 */
-	private function validate_user_data($user_data) {
-        if (empty($user_data['user_id']) || empty($user_data['email']) || 
-            empty($user_data['name']) || empty($user_data['whatsapp'])) {
-            throw new \Exception(__('Dados do usuário não encontrados. Por favor, tente resetar a configuração de teste e refazer o onboarding.', 'wp-whatsevolution'));
+			$api_key = $this->get_api_key();
+			$this->validate_api_key($api_key);
+
+			$external_reference = isset($_POST['external_reference'])
+				? sanitize_text_field($_POST['external_reference'])
+				: '';
+
+			if (empty($external_reference)) {
+				throw new \Exception(__('Referência do pagamento ausente.', 'wp-whatsevolution'));
+			}
+
+			$response = $this->call_managed_api('payment_status', [
+				'api_key' => $api_key,
+				'external_reference' => $external_reference
+			]);
+
+			if (!$response['success']) {
+				$error_message = $response['data']['error'] ?? $response['error'] ?? __('Erro ao verificar pagamento.', 'wp-whatsevolution');
+				throw new \Exception($error_message);
+			}
+
+			$payment_data = $response['data']['data'] ?? [];
+
+			// Pagamento aprovado renova a validade — sincroniza as options locais
+			if (!empty($payment_data['payment_approved']) && !empty($payment_data['trial_expires_at'])) {
+				update_option('wpwevo_trial_expires_at', sanitize_text_field($payment_data['trial_expires_at']));
+				update_option('wpwevo_trial_days_left', intval($payment_data['trial_days_left'] ?? 0));
+				update_option('wpwevo_user_plan', 'basic');
+			}
+
+			wp_send_json_success($payment_data);
+
+		} catch (\Exception $e) {
+			$this->log_error('Erro ao verificar status do pagamento', $e);
+			wp_send_json_error([
+				'message' => $e->getMessage()
+			]);
 		}
 	}
 
@@ -683,9 +690,11 @@ class Quick_Signup {
 			return 0;
 		}
 
+		// time() compara epoch UTC com epoch UTC — current_time('timestamp') desloca
+		// pelo fuso do WP e distorcia o cálculo em até 3h para lojas brasileiras
 		$expires_timestamp = strtotime($trial_expires_at);
-		$current_timestamp = current_time('timestamp');
-		
+		$current_timestamp = time();
+
 		if ($expires_timestamp <= $current_timestamp) {
 			return 0;
 		}
@@ -714,69 +723,6 @@ class Quick_Signup {
 		}
 		
 		return true;
-	}
-
-	/**
-	 * ✅ MELHORADO: Renderizar conteúdo da página
-	 */
-	public function render_page_content() {
-		$is_configured = self::is_auto_configured();
-		
-		if (!$is_configured) {
-			$this->render_signup_form();
-		} else {
-			$this->render_status_view();
-		}
-	}
-
-	/**
-	 * ✅ MELHORADO: Renderizar formulário de signup
-	 */
-	private function render_signup_form() {
-		$is_auto_configured = Quick_Signup::is_auto_configured();
-		$is_trial_expired = self::should_show_upgrade_modal();
-		$current_user_email = get_option('wpwevo_user_email', '');
-        
-        $template = WPWEVO_PATH . 'templates/quick-signup-form.php';
-        if (file_exists($template)) {
-            include $template;
-            return;
-        }
-        // Fallback mínimo quando o template não está disponível
-        echo '<div class="wrap" style="max-width: 800px">';
-        echo '<h1 style="margin:16px 0">' . esc_html__('Onboarding - Quick Signup', 'wp-whatsevolution') . '</h1>';
-        echo '<p>' . esc_html__('O template de interface não foi encontrado. Exibindo formulário mínimo para continuar.', 'wp-whatsevolution') . '</p>';
-        echo '<form id="wpwevo-quick-signup" method="post" style="background:#fff;padding:16px;border:1px solid #e2e8f0;border-radius:6px">';
-        echo '<p><label>' . esc_html__('Nome', 'wp-whatsevolution') . '<br><input type="text" name="name" class="regular-text" required></label></p>';
-        echo '<p><label>' . esc_html__('Email', 'wp-whatsevolution') . '<br><input type="email" name="email" class="regular-text" value="' . esc_attr($current_user_email) . '" required></label></p>';
-        echo '<p><label>' . esc_html__('WhatsApp', 'wp-whatsevolution') . '<br><input type="text" name="whatsapp" class="regular-text" placeholder="5511999999999" required></label></p>';
-        echo '<p><button type="button" class="button button-primary" id="wpwevo-quick-signup-submit">' . esc_html__('Criar conta gratuita', 'wp-whatsevolution') . '</button></p>';
-        echo '</form>';
-        echo '<script>jQuery(function($){$("#wpwevo-quick-signup-submit").on("click",function(){var d={action:"wpwevo_quick_signup",nonce:"'+ wp_create_nonce('wpwevo_quick_signup') +'",name:$("[name=name]").val(),email:$("[name=email]").val(),whatsapp:$("[name=whatsapp]").val()};$.post(ajaxurl,d,function(r){alert(r && r.success?"OK":"Erro: "+(r&&r.data&&r.data.message?r.data.message:""));});});});</script>';
-        echo '</div>';
-	}
-
-	/**
-	 * ✅ MELHORADO: Renderizar view de status
-	 */
-	private function render_status_view() {
-        $template = WPWEVO_PATH . 'templates/quick-signup-status.php';
-        if (file_exists($template)) {
-            include $template;
-            return;
-        }
-        // Fallback mínimo quando o template não está disponível
-        $is_connected = false;
-        echo '<div class="wrap" style="max-width: 800px">';
-        echo '<h1 style="margin:16px 0">' . esc_html__('Status da Conexão', 'wp-whatsevolution') . '</h1>';
-        echo '<p>' . esc_html__('O template de status não foi encontrado. Exibindo painel mínimo.', 'wp-whatsevolution') . '</p>';
-        echo '<div style="background:#fff;padding:16px;border:1px solid #e2e8f0;border-radius:6px">';
-        echo '<p><strong>' . esc_html__('Conexão com WhatsApp:', 'wp-whatsevolution') . '</strong> ' . ($is_connected? '✅' : '⏳') . '</p>';
-        echo '<p><button class="button" id="wpwevo-request-qr">' . esc_html__('Solicitar QR Code', 'wp-whatsevolution') . '</button></p>';
-        echo '<div id="wpwevo-qr-area"></div>';
-        echo '</div>';
-        echo '<script>jQuery(function($){$("#wpwevo-request-qr").on("click",function(){var d={action:"wpwevo_request_qr_code",nonce:"'+ wp_create_nonce('wpwevo_quick_signup') +'"};$.post(ajaxurl,d,function(r){if(r&&r.success){$("#wpwevo-qr-area").text("QR OK");}else{alert("Erro: "+(r&&r.data&&r.data.message?r.data.message:""));}});});});</script>';
-        echo '</div>';
 	}
 
 	/**
@@ -818,8 +764,8 @@ class Quick_Signup {
             throw new \Exception(__('Apenas usuários do teste grátis podem usar esta funcionalidade.', 'wp-whatsevolution'));
 			}
 
-			// ✅ CORREÇÃO: Usa a Edge Function plugin-status que já existe
-			$response = $this->call_edge_function('plugin-status', [
+			// Usa a mesma action de status da API managed
+			$response = $this->call_managed_api('status', [
 				'api_key' => $api_key
 			]);
 

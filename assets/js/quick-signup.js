@@ -383,20 +383,20 @@ jQuery(document).ready(function($) {
         stopPaymentStatusPolling();
     }
 
-    // ✅ NOVO: Polling de status de pagamento
+    // ✅ Polling de status de pagamento (via admin-ajax, proxy para a API managed)
     let paymentStatusInterval = null;
 
-    function startPaymentStatusPolling(userId, externalReference) {
+    function startPaymentStatusPolling(externalReference) {
         console.log('💳 Iniciando polling de status de pagamento...');
-        
+
         // Parar polling anterior se existir
         if (paymentStatusInterval) {
             clearInterval(paymentStatusInterval);
         }
 
         // Polling a cada 3 segundos
-        paymentStatusInterval = setInterval(async () => {
-            await checkPaymentStatus(userId, externalReference);
+        paymentStatusInterval = setInterval(function() {
+            checkPaymentStatus(externalReference);
         }, 3000);
 
         // Timeout de 5 minutos
@@ -416,67 +416,46 @@ jQuery(document).ready(function($) {
         }
     }
 
-    async function checkPaymentStatus(userId, externalReference) {
-        try {
-            const response = await fetch('https://ydnobqsepveefiefmxag.supabase.co/functions/v1/check-payment-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlkbm9icXNlcHZlZWZpZWZteGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDkwOTAsImV4cCI6MjA2NTIyNTA5MH0.PlLrBA3eauvanWT-gQoKdvpTaPRrwgtuW8gZhbrlO7o'
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    external_reference: externalReference
-                })
-            });
+    function checkPaymentStatus(externalReference) {
+        $.ajax({
+            url: wpwevo_quick_signup.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wpwevo_check_payment_status',
+                nonce: wpwevo_quick_signup.nonce,
+                external_reference: externalReference
+            },
+            success: function(response) {
+                if (!response.success || !response.data) {
+                    console.log('⚠️ Erro na verificação do pagamento, continuando polling...');
+                    return;
+                }
 
-            if (!response.ok) {
-                console.error('❌ Erro ao verificar status do pagamento:', response.statusText);
-                return;
-            }
+                const data = response.data;
+                console.log('📊 Status do pagamento:', data.payment_status);
 
-            const result = await response.json();
-            console.log('📊 Status do pagamento:', result.data);
-
-            if (result.success) {
-                const { data } = result;
-
-                // Pagamento aprovado - mostrar sucesso
                 if (data.payment_approved) {
                     console.log('✅ Pagamento aprovado!');
                     stopPaymentStatusPolling();
-                    
-                    // Mostrar mensagem de sucesso
                     showPaymentSuccessMessage(data.display_message);
-                    
-                    // Recarregar página após 2 segundos
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
-                    
                     return;
                 }
 
-                // Pagamento ainda pendente
-                if (data.payment_status === 'pending') {
-                    console.log('⏳ Pagamento ainda pendente...');
-                    // Continuar polling
-                    return;
-                }
-
-                // Pagamento cancelado
                 if (data.payment_status === 'cancelled') {
                     console.log('❌ Pagamento cancelado');
                     stopPaymentStatusPolling();
                     showPaymentErrorMessage('Pagamento cancelado. Tente novamente.');
-                    return;
                 }
+                // pending: continua o polling
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Erro na verificação de status:', error);
+                // Continuar tentando na próxima iteração
             }
-
-        } catch (error) {
-            console.error('❌ Erro na verificação de status:', error);
-            // Continuar tentando na próxima iteração
-        }
+        });
     }
 
     function showPaymentSuccessMessage(message) {
@@ -508,18 +487,6 @@ jQuery(document).ready(function($) {
                 </div>
             `;
         }
-    }
-
-    // ✅ NOVO: Função auxiliar para obter user_id
-    function getUserIdFromOptions() {
-        // Tentar obter do objeto global
-        if (wpwevo_quick_signup && wpwevo_quick_signup.user_id) {
-            return wpwevo_quick_signup.user_id;
-        }
-        
-        // Fallback: buscar das opções do WordPress via AJAX
-        // Esta função pode ser implementada se necessário
-        return null;
     }
 
     /**
@@ -700,7 +667,7 @@ jQuery(document).ready(function($) {
     // Link para upgrade
     $(document).on('click', '#upgrade-link', function(e) {
         e.preventDefault();
-        window.open('https://whats-evolution.vercel.app/', '_blank');
+        window.open(wpwevo_quick_signup.dashboard_url || 'https://www.whatsevolution.com.br/', '_blank');
     });
 
     // Auto-focus no primeiro campo
@@ -786,19 +753,14 @@ jQuery(document).ready(function($) {
                             startStatusPolling(responseData.api_key);
                         }
 
-                        // ✅ NOVO: Armazenar dados do pagamento para polling
+                        // ✅ Iniciar polling de status de pagamento
                         if (responseData.external_reference) {
-                            const paymentData = {
-                                user_id: wpwevo_quick_signup.user_id || getUserIdFromOptions(),
+                            localStorage.setItem('wpwevo_current_payment', JSON.stringify({
                                 external_reference: responseData.external_reference,
                                 payment_id: responseData.payment_id
-                            };
-                            
-                            // Armazenar no localStorage
-                            localStorage.setItem('wpwevo_current_payment', JSON.stringify(paymentData));
-                            
-                            // ✅ NOVO: Iniciar polling de status de pagamento
-                            startPaymentStatusPolling(paymentData.user_id, paymentData.external_reference);
+                            }));
+
+                            startPaymentStatusPolling(responseData.external_reference);
                         }
 
                     } else if (responseData.payment_url && responseData.payment_url.startsWith('http')) {

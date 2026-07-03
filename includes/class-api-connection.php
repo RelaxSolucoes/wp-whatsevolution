@@ -132,10 +132,9 @@ class Api_Connection {
             ];
         }
 
-        // Se está no modo managed, usa o status do backend Supabase
-        if (get_option('wpwevo_connection_mode') === 'managed') {
-            return $this->get_managed_connection_status();
-        }
+        // Modo managed usa as mesmas credenciais Evolution salvas no signup
+        // (api_url + api_key da instância), então a verificação direta funciona
+        // para os dois modos.
 
         // Constrói a URL exatamente como no teste
         $url = rtrim($this->api_url, '/') . '/instance/connectionState/' . $this->instance_name;
@@ -234,76 +233,6 @@ class Api_Connection {
             'message' => $state_messages[$state] ?? $state_messages['default'],
             'state' => $state,
             'api_version' => $api_version
-        ];
-    }
-
-    /**
-     * ✅ NOVO: Obtém o status da conexão no modo managed usando o backend Supabase
-     */
-    private function get_managed_connection_status() {
-        $api_key = get_option('wpwevo_managed_api_key', '');
-        
-        if (empty($api_key)) {
-            return [
-                'success' => false,
-                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsevolution')
-            ];
-        }
-
-        // Chama a Edge Function para obter o status
-        $url = 'https://ydnobqsepveefiefmxag.supabase.co/functions/v1/plugin-status';
-        
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
-        ];
-
-        $body = json_encode(['api_key' => $api_key]);
-
-        $response = wp_remote_post($url, [
-            'headers' => $headers,
-            'body' => $body,
-            'timeout' => WHATSEVOLUTION_STATUS_TIMEOUT
-        ]);
-
-        if (is_wp_error($response)) {
-            return [
-                'success' => false,
-                'message' => sprintf(
-                    __('Erro ao verificar status: %s', 'wp-whatsevolution'),
-                    $response->get_error_message()
-                )
-            ];
-        }
-
-        $status_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        if ($status_code !== 200 || !is_array($data) || !isset($data['success']) || !$data['success']) {
-            return [
-                'success' => false,
-                'message' => __('Erro ao verificar status da instância.', 'wp-whatsevolution')
-            ];
-        }
-
-        // Extrai o currentStatus da resposta
-        $current_status = $data['data']['currentStatus'] ?? 'unknown';
-        $is_connected = $current_status === 'connected';
-        
-        $status_messages = [
-            'connected' => __('Status da Instância: Conectado', 'wp-whatsevolution'),
-            'connecting' => __('Status da Instância: Conectando...', 'wp-whatsevolution'),
-            'disconnected' => __('Status da Instância: Desconectado', 'wp-whatsevolution'),
-            'disconnecting' => __('Status da Instância: Desconectando...', 'wp-whatsevolution'),
-            'qrcode' => __('Status da Instância: Aguardando QR Code', 'wp-whatsevolution'),
-            'unknown' => __('Status da Instância: Desconhecido', 'wp-whatsevolution')
-        ];
-
-        return [
-            'success' => $is_connected,
-            'message' => $status_messages[$current_status] ?? $status_messages['unknown'],
-            'state' => $current_status
         ];
     }
 
@@ -418,12 +347,9 @@ class Api_Connection {
             ];
         }
 
-        // Modos managed / manual → tenta WhatsApp primeiro
-        if ($connection_mode === 'managed') {
-            $result = $this->send_message_managed($number, $message);
-        } else {
-            $result = $this->send_message_manual($number, $message);
-        }
+        // Modos managed / manual → envio direto pela Evolution API.
+        // No managed, api_url/api_key/instance vêm do signup e funcionam igual.
+        $result = $this->send_message_manual($number, $message);
 
         // Fallback automático para SMS se WhatsApp falhou e fallback está habilitado
         if (!$result['success'] && get_option('wpwevo_smsgate_fallback', 'no') === 'yes' && wpwevo_is_smsgate_configured()) {
@@ -443,85 +369,7 @@ class Api_Connection {
     }
 
     /**
-     * ✅ NOVO: Envia mensagem no modo managed via Edge Function
-     */
-    private function send_message_managed($number, $message) {
-        $api_key = get_option('wpwevo_managed_api_key', '');
-        
-        if (empty($api_key)) {
-            return [
-                'success' => false,
-                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsevolution')
-            ];
-        }
-
-        // Formata e valida o número
-        $phone_validation = $this->format_phone_number($number);
-        if (!$phone_validation['success']) {
-            return $phone_validation;
-        }
-        $number = $phone_validation['number'];
-
-        // Substitui variáveis da loja na mensagem
-        $message = $this->replace_store_variables($message);
-
-        // Chama a Edge Function para enviar mensagem
-        $url = 'https://ydnobqsepveefiefmxag.supabase.co/functions/v1/send-message';
-        
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
-        ];
-
-        $body = json_encode([
-            'api_key' => $api_key,
-            'number' => $number,
-            'message' => $message
-        ]);
-
-        $response = wp_remote_post($url, [
-            'headers' => $headers,
-            'body' => $body,
-            'timeout' => 15
-        ]);
-
-        if (is_wp_error($response)) {
-            return [
-                'success' => false,
-                'message' => sprintf(
-                    __('Erro ao enviar mensagem: %s', 'wp-whatsevolution'),
-                    $response->get_error_message()
-                )
-            ];
-        }
-
-        $status_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        if ($status_code !== 200 || !isset($data['success'])) {
-            return [
-                'success' => false,
-                'message' => __('Erro ao enviar mensagem via Edge Function.', 'wp-whatsevolution')
-            ];
-        }
-
-        if (!$data['success']) {
-            return [
-                'success' => false,
-                'message' => $data['error'] ?? __('Erro ao enviar mensagem.', 'wp-whatsevolution')
-            ];
-        }
-
-        return [
-            'success' => true,
-            'message' => __('Mensagem enviada com sucesso!', 'wp-whatsevolution'),
-            'data' => $data
-        ];
-    }
-
-    /**
-     * ✅ NOVO: Envia mensagem no modo manual via Evolution API
+     * Envia mensagem via Evolution API (modos manual e managed)
      */
     private function send_message_manual($number, $message) {
         // Formata e valida o número
@@ -651,101 +499,12 @@ class Api_Connection {
             ];
         }
 
-        // ✅ CORREÇÃO: Verificar modo de conexão primeiro
-        $connection_mode = get_option('wpwevo_connection_mode', 'manual');
-        
-        if ($connection_mode === 'managed') {
-            return $this->validate_number_managed($number);
-        }
-        
+        // Validação direta pela Evolution API nos dois modos (managed/manual)
         return $this->validate_number_manual($number);
     }
 
     /**
-     * ✅ NOVO: Valida número no modo managed via Edge Function
-     */
-    private function validate_number_managed($number) {
-        $api_key = get_option('wpwevo_managed_api_key', '');
-        
-        if (empty($api_key)) {
-            return [
-                'success' => false,
-                'message' => __('Plugin não configurado no modo managed.', 'wp-whatsevolution')
-            ];
-        }
-
-        // Formata o número antes de validar
-        $formatted = $this->format_phone_number($number);
-        if (!$formatted['success']) {
-            return $formatted;
-        }
-        $number = $formatted['number'];
-
-        // Chama a Edge Function para validar número
-        $url = 'https://ydnobqsepveefiefmxag.supabase.co/functions/v1/validate-number';
-        
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . WHATSEVOLUTION_API_KEY
-        ];
-
-        $body = json_encode([
-            'api_key' => $api_key,
-            'number' => $number
-        ]);
-
-        $response = wp_remote_post($url, [
-            'headers' => $headers,
-            'body' => $body,
-            'timeout' => 15,
-            'sslverify' => false
-        ]);
-
-        if (is_wp_error($response)) {
-            return [
-                'success' => false,
-                'message' => sprintf(
-                    __('Erro ao validar número: %s', 'wp-whatsevolution'),
-                    $response->get_error_message()
-                )
-            ];
-        }
-
-        $status_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        if ($status_code !== 200 || !isset($data['success'])) {
-            return [
-                'success' => false,
-                'message' => __('Erro ao validar número via Edge Function.', 'wp-whatsevolution')
-            ];
-        }
-
-        if (!$data['success']) {
-            return [
-                'success' => false,
-                'data' => [
-                    'is_whatsapp' => false,
-                    'exists' => false
-                ],
-                'message' => $data['error'] ?? __('O número informado não é um WhatsApp válido.', 'wp-whatsevolution')
-            ];
-        }
-
-        return [
-            'success' => true,
-            'data' => [
-                'is_whatsapp' => true,
-                'exists' => true,
-                'name' => $data['data']['name'] ?? null
-            ],
-            'message' => __('Número válido!', 'wp-whatsevolution')
-        ];
-    }
-
-    /**
-     * ✅ NOVO: Valida número no modo manual via Evolution API
+     * Valida número via Evolution API (modos manual e managed)
      */
     private function validate_number_manual($number) {
         // Formata o número antes de validar
