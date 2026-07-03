@@ -352,7 +352,7 @@ class Settings_Page {
 					</div>
 					<ul class="wpwevo-benefits" style="list-style: none; padding: 0; margin: 0 0 25px 0;">
 						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Envios de mensagens ilimitados</li>
-						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Suporte prioritário via WhatsApp</li>
+						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Renovação automática direto no plugin</li>
 						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Atualizações automáticas do plugin</li>
 						<li style="margin-bottom: 10px; font-size: 15px; color: #333;"><span style="margin-right: 10px;">✅</span> Backup automático das suas configurações</li>
 					</ul>
@@ -1050,14 +1050,28 @@ Finalize agora:
 						<p id="trial-days-left-container" style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px;">
 							Aguarde um instante...
 						</p>
-						<!-- AVISO ESTÁTICO DE ACESSO AO PAINEL -->
+						<!-- ACESSO AO PAINEL (credenciais salvas no signup — não há mais envio por WhatsApp) -->
+						<?php
+						$dash_url = get_option('wpwevo_dashboard_url', WHATSEVOLUTION_DASHBOARD_URL);
+						$dash_email = get_option('wpwevo_dashboard_email', get_option('wpwevo_user_email', ''));
+						$dash_password = get_option('wpwevo_dashboard_password', '');
+						?>
 						<div id="wpwevo-dashboard-static-info" style="background: #e0f2fe; border: 1px solid #38bdf8; border-radius: 10px; padding: 18px 24px; margin: 0 auto 24px auto; max-width: 480px; text-align: left; box-shadow: 0 2px 8px rgba(56,189,248,0.08);">
 							<h3 style="margin: 0 0 10px 0; color: #0ea5e9; font-size: 18px; display: flex; align-items: center; gap: 8px;">
 								<span style="font-size: 22px;">🔑</span> Acesse seu Painel de Controle
 							</h3>
-							<div style="font-size: 15px; color: #0369a1; margin-bottom: 8px;">
-								Para acessar sua dashboard, utilize o link enviado para o seu WhatsApp.<br>
-								<span style="color: #64748b; font-size: 13px;">Utilize o email e senha cadastrados.</span>
+							<div style="font-size: 14px; color: #0369a1;">
+								<p style="margin: 0 0 6px 0;">🌐 <a href="<?php echo esc_url($dash_url); ?>" target="_blank" rel="noopener noreferrer" style="color: #0ea5e9; font-weight: 600;"><?php echo esc_html($dash_url); ?></a></p>
+								<?php if ($dash_email): ?>
+								<p style="margin: 0 0 6px 0;">📧 Email: <strong><?php echo esc_html($dash_email); ?></strong></p>
+								<?php endif; ?>
+								<?php if ($dash_password): ?>
+								<p style="margin: 0;">🔒 Senha: <code id="wpwevo-dash-pass" style="letter-spacing: 2px;">••••••••</code>
+									<button type="button" onclick="var el=document.getElementById('wpwevo-dash-pass'); if(el.textContent==='••••••••'){el.textContent='<?php echo esc_js($dash_password); ?>';this.textContent='🙈 Ocultar';}else{el.textContent='••••••••';this.textContent='👁️ Mostrar';}" style="background:none;border:1px solid #38bdf8;border-radius:5px;color:#0ea5e9;cursor:pointer;font-size:12px;padding:2px 8px;margin-left:6px;">👁️ Mostrar</button>
+								</p>
+								<?php else: ?>
+								<p style="margin: 0; color: #64748b; font-size: 13px;">Utilize o email e senha definidos no cadastro.</p>
+								<?php endif; ?>
 							</div>
 						</div>
 						<!-- BOTÃO DE UPGRADE DENTRO DO CARD -->

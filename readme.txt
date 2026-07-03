@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -143,6 +143,10 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.5.1 =
+* **🔑 CREDENCIAIS DO PAINEL NO PLUGIN**: O card de status agora exibe o link, email e senha do Painel de Controle diretamente (com botão mostrar/ocultar) — sem depender de mensagem por WhatsApp
+* **📝 TEXTOS ATUALIZADOS**: Benefícios do plano refletem o modelo self-service
 
 = 1.5.0 =
 * **🔧 ATUALIZAÇÃO ESTRUTURAL INTERNA**: Modernização do backend do modo Managed (teste grátis) — nenhuma mudança visível para o usuário
