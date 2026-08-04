@@ -221,13 +221,13 @@ class Settings_Page {
 	public function render_page() {
 		$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'connection';
 		
-		// Se plugin não está configurado, mostra aba de teste grátis por padrão
+		// Se plugin não está configurado, abre na aba de ativação por padrão
 		if (!Quick_Signup::is_auto_configured() && !get_option('wpwevo_api_url', '')) {
 			$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'quick-signup';
 		}
-		
+
 		$tabs = [
-            'quick-signup' => __('🚀 Teste Grátis', 'wp-whatsevolution'),
+            'quick-signup' => __('💳 Adquirir Instância', 'wp-whatsevolution'),
             'connection'   => __('Conexão', 'wp-whatsevolution'),
             'sms'          => __('📱 SMS', 'wp-whatsevolution'),
             'help'         => __('Ajuda', 'wp-whatsevolution'),
@@ -259,13 +259,12 @@ class Settings_Page {
 					</h3>
 					<p class="wpwevo-cta-description">
 						<span class="wpwevo-cta-emoji">🎯</span> Envie mensagens automatizadas para seus clientes em minutos!<br>
-						<span class="wpwevo-cta-emoji">✨</span> Ative sua instância agora e aproveite todos os recursos premium do Whats Evolution.<br>
-						<span class="wpwevo-cta-emoji">💡</span> <strong>Dica:</strong> Use a aba "🚀 Teste Grátis" para configuração automática em 1-click!
+						<span class="wpwevo-cta-emoji">✨</span> Adquira uma instância pronta por R$ 29,90/mês e pague por PIX aqui mesmo.<br>
+						<span class="wpwevo-cta-emoji">💡</span> <strong>Já tem servidor Evolution próprio?</strong> Use a aba "Conexão" — nesse modo o plugin é gratuito.
 					</p>
 			</div>
-			<a href="<?php echo esc_url(WHATSEVOLUTION_DASHBOARD_URL); ?>"
-			   class="wpwevo-cta-button" target="_blank" rel="noopener noreferrer">
-				<span class="wpwevo-cta-emoji">🚀</span> Teste Grátis Agora Mesmo!
+			<a href="?page=wpwevo-settings&tab=quick-signup" class="wpwevo-cta-button">
+				<span class="wpwevo-cta-emoji">💳</span> Adquirir Instância
 				</a>
 			</div>
 			
