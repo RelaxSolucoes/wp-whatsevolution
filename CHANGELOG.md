@@ -1,5 +1,23 @@
 # Changelog - WP WhatsEvolution
 
+## [1.6.0] - 2026-08-04
+
+### 💳 Fim do teste grátis: ativação paga dentro do plugin
+
+**A aba "Teste Grátis" virou "Não tem Evolution API? Adquira a sua". O pagamento agora vem ANTES da instância — e continua tudo dentro do WordPress, sem redirecionar pra lugar nenhum.**
+
+#### 🔄 Novo fluxo de ativação
+- Formulário gera um **PIX de R$ 29,90** na hora (action `signup_paid` da V2), exibido na própria aba
+- A conta é criada, mas a **instância só nasce quando o pagamento é aprovado** — o webhook do Mercado Pago provisiona e o plugin se autoconfigura sozinho no polling
+- Polling de pagamento passou a funcionar sem `api_key` durante a ativação (a instância ainda não existe nesse momento); na renovação segue exigindo a chave, como antes
+
+#### ✅ Sem impacto para quem já usa
+- **Modo manual continua gratuito**: quem tem servidor Evolution próprio só informa as credenciais na aba Conexão, como sempre — isso está dito explicitamente na tela agora
+- Renovação por PIX, status e envio no modo managed: **inalterados**
+
+#### 🐛 Correções
+- `signup_paid` estava caindo no timeout curto de status (15s) por não constar na lista de ações lentas — criar conta + gerar cobrança precisa do timeout longo
+
 ## [1.5.0] - 2026-07-02
 
 ### 🚀 Modo Managed migrado para o WhatsEvolution V2

@@ -844,14 +844,19 @@ Finalize agora:
 				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 30px;">
 					<div style="text-align: center; margin-bottom: 30px;">
 						<h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 28px;">
-							<?php echo $current_user_email ? '💳 Ativar Plano Pago' : '🚀 Teste Grátis por 7 Dias'; ?>
+							💳 Não tem Evolution API? Adquira a sua
 						</h2>
 						<p style="margin: 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
 							<?php if ($current_user_email): ?>
-								Detectamos que você já tem uma conta. Ative seu plano pago para continuar usando:
+								Detectamos que você já tem uma conta. Ative sua instância para continuar usando:
 							<?php else: ?>
-								Não tem Evolution API? Sem problema! Teste nossa solução completa:
+								Instância pronta para usar por <strong>R$ 29,90/mês</strong> — sem VPS, sem Docker.
+								Você paga por PIX aqui mesmo e a instância é criada na hora.
 							<?php endif; ?>
+						</p>
+						<p style="margin: 12px 0 0 0; color: #718096; font-size: 13px; line-height: 1.5;">
+							Já tem servidor Evolution próprio? O plugin é gratuito nesse modo —
+							use a aba <strong>Conexão</strong> e informe suas credenciais.
 						</p>
 					</div>
 					
@@ -868,13 +873,13 @@ Finalize agora:
 						</div>
 						<div style="background: #f7fafc; padding: 20px; border-radius: 10px; text-align: center;">
 							<div style="font-size: 24px; margin-bottom: 10px;">🛠️</div>
-							<h4 style="margin: 0 0 8px 0; color: #2d3748;">Suporte técnico</h4>
-							<p style="margin: 0; color: #4a5568; font-size: 14px;">Incluído no teste</p>
+							<h4 style="margin: 0 0 8px 0; color: #2d3748;">Tudo pelo plugin</h4>
+							<p style="margin: 0; color: #4a5568; font-size: 14px;">Sem sair do WordPress</p>
 						</div>
 						<div style="background: #f7fafc; padding: 20px; border-radius: 10px; text-align: center;">
 							<div style="font-size: 24px; margin-bottom: 10px;">💳</div>
-							<h4 style="margin: 0 0 8px 0; color: #2d3748;">7 dias grátis</h4>
-							<p style="margin: 0; color: #4a5568; font-size: 14px;">Sem cartão de crédito</p>
+							<h4 style="margin: 0 0 8px 0; color: #2d3748;">R$ 29,90/mês</h4>
+							<p style="margin: 0; color: #4a5568; font-size: 14px;">PIX, renove quando quiser</p>
 						</div>
 					</div>
 
@@ -908,9 +913,37 @@ Finalize agora:
 						
 						<button type="submit" id="wpwevo-signup-btn" disabled
 								style="width: 100%; margin-top: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-							<?php echo $current_user_email ? '💳 Ativar Plano Pago' : '🚀 Criar Conta e Testar Agora'; ?>
+							💳 Gerar PIX de R$ 29,90 e ativar
 						</button>
 					</form>
+				</div>
+			</div>
+
+			<!-- Container do PIX da ativação: aparece após gerar a cobrança e
+			     fica em polling até o pagamento aprovar e a instância nascer -->
+			<div id="wpwevo-activation-payment" style="display: none;">
+				<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2); overflow: hidden;">
+					<div style="background: rgba(255,255,255,0.97); margin: 2px; border-radius: 10px; padding: 30px; text-align: center;">
+						<h3 style="margin: 0 0 8px 0; color: #2d3748; font-size: 22px;">Pague com PIX para ativar</h3>
+						<p style="margin: 0 0 20px 0; color: #4a5568; font-size: 14px;">
+							Assim que o pagamento for confirmado, sua instância é criada automaticamente e o plugin se configura sozinho.
+						</p>
+
+						<img id="wpwevo-activation-qr" src="" alt="QR Code PIX"
+							 style="width: 240px; height: 240px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; background: #fff;">
+
+						<div style="max-width: 460px; margin: 20px auto 0;">
+							<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748; font-size: 14px;">PIX copia e cola</label>
+							<textarea id="wpwevo-activation-copypaste" readonly rows="3"
+									  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 12px; font-family: monospace; resize: none;"></textarea>
+							<button type="button" id="wpwevo-activation-copy-btn" class="button"
+									style="margin-top: 10px;">Copiar código PIX</button>
+						</div>
+
+						<p id="wpwevo-activation-status" style="margin: 22px 0 0 0; color: #4a5568; font-size: 14px;">
+							⏳ Aguardando confirmação do pagamento...
+						</p>
+					</div>
 				</div>
 			</div>
 			<?php endif; ?>

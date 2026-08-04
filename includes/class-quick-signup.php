@@ -208,7 +208,11 @@ class Quick_Signup {
 	}
 
 	/**
-	 * ✅ MELHORADO: Handler principal de quick signup
+	 * Ativação da instância gerenciada. O teste grátis foi encerrado: agora o
+	 * pagamento vem ANTES e a instância só é criada depois que o PIX é aprovado.
+	 * Assim o usuário resolve tudo sem sair do WordPress — que é a razão de
+	 * existir do modo managed. Quem já usa o plugin (managed configurado ou modo
+	 * manual com credenciais próprias) não passa por aqui e não é afetado.
 	 */
 	public function handle_quick_signup() {
 		try {
@@ -217,9 +221,7 @@ class Quick_Signup {
 			$form_data = $this->get_sanitized_form_data();
 			$this->validate_form_data($form_data);
 
-			$previous_config = $this->get_previous_manual_config();
-
-			$response = $this->call_managed_api('signup', [
+			$response = $this->call_managed_api('signup_paid', [
 				'name' => $form_data['name'],
 				'email' => $form_data['email'],
 				'whatsapp' => $form_data['whatsapp'],
@@ -230,12 +232,28 @@ class Quick_Signup {
 			$this->validate_edge_response($response);
 			$api_data = $this->extract_api_data($response['data']);
 
-			$this->save_configuration($api_data, $form_data, $previous_config);
+			if (empty($api_data['external_reference'])) {
+				throw new \Exception(__('Não foi possível gerar o pagamento. Tente novamente.', 'wp-whatsevolution'));
+			}
+
+			// Cadastro fica pendente: a configuração só é gravada quando o
+			// pagamento aprovar e a API devolver a api_key da instância criada.
+			update_option('wpwevo_pending_signup', [
+				'external_reference' => sanitize_text_field($api_data['external_reference']),
+				'name'               => $form_data['name'],
+				'email'              => $form_data['email'],
+				'whatsapp'           => $form_data['whatsapp'],
+				'dashboard_access'   => $api_data['dashboard_access'] ?? [],
+				'previous_config'    => $this->get_previous_manual_config(),
+				'created_at'         => time()
+			]);
+
+			$api_data['awaiting_payment'] = true;
 
 			wp_send_json_success($api_data);
 
 		} catch (\Exception $e) {
-			$this->log_error('Erro no Quick Signup', $e);
+			$this->log_error('Erro na ativação', $e);
 			wp_send_json_error([
 				'message' => $e->getMessage()
 			]);
@@ -514,7 +532,11 @@ class Quick_Signup {
 		];
 
 		$body = json_encode(array_merge(['action' => $action], $data));
-		$timeout = ($action === 'signup') ? $this->api_timeout : $this->status_timeout;
+		// Cadastro cria conta e gera cobrança no Mercado Pago — precisa do
+		// timeout longo. O resto (status/polling) usa o curto.
+		$timeout = in_array($action, ['signup', 'signup_paid'], true)
+			? $this->api_timeout
+			: $this->status_timeout;
 
 		$this->log_debug("Chamando API managed: {$action}");
 		$this->log_debug("URL: {$url}");
@@ -633,9 +655,6 @@ class Quick_Signup {
 		try {
 			$this->validate_ajax_request();
 
-			$api_key = $this->get_api_key();
-			$this->validate_api_key($api_key);
-
 			$external_reference = isset($_POST['external_reference'])
 				? sanitize_text_field($_POST['external_reference'])
 				: '';
@@ -644,10 +663,23 @@ class Quick_Signup {
 				throw new \Exception(__('Referência do pagamento ausente.', 'wp-whatsevolution'));
 			}
 
-			$response = $this->call_managed_api('payment_status', [
-				'api_key' => $api_key,
-				'external_reference' => $external_reference
-			]);
+			// Numa ATIVAÇÃO a instância ainda não existe, então não há api_key
+			// pra enviar — o external_reference sozinho identifica o pagamento.
+			// Numa RENOVAÇÃO segue exigindo a api_key, como sempre foi.
+			$pending = get_option('wpwevo_pending_signup', []);
+			$is_activation = is_array($pending)
+				&& !empty($pending['external_reference'])
+				&& hash_equals($pending['external_reference'], $external_reference);
+
+			$payload = ['external_reference' => $external_reference];
+
+			if (!$is_activation) {
+				$api_key = $this->get_api_key();
+				$this->validate_api_key($api_key);
+				$payload['api_key'] = $api_key;
+			}
+
+			$response = $this->call_managed_api('payment_status', $payload);
 
 			if (!$response['success']) {
 				$error_message = $response['data']['error'] ?? $response['error'] ?? __('Erro ao verificar pagamento.', 'wp-whatsevolution');
@@ -655,6 +687,28 @@ class Quick_Signup {
 			}
 
 			$payment_data = $response['data']['data'] ?? [];
+
+			// Ativação aprovada: a instância nasceu do outro lado e veio a
+			// api_key. É só aqui que o plugin passa a ficar configurado.
+			if ($is_activation && !empty($payment_data['payment_approved']) && !empty($payment_data['api_key'])) {
+				// dashboard_access veio na resposta da ativação, não no polling
+				$config_data = $payment_data;
+				if (!empty($pending['dashboard_access'])) {
+					$config_data['dashboard_access'] = $pending['dashboard_access'];
+				}
+
+				$this->save_configuration(
+					$config_data,
+					[
+						'name'     => $pending['name'] ?? '',
+						'email'    => $pending['email'] ?? '',
+						'whatsapp' => $pending['whatsapp'] ?? ''
+					],
+					$pending['previous_config'] ?? null
+				);
+				delete_option('wpwevo_pending_signup');
+				$payment_data['activation_completed'] = true;
+			}
 
 			// Pagamento aprovado renova a validade — sincroniza as options locais
 			if (!empty($payment_data['payment_approved']) && !empty($payment_data['trial_expires_at'])) {

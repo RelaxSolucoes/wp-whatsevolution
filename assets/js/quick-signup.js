@@ -133,6 +133,13 @@ jQuery(document).ready(function($) {
             data: formData,
             success: function(response) {
                 if (response.success && response.data) {
+                    // Fluxo novo: a conta foi criada mas a instância só nasce
+                    // depois do PIX aprovado — mostrar a cobrança e aguardar.
+                    if (response.data.awaiting_payment) {
+                        showActivationPayment(response.data);
+                        return;
+                    }
+
                     updateProgress(3, wpwevo_quick_signup.messages.success);
                     // CORREÇÃO: Atualiza a API Key do objeto global se vier na resposta
                     if (response.data.api_key) {
@@ -210,6 +217,47 @@ jQuery(document).ready(function($) {
         startStatusPolling(data.api_key || wpwevo_quick_signup.api_key);
     }
 
+    /**
+     * Ativação paga: exibe o PIX e fica em polling até aprovar. Quando aprova,
+     * o backend cria a instância e o plugin já fica configurado — por isso
+     * basta recarregar a página (o polling existente cuida disso).
+     */
+    function showActivationPayment(data) {
+        hideAllContainers();
+
+        const $box = $('#wpwevo-activation-payment');
+        if (!$box.length) {
+            showError('Não foi possível exibir o pagamento. Recarregue a página e tente novamente.');
+            return;
+        }
+
+        if (data.pix_qr_code_base64) {
+            $('#wpwevo-activation-qr').attr('src', 'data:image/png;base64,' + data.pix_qr_code_base64).show();
+        } else {
+            $('#wpwevo-activation-qr').hide();
+        }
+
+        $('#wpwevo-activation-copypaste').val(data.pix_copy_paste || '');
+        $box.show();
+
+        if (data.external_reference) {
+            localStorage.setItem('wpwevo_current_payment', data.external_reference);
+            startPaymentStatusPolling(data.external_reference);
+        }
+    }
+
+    // Copiar o PIX da ativação
+    $(document).on('click', '#wpwevo-activation-copy-btn', function() {
+        const field = document.getElementById('wpwevo-activation-copypaste');
+        if (!field || !field.value) {
+            return;
+        }
+        field.select();
+        field.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        $(this).text(wpwevo_quick_signup.messages.copied || 'Copiado!');
+    });
+
     function showError(message) {
         hideAllContainers();
         $errorContainer.show();
@@ -222,6 +270,7 @@ jQuery(document).ready(function($) {
         $errorContainer.hide();
         $form.hide();
         $statusContainer.hide();
+        $('#wpwevo-activation-payment').hide();
     }
 
     function resetContainers() {
@@ -438,6 +487,7 @@ jQuery(document).ready(function($) {
                     console.log('✅ Pagamento aprovado!');
                     stopPaymentStatusPolling();
                     localStorage.removeItem('wpwevo_current_payment');
+                    $('#wpwevo-activation-status').text('✅ ' + (data.display_message || 'Pagamento aprovado! Preparando sua instância...'));
                     showPaymentSuccessMessage(data.display_message);
                     setTimeout(() => {
                         window.location.reload();
