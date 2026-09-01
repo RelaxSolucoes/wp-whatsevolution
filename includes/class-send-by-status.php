@@ -58,6 +58,21 @@ class Send_By_Status {
 		
 		// Hook para mudança de status
 		add_action('woocommerce_order_status_changed', [$this, 'handle_status_change'], 10, 4);
+
+		// Notificação ao admin: callback próprio, no mesmo hook. As duas mensagens
+		// são sequenciais porque a API não envia as duas numa chamada só, mas são
+		// logicamente independentes — o admin precisa ser avisado mesmo que o
+		// pedido não tenha telefone, que o número do cliente esteja errado ou que
+		// a mensagem ao cliente esteja desligada naquele status. Até a v1.6.0 este
+		// bloco morava dentro do `else` do envio ao cliente e herdava todos os
+		// guards dele, então na prática só saía quando o cliente recebia primeiro.
+		// Prioridade 20 mantém a ordem de hoje (cliente, depois admin) sem criar
+		// dependência entre os dois.
+		//
+		// Continua exclusivo de woocommerce_order_status_changed, de propósito:
+		// enganchar woocommerce_new_order faria o pedido de quem usa gateway
+		// disparar duas vezes (nasce num status, o gateway muda em seguida).
+		add_action('woocommerce_order_status_changed', [$this, 'handle_admin_notification'], 20, 4);
 	}
 
 	/**
@@ -235,6 +250,9 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 			'{payment_method}' => $order->get_payment_method_title(),
 			'{shipping_method}' => $order->get_shipping_method(),
 			'{order_url}' => $order->get_view_order_url(),
+			// Link do painel, para as mensagens do admin. {order_url} aponta para
+			// a área do cliente e o admin não consegue abrir.
+			'{admin_order_url}' => $order->get_edit_order_url(),
 			'{payment_url}' => $order->get_checkout_payment_url(),
 			
 			// Produtos
@@ -587,6 +605,11 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 												  rows="1"
 												  style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.4; resize: vertical; min-height: 50px; overflow: hidden;"
 												  placeholder="Digite a mensagem que o admin receberá quando este status for ativado..."><?php echo esc_textarea(isset($settings[$status]['admin_message']) ? $settings[$status]['admin_message'] : ''); ?></textarea>
+										<p style="margin: 8px 0 0 0; color: #718096; font-size: 12px;">
+											Em branco, é usado o modelo padrão. A notificação ao admin é independente da mensagem ao cliente:
+											sai mesmo com o checkbox de ativar desmarcado, com o pedido sem telefone ou com o envio ao cliente falhando.
+											Use <code>{admin_order_url}</code> para o link do painel.
+										</p>
 									</div>
 								</div>
 							<?php endforeach; ?>
@@ -628,7 +651,8 @@ Infelizmente houve um problema com seu pedido #{order_id}.
 								'{order_date}' => 'Data do pedido',
 								'{payment_method}' => 'Método de pagamento',
 								'{shipping_method}' => 'Método de envio',
-								'{order_url}' => 'URL do pedido',
+								'{order_url}' => 'URL do pedido (área do cliente)',
+								'{admin_order_url}' => 'URL do pedido no painel (mensagens do admin)',
 								'{payment_url}' => 'URL de pagamento',
 								
 								// Produtos
@@ -795,6 +819,7 @@ Valor: {order_total}
 				'{payment_method}',
 				'{shipping_method}',
 				'{order_url}',
+				'{admin_order_url}',
 				'{shipping_name}',
 				'{shipping_address_line_1}',
 				'{shipping_address_line_2}',
@@ -810,6 +835,7 @@ Valor: {order_total}
 				'Cartão de Crédito',
 				'PAC',
 				'https://seusite.com.br/pedido/12345',
+				'https://seusite.com.br/wp-admin/post.php?post=12345&action=edit',
 				'João Silva',
 				'Rua das Flores, 123',
 				'Apto 45',
@@ -964,48 +990,87 @@ Valor: {order_total}
 				),
 				false
 			);
+		}
+	}
 
-			// NOVO: Envia notificação para o admin se configurado
-			if (!empty($settings[$new_status]['notify_admin'])) {
-				$admin_phone = get_option('wpwevo_admin_whatsapp');
+	/**
+	 * Notifica o admin na mudança de status. Roda como callback separado de
+	 * handle_status_change() e só depende do que diz respeito ao admin: o
+	 * sininho "Notificar Admin" do status e o número configurado em Conexão.
+	 *
+	 * O checkbox "Ativar" do status governa apenas a mensagem do cliente — um
+	 * lojista pode querer ser avisado de um status sem mandar nada ao cliente.
+	 *
+	 * Dispara uma vez por transição de status, igual à mensagem do cliente.
+	 */
+	public function handle_admin_notification($order_id, $old_status, $new_status, $order) {
+		if (!class_exists('WooCommerce')) {
+			return;
+		}
 
-				if (!empty($admin_phone)) {
-					// Usa mensagem personalizada ou mensagem padrão
-					if (!empty($settings[$new_status]['admin_message'])) {
-						$admin_message = $settings[$new_status]['admin_message'];
-					} else {
-						// Mensagem padrão caso não haja mensagem personalizada
-						$admin_message = "🔔 *Notificação de Pedido*\n\n" .
-										"📋 Pedido: #{order_id}\n" .
-										"📊 Status: {order_status}\n" .
-										"👤 Cliente: {customer_name}\n" .
-										"📱 Contato: {customer_phone}\n" .
-										"💰 Valor: {order_total}\n\n" .
-										"🔗 Ver pedido: {order_url}";
-					}
-
-					// Substitui as variáveis na mensagem do admin
-					$admin_message = $this->replace_variables($admin_message, $order);
-
-					// Envia para o admin
-					$admin_result = $api->send_message($admin_phone, $admin_message);
-
-					if ($admin_result && isset($admin_result['success']) && $admin_result['success']) {
-						// Adiciona nota no pedido sobre notificação ao admin
-						$order->add_order_note(
-							sprintf(
-								'Notificação de status enviada ao admin: %s',
-								$admin_phone
-							),
-							false
-						);
-					} else {
-						// Log de erro caso falhe o envio ao admin (não afeta o cliente)
-						$error_msg = isset($admin_result['message']) ? $admin_result['message'] : 'Erro desconhecido';
-						wpwevo_log('error', "Send_By_Status: Falha ao enviar notificação ao admin para pedido #$order_id - $error_msg");
-					}
-				}
+		if (!$order instanceof \WC_Order) {
+			$order = wc_get_order($order_id);
+			if (!$order) {
+				return;
 			}
+		}
+
+		if (empty($this->available_statuses)) {
+			$this->setup();
+		}
+
+		$settings = get_option('wpwevo_status_messages', []);
+
+		if (empty($settings[$new_status]['notify_admin'])) {
+			return;
+		}
+
+		// Até a v1.6.0 este caso não logava nada em lugar nenhum — era o motivo
+		// de o usuário não achar rastro do problema. No modo managed o campo era
+		// impossível de preencher, então caía sempre aqui.
+		$admin_phone = get_option('wpwevo_admin_whatsapp');
+		if (empty($admin_phone)) {
+			wpwevo_log('warning', "Send_By_Status: 'Notificar Admin' está ligado no status '$new_status' (pedido #$order_id), mas o número do WhatsApp Admin está vazio. Preencha em Whats Evolution → Conexão → WhatsApp Admin.");
+			return;
+		}
+
+		$api = Api_Connection::get_instance();
+		if (!$api->is_configured()) {
+			wpwevo_log('warning', "Send_By_Status: 'Notificar Admin' está ligado no status '$new_status' (pedido #$order_id), mas a API não está configurada.");
+			return;
+		}
+
+		// Mensagem em branco continua caindo no template padrão: quem depende
+		// dele hoje não pode parar de receber silenciosamente.
+		if (!empty($settings[$new_status]['admin_message'])) {
+			$admin_message = $settings[$new_status]['admin_message'];
+		} else {
+			$admin_message = "🔔 *Notificação de Pedido*\n\n" .
+							"📋 Pedido: #{order_id}\n" .
+							"📊 Status: {order_status}\n" .
+							"👤 Cliente: {customer_name}\n" .
+							"📱 Contato: {customer_phone}\n" .
+							"💰 Valor: {order_total}\n\n" .
+							"🔗 Ver pedido: {admin_order_url}";
+		}
+
+		$admin_message = $this->replace_variables($admin_message, $order);
+
+		$admin_result = $api->send_message($admin_phone, $admin_message);
+
+		if ($admin_result && isset($admin_result['success']) && $admin_result['success']) {
+			$order->add_order_note(
+				sprintf(
+					'Notificação de status enviada ao admin: %s',
+					$admin_phone
+				),
+				false
+			);
+		} else {
+			// Falha no envio ao admin não afeta o cliente — o envio dele roda em
+			// outro callback e já terminou quando este aqui começa.
+			$error_msg = isset($admin_result['message']) ? $admin_result['message'] : 'Erro desconhecido';
+			wpwevo_log('error', "Send_By_Status: Falha ao enviar notificação ao admin para pedido #$order_id - $error_msg");
 		}
 	}
 } 

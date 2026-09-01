@@ -1,4 +1,4 @@
-# WP WhatsEvolution v1.4.9
+# WP WhatsEvolution v1.6.1
 
 🚀 **📲 Mais vendas, menos trabalho — automação total entre WooCommerce e WhatsApp + SMS**
 
@@ -122,11 +122,18 @@ Agora você pode enviar notificações via SMS usando o app **android-sms-gatewa
 - **✅ Envio Duplo Sequencial**: Cliente recebe primeiro, depois admin é notificado
 - **✅ Fallback Inteligente**: Mensagem padrão se campo admin vazio
 
+> **Corrigido na v1.6.1.** O checkbox **"Ativar"** de cada status controla **apenas a mensagem enviada ao cliente**.
+> O sininho **🔔 Notificar Admin** é independente: marque nos status em que quiser ser avisado, preencha o número
+> em *Conexão → WhatsApp Admin*, e pronto. Se a mensagem do admin ficar em branco, é usado o modelo padrão.
+> **O admin é notificado mesmo que o envio ao cliente falhe ou que o pedido não tenha telefone.**
+> As duas mensagens são sequenciais porque a API não envia as duas numa chamada só — mas uma não depende da outra.
+
 ### 🎯 **Como Funciona**
-1. **Configure WhatsApp Admin**: Insira o número em "Whats Evolution > Conexão"
+1. **Configure WhatsApp Admin**: Insira o número em "Whats Evolution > Conexão" e clique em **💾 Salvar Número** (card próprio, funciona nos modos automático, manual e SMS)
 2. **Ative por Status**: Marque "🔔 Notificar Admin" em cada status desejado
-3. **Personalize Mensagens**: Campo exclusivo aparece para cada status
+3. **Personalize Mensagens**: Campo exclusivo aparece para cada status — use `{admin_order_url}` para o link do painel
 4. **Automático**: Quando pedido mudar de status, cliente e admin recebem notificações
+5. **Confira antes**: O botão **🧪 Enviar Teste** manda uma mensagem para o número do admin sem precisar de um pedido real
 
 ### 💡 **Casos de Uso**
 - **Novos Pedidos**: Admin recebe alerta imediato de novos pedidos
@@ -535,7 +542,8 @@ Cada status tem template personalizável com variáveis específicas do pedido.
 |----------|-----------|---------|
 | `{order_id}` | ID do pedido | #1234 |
 | `{order_total}` | Valor total | R$ 149,90 |
-| `{order_url}` | Link do pedido | https://loja.com/pedido/1234 |
+| `{order_url}` | Link do pedido (área do cliente) | https://loja.com/pedido/1234 |
+| `{admin_order_url}` | Link do pedido no painel (mensagens do admin) | https://loja.com/wp-admin/post.php?post=1234&action=edit |
 | `{payment_method}` | Método de pagamento | Cartão de Crédito |
 | `{shipping_method}` | Método de envio | Correios |
 

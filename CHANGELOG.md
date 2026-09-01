@@ -1,5 +1,37 @@
 # Changelog - WP WhatsEvolution
 
+## [1.6.1] - 2026-09-01
+
+### 🔔 Notificação ao admin voltou a funcionar
+
+**O sininho "Notificar Admin" existe desde a v1.4.6, mas nunca funcionou como anunciado.** Quem ativou o plugin pelo fluxo automático (modo managed) nunca conseguiu nem preencher o número — e não havia nada nos logs indicando o motivo.
+
+Eram três problemas somados:
+
+- **A notificação estava presa ao envio ao cliente.** O bloco do admin ficava dentro do `else` do envio ao cliente, então só saía se a mensagem ao cliente estivesse ativada naquele status, o pedido tivesse telefone válido e o envio ao cliente desse certo. A independência estava documentada desde a v1.4.6, mas implementada ao contrário.
+- **O campo "WhatsApp Admin" estava bloqueado no modo managed.** Ele herdou o `disabled` dos campos vizinhos de credencial da Evolution API. O número do admin não é credencial: é preferência do lojista.
+- **A falha era silenciosa.** Com o número vazio — o que era garantido no modo managed — nada era enviado e nada era registrado em lugar nenhum.
+
+#### O que mudou
+
+- A notificação ao admin agora roda em um **callback próprio**, com guards próprios. Ela sai mesmo que o pedido não tenha telefone do cliente, que o número do cliente esteja errado ou que o envio ao cliente falhe. O código do envio ao cliente ficou **inalterado**
+- O campo do número saiu do formulário de credenciais e ganhou **card, botão e endpoint próprios** — funciona nos três modos (managed, manual e SMS) e não exige Evolution API configurada para ser salvo
+- **Botão "Enviar Teste"**, para conferir a configuração sem depender de um pedido real
+- No modo managed, o número informado no cadastro aparece como **sugestão** com um botão "usar este número". Ele não é copiado automaticamente: enviar para um número que o lojista nunca confirmou seria pior que não enviar
+- Quando "Notificar Admin" está ligado e o número está vazio (ou a API não está configurada), agora sai um **warning no log**
+- Salvar credenciais no modo manual **não apaga mais** o número do admin — antes, um save com o campo ausente do POST sobrescrevia a opção com vazio
+- Nova variável **`{admin_order_url}`**, o link do pedido no painel, usada no modelo padrão do admin. O `{order_url}` apontava para a área do cliente, que o admin não consegue abrir. A semântica de `{order_url}` não mudou
+- Removido o `register_setting` de `wpwevo_admin_whatsapp`, que nunca era executado (o formulário é interceptado por AJAX) e dava falsa sensação de persistência
+
+#### ⚠️ Mudança de comportamento
+
+O checkbox **"Ativar"** de cada status passa a controlar **apenas a mensagem enviada ao cliente**. Uma instalação com `Notificar Admin` ligado e `Ativar` desligado no mesmo status não recebia nada antes e passa a receber a notificação do admin agora. É o comportamento pretendido desde a v1.4.6.
+
+#### 🔒 O que deliberadamente NÃO mudou
+
+O envio continua enganchado **apenas** em `woocommerce_order_status_changed`, tanto para o cliente quanto para o admin. Enganchar também `woocommerce_new_order` foi avaliado e **descartado**: na maioria das lojas o pedido nasce por um gateway de pagamento, que define o status logo em seguida — o cliente receberia a mensagem do status inicial e a da transição seguinte, duas mensagens por pedido. O ganho atenderia um caso isolado ao custo de duplicar mensagem para todo mundo.
+
+
 ## [1.6.0] - 2026-08-04
 
 ### 💳 Fim do teste grátis: ativação paga dentro do plugin

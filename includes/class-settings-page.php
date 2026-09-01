@@ -23,6 +23,8 @@ class Settings_Page {
 		add_action('admin_post_wpwevo_test_connection', [$this, 'test_connection']);
 		add_action('admin_post_wpwevo_save_send_mode', [$this, 'save_send_mode']);
 		add_action('wp_ajax_wpwevo_validate_settings', [$this, 'validate_settings']);
+		add_action('wp_ajax_wpwevo_save_admin_whatsapp', [$this, 'save_admin_whatsapp']);
+		add_action('wp_ajax_wpwevo_test_admin_whatsapp', [$this, 'test_admin_whatsapp']);
 		add_action('wp_ajax_wpwevo_sms_test', [$this, 'handle_sms_test']);
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
 	}
@@ -65,11 +67,10 @@ class Settings_Page {
 			'default' => ''
 		]);
 
-		register_setting('wpwevo_settings', 'wpwevo_admin_whatsapp', [
-			'type' => 'string',
-			'sanitize_callback' => 'sanitize_text_field',
-			'default' => ''
-		]);
+		// wpwevo_admin_whatsapp não é registrado aqui de propósito: o formulário
+		// é interceptado por AJAX (assets/js/admin.js) e a Settings API nunca
+		// chegava a rodar, então o register_setting só dava falsa sensação de
+		// persistência. A opção é gravada por save_admin_whatsapp().
 
 		register_setting('wpwevo_smsgate_settings', 'wpwevo_smsgate_username', [
 			'type' => 'string',
@@ -150,9 +151,11 @@ class Settings_Page {
 			update_option('wpwevo_manual_api_key', $api_key);
 			update_option('wpwevo_instance', $instance);
 
-			// Salva o WhatsApp Admin (opcional)
-			$admin_whatsapp = isset($_POST['admin_whatsapp']) ? sanitize_text_field($_POST['admin_whatsapp']) : '';
-			update_option('wpwevo_admin_whatsapp', $admin_whatsapp);
+			// O WhatsApp Admin não é credencial da Evolution API e não é mais
+			// salvo aqui: tem card e endpoint próprios (save_admin_whatsapp), o
+			// que o faz funcionar também nos modos managed e sms. Enquanto morava
+			// neste método, um save de credenciais sem o campo no POST apagava o
+			// número gravado.
 
 			// Limpa a chave antiga para evitar confusão
 			delete_option('wpwevo_api_key');
@@ -179,6 +182,85 @@ class Settings_Page {
 				'message' => $e->getMessage()
 			]);
 		}
+	}
+
+	/**
+	 * Salva o número do WhatsApp Admin. Endpoint próprio, separado da validação
+	 * de credenciais: é preferência do lojista, vale nos três modos de conexão e
+	 * não exige Evolution API configurada. Campo vazio limpa a opção, o que é a
+	 * forma de desligar as notificações sem mexer nos status.
+	 */
+	public function save_admin_whatsapp() {
+		check_ajax_referer('wpwevo_admin_whatsapp', 'nonce');
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => __('Permissão negada.', 'wp-whatsevolution')]);
+		}
+
+		$raw = isset($_POST['admin_whatsapp']) ? sanitize_text_field($_POST['admin_whatsapp']) : '';
+		$number = preg_replace('/[^0-9]/', '', $raw);
+
+		if ($number === '') {
+			update_option('wpwevo_admin_whatsapp', '');
+			wp_send_json_success([
+				'message' => __('Número removido. As notificações ao admin ficam desligadas.', 'wp-whatsevolution'),
+				'number'  => ''
+			]);
+		}
+
+		// Guarda a forma normalizada que a validação devolve (sem zeros à
+		// esquerda), a mesma que o envio usa.
+		$normalized = wpwevo_validate_phone($number);
+		if (!$normalized) {
+			wp_send_json_error(['message' => __('Número inválido. Use DDI + DDD + número, apenas dígitos (ex.: 5511999999999).', 'wp-whatsevolution')]);
+		}
+
+		update_option('wpwevo_admin_whatsapp', $normalized);
+
+		wp_send_json_success([
+			'message' => __('Número do admin salvo com sucesso!', 'wp-whatsevolution'),
+			'number'  => $normalized
+		]);
+	}
+
+	/**
+	 * Envia uma mensagem de teste para o número do admin, para que a falha de
+	 * configuração apareça na tela em vez de só no log depois de um pedido real.
+	 */
+	public function test_admin_whatsapp() {
+		check_ajax_referer('wpwevo_admin_whatsapp', 'nonce');
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => __('Permissão negada.', 'wp-whatsevolution')]);
+		}
+
+		$raw = isset($_POST['admin_whatsapp']) ? sanitize_text_field($_POST['admin_whatsapp']) : '';
+		$number = preg_replace('/[^0-9]/', '', $raw);
+
+		if ($number === '') {
+			$number = preg_replace('/[^0-9]/', '', (string) get_option('wpwevo_admin_whatsapp', ''));
+		}
+
+		if ($number === '') {
+			wp_send_json_error(['message' => __('Preencha o número antes de enviar o teste.', 'wp-whatsevolution')]);
+		}
+
+		$api = Api_Connection::get_instance();
+		if (!$api->is_configured()) {
+			wp_send_json_error(['message' => __('A API não está configurada. Configure a conexão antes de enviar o teste.', 'wp-whatsevolution')]);
+		}
+
+		$result = $api->send_message(
+			$number,
+			__('🔔 Teste de notificação do WhatsEvolution. Se você recebeu esta mensagem, as notificações ao admin estão funcionando.', 'wp-whatsevolution')
+		);
+
+		if ($result && isset($result['success']) && $result['success']) {
+			wp_send_json_success(['message' => __('Mensagem de teste enviada. Confira o WhatsApp desse número.', 'wp-whatsevolution')]);
+		}
+
+		$error = (is_array($result) && isset($result['message'])) ? $result['message'] : __('Erro desconhecido.', 'wp-whatsevolution');
+		wp_send_json_error(['message' => sprintf(__('Falha ao enviar: %s', 'wp-whatsevolution'), $error)]);
 	}
 
 	public function enqueue_admin_assets($hook) {
@@ -208,6 +290,7 @@ class Settings_Page {
 			'ajax_url'       => admin_url('admin-ajax.php'),
 			'nonce'          => wp_create_nonce('wpwevo_validate_settings'),
 			'validate_nonce' => wp_create_nonce('wpwevo_validate_number'),
+			'admin_whatsapp_nonce' => wp_create_nonce('wpwevo_admin_whatsapp'),
 			'sms_test_nonce' => wp_create_nonce('wpwevo_sms_test'),
             'error_message' => __('Erro ao salvar as configurações. Tente novamente.', 'wp-whatsevolution'),
 			'saved_api_url'  => get_option('wpwevo_api_url', ''),
@@ -579,21 +662,6 @@ class Settings_Page {
 									Nome da instância criada na Evolution API
 								</p>
 							</div>
-
-							<!-- WhatsApp Admin (NOVO) -->
-							<div style="background: #f0fff4; padding: 15px; border-radius: 8px; border-left: 4px solid #48bb78;">
-								<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">🔔 WhatsApp Admin (Opcional)</label>
-								<input type="text"
-									   id="wpwevo-admin-whatsapp"
-									   name="admin_whatsapp"
-									   value="<?php echo esc_attr(get_option('wpwevo_admin_whatsapp', '')); ?>"
-									   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;"
-									   placeholder="5511999999999 (apenas números)" <?php disabled($is_managed, true); ?>>
-								<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
-									Número do WhatsApp para receber notificações de status dos pedidos (apenas números, com DDI + DDD)
-								</p>
-								<div id="wpwevo-admin-whatsapp-validation" style="display: none; margin-top: 8px;"></div>
-							</div>
 						</div>
 						
 						<!-- Botões de Ação -->
@@ -629,6 +697,70 @@ class Settings_Page {
 						
 						<div id="wpwevo-validation-result" style="display: none; margin-top: 15px;"></div>
 					</form>
+				</div>
+			</div>
+
+			<!-- Card 2: WhatsApp Admin -->
+			<?php
+			// Card próprio, fora do formulário de credenciais. O número do admin é
+			// preferência do lojista, não credencial: funciona nos três modos
+			// (managed, manual e sms) e não depende da Evolution API estar
+			// configurada para ser salvo. Até a v1.6.1 o campo herdava o
+			// disabled($is_managed) do bloco vizinho e era impossível de preencher
+			// justamente em managed, o modo do fluxo de ativação pago.
+			$admin_whatsapp = get_option('wpwevo_admin_whatsapp', '');
+			$signup_whatsapp = get_option('wpwevo_user_whatsapp', '');
+			$signup_suggestion = preg_replace('/[^0-9]/', '', (string) $signup_whatsapp);
+			?>
+			<div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 12px; padding: 0; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.2); overflow: hidden; margin-top: 20px;">
+				<div style="background: rgba(255,255,255,0.95); margin: 2px; border-radius: 10px; padding: 20px;">
+					<div style="display: flex; align-items: center; margin-bottom: 20px;">
+						<div style="background: #48bb78; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🔔</div>
+						<h3 style="margin: 0; color: #2d3748; font-size: 18px;">WhatsApp Admin (Opcional)</h3>
+					</div>
+
+					<div style="background: #f0fff4; padding: 15px; border-radius: 8px; border-left: 4px solid #48bb78;">
+						<label for="wpwevo-admin-whatsapp" style="display: block; margin-bottom: 8px; font-weight: 500; color: #2d3748;">Número que recebe as notificações de pedido</label>
+						<input type="text"
+							   id="wpwevo-admin-whatsapp"
+							   name="admin_whatsapp"
+							   value="<?php echo esc_attr($admin_whatsapp); ?>"
+							   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;"
+							   placeholder="5511999999999 (apenas números)">
+						<p style="margin: 8px 0 0 0; color: #4a5568; font-size: 12px;">
+							Apenas números, com DDI + DDD. Marque o sininho 🔔 <strong>Notificar Admin</strong> em
+							<a href="<?php echo esc_url(admin_url('admin.php?page=wpwevo-send-by-status')); ?>">Envio por Status</a>
+							nos status em que quiser ser avisado. Essa notificação é independente da mensagem enviada ao cliente.
+						</p>
+
+						<?php if (!empty($signup_suggestion) && $signup_suggestion !== preg_replace('/[^0-9]/', '', (string) $admin_whatsapp)): ?>
+							<p style="margin: 10px 0 0 0; color: #4a5568; font-size: 12px;">
+								Número informado no cadastro: <strong><?php echo esc_html($signup_suggestion); ?></strong>
+								<button type="button"
+										id="wpwevo-use-signup-whatsapp"
+										data-number="<?php echo esc_attr($signup_suggestion); ?>"
+										style="margin-left: 8px; background: #edf2f7; border: 1px solid #cbd5e0; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+									Usar este número
+								</button>
+							</p>
+						<?php endif; ?>
+
+						<div id="wpwevo-admin-whatsapp-validation" style="display: none; margin-top: 8px;"></div>
+					</div>
+
+					<div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+						<button type="button" id="wpwevo-save-admin-whatsapp" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border: none; padding: 12px 24px; font-size: 14px; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);">
+							💾 Salvar Número
+						</button>
+						<?php if ($api->is_configured()): ?>
+							<button type="button" id="wpwevo-test-admin-whatsapp" style="background: #4a5568; border: none; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; cursor: pointer;">
+								🧪 Enviar Teste
+							</button>
+						<?php endif; ?>
+						<span class="spinner" id="wpwevo-admin-whatsapp-spinner"></span>
+					</div>
+
+					<div id="wpwevo-admin-whatsapp-result" style="display: none; margin-top: 15px;"></div>
 				</div>
 			</div>
 

@@ -3,7 +3,7 @@ Contributors: relaxsolucoes
 Tags: whatsapp, woocommerce, evolution api, mensagens, carrinho abandonado, marketing
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -143,6 +143,15 @@ Sim, 100% gratuito e open source.
 6. Logs em tempo real
 
 == Changelog ==
+
+= 1.6.1 =
+* **🔔 NOTIFICAÇÃO AO ADMIN CORRIGIDA**: O sininho "Notificar Admin" voltou a funcionar. A notificação agora é independente do envio ao cliente — sai mesmo que o pedido não tenha telefone, que o número do cliente esteja errado ou que a mensagem ao cliente esteja desligada naquele status
+* **📱 CAMPO DO NÚMERO LIBERADO**: O "WhatsApp Admin" saiu do formulário de credenciais e ganhou card próprio. Agora pode ser salvo nos três modos (automático, manual e SMS) — antes era impossível preencher no modo automático
+* **🧪 BOTÃO DE TESTE**: Envie uma mensagem de teste para o número do admin direto da tela de configuração
+* **🔍 FIM DA FALHA SILENCIOSA**: Se "Notificar Admin" estiver ligado sem número configurado, agora fica registrado no log
+* **💾 NÚMERO NÃO É MAIS APAGADO**: Salvar credenciais no modo manual não zera mais o número do admin
+* **🔗 NOVA VARIÁVEL `{admin_order_url}`**: Link do pedido no painel administrativo, para as mensagens do admin
+* **⚠️ MUDANÇA DE COMPORTAMENTO**: O checkbox "Ativar" de cada status controla apenas a mensagem ao cliente. Quem tiver "Notificar Admin" ligado com "Ativar" desligado passará a receber a notificação
 
 = 1.5.1 =
 * **🔑 CREDENCIAIS DO PAINEL NO PLUGIN**: O card de status agora exibe o link, email e senha do Painel de Controle diretamente (com botão mostrar/ocultar) — sem depender de mensagem por WhatsApp

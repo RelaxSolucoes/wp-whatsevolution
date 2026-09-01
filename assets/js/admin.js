@@ -100,6 +100,74 @@ jQuery(document).ready(function($) {
         });
     }
 
+    // ── WhatsApp Admin: salvar e testar (endpoint próprio) ──
+    // O número não faz parte do formulário de credenciais: é preferência do
+    // lojista e precisa poder ser salvo nos modos managed e sms também.
+    var $adminResult = $('#wpwevo-admin-whatsapp-result');
+    var $adminSpinner = $('#wpwevo-admin-whatsapp-spinner');
+
+    function showAdminResult(isSuccess, message) {
+        $adminResult
+            .removeClass('error success')
+            .addClass(isSuccess ? 'success' : 'error')
+            .css({
+                padding: '12px',
+                'border-radius': '8px',
+                background: isSuccess ? '#d4edda' : '#f8d7da',
+                border: '1px solid ' + (isSuccess ? '#c3e6cb' : '#f5c6cb'),
+                color: isSuccess ? '#155724' : '#721c24'
+            })
+            .html(message)
+            .show();
+    }
+
+    function adminWhatsAppRequest(action, successFallback) {
+        $adminSpinner.addClass('is-active');
+        $adminResult.hide();
+
+        $.ajax({
+            url: wpwevo_admin.ajax_url,
+            type: 'POST',
+            data: {
+                action: action,
+                nonce: wpwevo_admin.admin_whatsapp_nonce,
+                admin_whatsapp: $adminWhatsApp.val()
+            },
+            success: function(response) {
+                var data = (response && response.data) ? response.data : {};
+                var message = data.message || successFallback;
+
+                // Reflete no campo a forma normalizada que o servidor gravou.
+                if (typeof data.number !== 'undefined') {
+                    $adminWhatsApp.val(data.number);
+                }
+
+                showAdminResult(!!(response && response.success), message);
+            },
+            error: function() {
+                showAdminResult(false, wpwevo_admin.error_message);
+            },
+            complete: function() {
+                $adminSpinner.removeClass('is-active');
+            }
+        });
+    }
+
+    $('#wpwevo-save-admin-whatsapp').on('click', function() {
+        adminWhatsAppRequest('wpwevo_save_admin_whatsapp', 'Número salvo.');
+    });
+
+    $('#wpwevo-test-admin-whatsapp').on('click', function() {
+        adminWhatsAppRequest('wpwevo_test_admin_whatsapp', 'Teste enviado.');
+    });
+
+    // Sugestão do número do cadastro: preenche o campo, mas não salva sozinho —
+    // começar a enviar para um número que o lojista nunca confirmou é pior que
+    // não enviar.
+    $('#wpwevo-use-signup-whatsapp').on('click', function() {
+        $adminWhatsApp.val($(this).data('number')).trigger('input');
+    });
+
     // ── Modo de envio: toggle visual dos cards e visibilidade do fallback ──
     $(document).on('change', 'input[name="wpwevo_connection_mode"]', function() {
         var selected = $(this).val();
